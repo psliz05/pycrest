@@ -32,7 +32,7 @@ from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.textinput import TextInput
 
 #importing kivy file
-Builder.load_file('pycrest/gui.kv')
+Builder.load_file(os.getcwd() + '/gui.kv')
 
 class Cresta(App):
 
