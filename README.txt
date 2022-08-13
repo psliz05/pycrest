@@ -1,6 +1,7 @@
 In terminal:
-
+-Note: may have to use 'python3' instead of 'python'
 python -m pip install --upgrade pip setuptools virtualenv --users
+  -Note: some machines may not need '--users'
 python -m pip install "kivy[base]"
 pip install pandas
 
