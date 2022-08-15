@@ -83,8 +83,8 @@
 								Button:
 									text: 'get cwd'
 									on_press: root.cwd()
-									pos_hint: {'center_x': .5, 'center_y': .5}
-									size_hint: .4, .7
+									pos_hint: {'center_x': .7, 'center_y': .5}
+									size_hint: .55, .7
 									background_color: 0, 1.2, 2, .5
 						BoxLayout:
 							size_hint: .7, .5
@@ -207,6 +207,7 @@
 							bold: True
 						TextInput:
 							id: save
+							hint_text: '/.../...'
 							multiline: False
 							size_hint: .7, .35
 							font_size: 22.5
@@ -219,6 +220,7 @@
 							bold: True
 						TextInput:
 							id: savename
+							hint_text: 'project'
 							multiline: False
 							size_hint: .7, .35
 							font_size: 25
@@ -250,6 +252,7 @@
 						TextInput:
 							id: pullpath
 							multiline: False
+							hint_text: '/.../.../project.txt'
 							size_hint: .8, .35
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:

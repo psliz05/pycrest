@@ -108,7 +108,10 @@ class Tabs(TabbedPanel):
 			self.ids.savename.text = proj.replace('.txt', '')
 			for line in pull:
 				pinfo = line.split()
-				yank = pinfo[1]
+				try:
+					yank = pinfo[1]
+				except IndexError:
+					yank = ''
 				if re.search('Cwd', line):
 					self.ids.maincwd.text = yank
 				if re.search('StarFile', line):
