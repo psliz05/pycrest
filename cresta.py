@@ -317,7 +317,9 @@ class Tabs(TabbedPanel):
 			directory = self.ids.chimera_coord.text
 		if os.path.exists(directory) == False:
 			os.mkdir(directory)
-		shutil.copy2((listName),directory)
+		slash, star = os.path.split(listName)
+		if os.path.exists(directory + star) == False:
+			shutil.copy2((listName),directory)
 		if directory[-1] != '/':
 			directory = directory + '/'
 		directoread = os.fsencode(directory)

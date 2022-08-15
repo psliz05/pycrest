@@ -91,134 +91,165 @@
 				pos_hint: {'center_x': .5, 'center_y': .6}
 				text: 'First, enter your current working directory or press Get CWD to fill it in. Then, if your file is located under your CWD, check the CWD box and enter the remaining file path. If the file is located elsewhere, uncheck the CWD box and type the full path. Last, hit the save button for each path.'
 			BoxLayout:
-				orientation: 'vertical'
+				orientation: 'horizontal'
 				spacing: 15
 				size_hint_y: .55
-				canvas:
-					Color:
-						rgba: 1, 1, 1, .6
-					Rectangle:
-						pos: self.pos
-						size: self.size
 				BoxLayout:
-					orientation: 'horizontal'
-					spacing: 20
-					size_hint: .6, .2
-					pos_hint: {'center_x': .57, 'center_y': .5}
-					Label:
-						text: 'Current working directory:'
-						color: (0,0,0,1)
-						font_size: 30
-						bold: True
-						size_hint: 1.4, .8
-						pos_hint: {'center_x': .5}
-					AnchorLayout:
-						anchor_x: 'left'
-						Button:
-							text: 'get cwd'
-							on_press: root.cwd()
+					orientation: 'vertical'
+					BoxLayout:
+						orientation: 'vertical'
+						spacing: 15
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						BoxLayout:
+							orientation: 'horizontal'
+							spacing: 20
+							size_hint: .6, .2
+							pos_hint: {'center_x': .57, 'center_y': .5}
+							Label:
+								text: 'Current working directory:'
+								color: (0,0,0,1)
+								font_size: 30
+								bold: True
+								size_hint: 1.4, .8
+								pos_hint: {'center_x': .5}
+							AnchorLayout:
+								anchor_x: 'left'
+								Button:
+									text: 'get cwd'
+									on_press: root.cwd()
+									pos_hint: {'center_x': .5, 'center_y': .5}
+									size_hint: .4, .7
+									background_color: 0, 1.2, 2, .5
+						BoxLayout:
+							size_hint: .7, .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							size_hint: .4, .7
-							background_color: 0, 1.2, 2, .5
+							TextInput:
+								text: ''
+								size_hint: .7, .4
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								multiline: False
+								id: maincwd
+					BoxLayout:
+						orientation: 'vertical'
+						spacing: 15
+						size_hint_y: .6
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Star file path'
+							color: (0,0,0,1)
+							font_size: 30
+							bold: True
+							size_hint: .6, .1
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .8, .25
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: .3, .5
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								CheckBox:
+									state: 'down'
+									id: starcheck
+								Label:
+									text: 'cwd'
+							Label:
+								text: '+'
+								size_hint_x: .1
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							TextInput:
+								text: '/Test_Data/test_2018filt.star'
+								size_hint: 1.5, .55
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								id: mainstar
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Save star path'
+							on_press: root.starsave()
+							size_hint: .3, .12
+							pos_hint: {'center_x': .5, 'center_y': .5}
+					BoxLayout:
+						orientation: 'vertical'
+						spacing: 15
+						size_hint_y: .6
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'mrc directory'
+							color: (0,0,0,1)
+							font_size: 30
+							bold: True
+							size_hint: .6, .1
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .8, .25
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: .3, .5
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								CheckBox:
+									state: 'down'
+									id: mrccheck
+								Label:
+									text: 'cwd'
+							Label:
+								text: '+'
+								size_hint_x: .1
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							TextInput:
+								text: '/Test_Data/'
+								size_hint: 1.5, .55
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								id: mainmrc
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Save mrc path'
+							on_press: root.mrcsave()
+							size_hint: .3, .12
+							pos_hint: {'center_x': .5, 'center_y': .5}
 				BoxLayout:
-					size_hint: .7, .5
-					pos_hint: {'center_x': .5, 'center_y': .5}
+					orientation: 'vertical'
+					Label:
+						text: 'Save project to directory:'
+						size_hint_y: .3
 					TextInput:
-						text: ''
-						size_hint: .7, .4
-						pos_hint: {'center_x': .5, 'center_y': .5}
+						id: save
 						multiline: False
-						id: maincwd
-			BoxLayout:
-				orientation: 'vertical'
-				spacing: 15
-				size_hint_y: .6
-				canvas:
-					Color:
-						rgba: 1, 1, 1, .6
-					Rectangle:
-						pos: self.pos
-						size: self.size
-				Label:
-					text: 'Star file path'
-					color: (0,0,0,1)
-					font_size: 30
-					bold: True
-					size_hint: .6, .1
-					pos_hint: {'center_x': .5, 'center_y': .5}
-				BoxLayout:
-					orientation: 'horizontal'
-					size_hint: .8, .25
-					pos_hint: {'center_x': .5, 'center_y': .5}
-					BoxLayout:
-						orientation: 'vertical'
-						size_hint: .3, .5
+						size_hint: .7, .35
 						pos_hint: {'center_x': .5, 'center_y': .5}
-						CheckBox:
-							state: 'down'
-							id: starcheck
-						Label:
-							text: 'cwd'
-					Label:
-						text: '+'
-						size_hint_x: .1
-						pos_hint: {'center_x': .5, 'center_y': .5}
+					Label: 
+						text: 'Project name:'
+						size_hint_y: .3
 					TextInput:
-						text: '/Test_Data/test_2018filt.star'
-						size_hint: 1.5, .55
+						id: savename
+						multiline: False
+						size_hint: .7, .35
 						pos_hint: {'center_x': .5, 'center_y': .5}
-						id: mainstar
-				Button:
-					background_color: 0.2, 0.6, 0.2, .55
-					text: 'Save star path'
-					on_press: root.starsave()
-					size_hint: .3, .12
-					pos_hint: {'center_x': .5, 'center_y': .5}
-			BoxLayout:
-				orientation: 'vertical'
-				spacing: 15
-				size_hint_y: .6
-				canvas:
-					Color:
-						rgba: 1, 1, 1, .6
-					Rectangle:
-						pos: self.pos
-						size: self.size
-				Label:
-					text: 'mrc directory'
-					color: (0,0,0,1)
-					font_size: 30
-					bold: True
-					size_hint: .6, .1
-					pos_hint: {'center_x': .5, 'center_y': .5}
-				BoxLayout:
-					orientation: 'horizontal'
-					size_hint: .8, .25
-					pos_hint: {'center_x': .5, 'center_y': .5}
-					BoxLayout:
-						orientation: 'vertical'
-						size_hint: .3, .5
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						CheckBox:
-							state: 'down'
-							id: mrccheck
-						Label:
-							text: 'cwd'
 					Label:
-						text: '+'
-						size_hint_x: .1
+						size_hint_y: .1
+					Button:
+						text: 'Save'
+						on_release: root.savedata()
+						size_hint: .4, .4
 						pos_hint: {'center_x': .5, 'center_y': .5}
-					TextInput:
-						text: '/Test_Data/'
-						size_hint: 1.5, .55
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						id: mainmrc
-				Button:
-					background_color: 0.2, 0.6, 0.2, .55
-					text: 'Save mrc path'
-					on_press: root.mrcsave()
-					size_hint: .3, .12
-					pos_hint: {'center_x': .5, 'center_y': .5}
+						background_color: 0, 1.2, 2, .5
 	TabbedPanelItem:
 		text: 'Visualization'
 		BoxLayout:
