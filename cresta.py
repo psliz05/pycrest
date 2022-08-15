@@ -82,6 +82,7 @@ class Tabs(TabbedPanel):
 		file_opt.writelines('MrcPath:' + '\t' + self.ids.mainmrc.text + '\n')
 		file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
 		file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
+		file_opt.writelines('ChimeraX:' + '\t' + self.ids.chimera_path.text + '\n')
 		file_opt.writelines('ChimeraOutput:' + '\t' + self.ids.chimera_out.text + '\n')
 		file_opt.writelines('Index:' + '\t' + self.ids.index.text + '\n')
 		file_opt.writelines('Indall:' + '\t' + self.ids.index2.text + '\n')
@@ -90,6 +91,7 @@ class Tabs(TabbedPanel):
 		file_opt.writelines('SnrFall:' + '\t' + self.ids.snrval.text + '\n')
 		file_opt.writelines('Sigma:' + '\t' + self.ids.sigma.text + '\n')
 		file_opt.writelines('Filename:' + '\t' + self.ids.filenameget.text + '\n')
+		file_opt.writelines('CmmFile:' + '\t' + self.ids.cmmf.text + '\n')
 		file_opt.writelines('CoordFile:' + '\t' + self.ids.coordf.text + '\n')
 		file_opt.writelines('FirstSuf:' + '\t' + self.ids.suffixt.text + '\n')
 		file_opt.writelines('FirstBin:' + '\t' + self.ids.binnt.text + '\n')
@@ -117,6 +119,8 @@ class Tabs(TabbedPanel):
 					self.ids.px1.text = yank
 				if re.search('PxSize', line):
 					self.ids.A1.text = yank
+				if re.search('ChimeraX', line):
+					self.ids.chimera_path.text = yank
 				if re.search('ChimeraOut', line):
 					self.ids.chimera_out.text = yank
 				if re.search('Index', line):
@@ -133,6 +137,8 @@ class Tabs(TabbedPanel):
 					self.ids.sigma.text = yank
 				if re.search('Filename', line):
 					self.ids.filenameget.text = yank
+				if re.search('CmmFile', line):
+					self.ids.cmmf.text = yank
 				if re.search('CoordFile', line):
 					self.ids.coordf.text = yank
 				if re.search('FirstSuf', line):
