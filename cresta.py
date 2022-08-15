@@ -71,26 +71,80 @@ class Tabs(TabbedPanel):
 		else:
 			self.ids.mainmrc.text = self.ids.mainmrc.text
 
-	def projsave(self):
-		popup = SavePopup()
-		popup.open()
-		pcwd = self.ids.maincwd.text
-
 	def savedata(self):
-		popup = SavePopup()
 		if self.ids.save.text[-1] != '/':
 			self.ids.save.text = self.ids.save.text + '/'
 		save = self.ids.save.text + self.ids.savename.text + '.txt'
 		file_opt = open(save, 'w')
 		file_opt.writelines('Project ' + self.ids.savename.text + '\n')
 		file_opt.writelines('Cwd:' + '\t' + self.ids.maincwd.text + '\n')
-		file_opt.writelines('Star file:' + '\t' + self.ids.mainstar.text + '\n')
-		file_opt.writelines('Mrc path:' + '\t' + self.ids.mainmrc.text + '\n')
-		file_opt.writelines('Box size:' + '\t' + self.ids.px1.text + '\n')
-		file_opt.writelines('Px size:' + '\t' + self.ids.A1.text + '\n')
-		file_opt.writelines('Cwd:' + '\t' + self.ids.maincwd.text + '\n')
+		file_opt.writelines('StarFile:' + '\t' + self.ids.mainstar.text + '\n')
+		file_opt.writelines('MrcPath:' + '\t' + self.ids.mainmrc.text + '\n')
+		file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
+		file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
+		file_opt.writelines('ChimeraOutput:' + '\t' + self.ids.chimera_out.text + '\n')
+		file_opt.writelines('Index:' + '\t' + self.ids.index.text + '\n')
+		file_opt.writelines('Indall:' + '\t' + self.ids.index2.text + '\n')
+		file_opt.writelines('SurfaceLvl:' + '\t' + self.ids.surface_level.text + '\n')
+		file_opt.writelines('Defocus:' + '\t' + self.ids.defoc.text + '\n')
+		file_opt.writelines('SnrFall:' + '\t' + self.ids.snrval.text + '\n')
+		file_opt.writelines('Sigma:' + '\t' + self.ids.sigma.text + '\n')
+		file_opt.writelines('Filename:' + '\t' + self.ids.filenameget.text + '\n')
+		file_opt.writelines('CoordFile:' + '\t' + self.ids.coordf.text + '\n')
+		file_opt.writelines('FirstSuf:' + '\t' + self.ids.suffixt.text + '\n')
+		file_opt.writelines('FirstBin:' + '\t' + self.ids.binnt.text + '\n')
+		file_opt.writelines('SecondSuf:' + '\t' + self.ids.suffixf.text + '\n')
+		file_opt.writelines('SecondBin:' + '\t' + self.ids.binnf.text + '\n')
 		file_opt.close()
-		popup.dismiss()
+		self.ids.pullpath.text = save
+
+	def pulldata(self):
+		load = self.ids.pullpath.text
+		with open(load) as pull:
+			direct, proj = os.path.split(load)
+			self.ids.save.text = direct
+			self.ids.savename.text = proj.replace('.txt', '')
+			for line in pull:
+				pinfo = line.split()
+				yank = pinfo[1]
+				if re.search('Cwd', line):
+					self.ids.maincwd.text = yank
+				if re.search('StarFile', line):
+					self.ids.mainstar.text = yank
+				if re.search('MrcPath', line):
+					self.ids.mainmrc.text = yank
+				if re.search('BoxSize', line):
+					self.ids.px1.text = yank
+				if re.search('PxSize', line):
+					self.ids.A1.text = yank
+				if re.search('ChimeraOut', line):
+					self.ids.chimera_out.text = yank
+				if re.search('Index', line):
+					self.ids.index.text = yank
+				if re.search('Indall', line):
+					self.ids.index2.text = yank
+				if re.search('SurfaceLvl', line):
+					self.ids.surface_level.text = yank
+				if re.search('Defocus', line):
+					self.ids.defoc.text = yank
+				if re.search('SnrFall', line):
+					self.ids.snrval.text = yank
+				if re.search('Sigma', line):
+					self.ids.sigma.text = yank
+				if re.search('Filename', line):
+					self.ids.filenameget.text = yank
+				if re.search('CoordFile', line):
+					self.ids.coordf.text = yank
+				if re.search('FirstSuf', line):
+					self.ids.suffixt.text = yank
+				if re.search('FirstBin', line):
+					self.ids.binnt.text = yank
+				if re.search('SecondSuf', line):
+					self.ids.suffixf.text = yank
+				if re.search('SecondBin', line):
+					self.ids.binnf.text = yank
+
+
 
 	def filter_vol(self):
 		listName = self.ids.mainstar.text
@@ -819,24 +873,6 @@ class Tabs(TabbedPanel):
 		return
 
 	pass
-
-class SavePopup(Popup):
-
-	def savedata(self):
-		popup = Popup
-		if self.ids.save.text[-1] != '/':
-			self.ids.save.text = self.ids.save.text + '/'
-		save = self.ids.save.text + self.ids.savename.text + '.txt'
-		Tad = Tabs()
-		file_opt = open(save, 'w')
-		file_opt.writelines('Project ' + self.ids.savename.text + '\n')
-		file_opt.writelines('Cwd:' + '\t' + pcwd + '\n')
-		file_opt.writelines('Star file:' + '\t' + Tad.ids.mainstar.text + '\n')
-		file_opt.writelines('Mrc path:' + '\t' + Tad.ids.mainmrc.text + '\n')
-		file_opt.writelines('Box size:' + '\t' + Tad.ids.px1.text + '\n')
-		file_opt.writelines('Px size:' + '\t' + Tad.ids.A1.text + '\n')
-		file_opt.close()
-		popup.dismiss(self)
 
 
 #run CrESTA

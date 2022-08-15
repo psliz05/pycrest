@@ -1,34 +1,5 @@
 #:kivy 2.1.0
 
-<SavePopup>:
-	title: 'Save Project'
-	size_hint: .65, .4
-	BoxLayout:
-		orientation: 'vertical'
-		Label:
-			text: 'Save project to directory:'
-			size_hint_y: .3
-		TextInput:
-			id: save
-			multiline: False
-			size_hint: .7, .35
-			pos_hint: {'center_x': .5, 'center_y': .5}
-		Label: 
-			text: 'Project name:'
-			size_hint_y: .3
-		TextInput:
-			id: savename
-			multiline: False
-			size_hint: .7, .35
-			pos_hint: {'center_x': .5, 'center_y': .5}
-		Label:
-			size_hint_y: .1
-		Button:
-			text: 'Save'
-			on_release: root.savedata()
-			size_hint: .4, .4
-			pos_hint: {'center_x': .5, 'center_y': .5}
-			background_color: 0, 1.2, 2, .5
 <Tabs>:
 	size_hint: 1, 1
 	pos_hint: {'center_x': .5, 'center_y': .5}
@@ -45,38 +16,26 @@
 				Rectangle:
 					pos: self.pos
 					size: self.size
-			BoxLayout:
-				orientation: 'horizontal'
-				size_hint: .9, .3
-				padding: 10
+			GridLayout:
+				cols:2
+				rows:2
+				size_hint: .35, .15
 				pos_hint: {'center_x': .5, 'center_y': .5}
-				AnchorLayout:
-					anchor_x: 'left'
-					Button:
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						size_hint: .6, .6
-						text: 'Save Project Info'
-						background_color: 0, 1.2, 2, .5
-						on_release: root.projsave()
-				GridLayout:
-					cols:2
-					rows:2
-				#	size_hint_x: 
-				#	pos_hint: {'center_x': .5, 'center_y': .5}
-					Label:
-						text: 'Box size (px)'
-					Label:
-						text: 'Px size (A)'
-					TextInput:
-						id: px1
-						text: '256'
-						multiline: False
-					TextInput:
-						id: A1
-						text: '2.62'
-						multiline: False
 				Label:
-					text: ''
+					text: 'Box size (px)'
+				Label:
+					text: 'Px size (A)'
+				TextInput:
+					id: px1
+					text: '256'
+					multiline: False
+				TextInput:
+					id: A1
+					text: '2.62'
+					multiline: False
+			Label:
+				text: ''
+				size_hint_y: .01
 			TextInput:
 				canvas:
 					Color:
@@ -86,19 +45,21 @@
 						size: self.size
 				multiline: True
 				readonly: True
-				size_hint_y: .35
+				size_hint_y: .18
 				size_hint_x: .9
 				pos_hint: {'center_x': .5, 'center_y': .6}
 				text: 'First, enter your current working directory or press Get CWD to fill it in. Then, if your file is located under your CWD, check the CWD box and enter the remaining file path. If the file is located elsewhere, uncheck the CWD box and type the full path. Last, hit the save button for each path.'
 			BoxLayout:
 				orientation: 'horizontal'
 				spacing: 15
-				size_hint_y: .55
 				BoxLayout:
 					orientation: 'vertical'
+					size_hint_x: 1.8
+					spacing: 10
 					BoxLayout:
 						orientation: 'vertical'
 						spacing: 15
+						size_hint_y: .55
 						canvas:
 							Color:
 								rgba: 1, 1, 1, .6
@@ -131,6 +92,7 @@
 							TextInput:
 								text: ''
 								size_hint: .7, .4
+								font_size: 22.5
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								multiline: False
 								id: maincwd
@@ -153,11 +115,11 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						BoxLayout:
 							orientation: 'horizontal'
-							size_hint: .8, .25
+							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							BoxLayout:
 								orientation: 'vertical'
-								size_hint: .3, .5
+								size_hint: .2, .5
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								CheckBox:
 									state: 'down'
@@ -171,6 +133,7 @@
 							TextInput:
 								text: '/Test_Data/test_2018filt.star'
 								size_hint: 1.5, .55
+								font_size: 25
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstar
 						Button:
@@ -198,11 +161,11 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						BoxLayout:
 							orientation: 'horizontal'
-							size_hint: .8, .25
+							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							BoxLayout:
 								orientation: 'vertical'
-								size_hint: .3, .5
+								size_hint: .2, .5
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								CheckBox:
 									state: 'down'
@@ -216,6 +179,7 @@
 							TextInput:
 								text: '/Test_Data/'
 								size_hint: 1.5, .55
+								font_size: 25
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainmrc
 						Button:
@@ -226,30 +190,78 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}
 				BoxLayout:
 					orientation: 'vertical'
-					Label:
-						text: 'Save project to directory:'
-						size_hint_y: .3
-					TextInput:
-						id: save
-						multiline: False
-						size_hint: .7, .35
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label: 
-						text: 'Project name:'
-						size_hint_y: .3
-					TextInput:
-						id: savename
-						multiline: False
-						size_hint: .7, .35
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label:
-						size_hint_y: .1
-					Button:
-						text: 'Save'
-						on_release: root.savedata()
-						size_hint: .4, .4
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						background_color: 0, 1.2, 2, .5
+					spacing: 10
+					BoxLayout:
+						orientation: 'vertical'
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Save project to directory:'
+							size_hint_y: .3
+							color: (0,0,0,1)
+							font_size: 30
+							bold: True
+						TextInput:
+							id: save
+							multiline: False
+							size_hint: .7, .35
+							font_size: 22.5
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label: 
+							text: 'Project name:'
+							size_hint_y: .3
+							color: (0,0,0,1)
+							font_size: 30
+							bold: True
+						TextInput:
+							id: savename
+							multiline: False
+							size_hint: .7, .35
+							font_size: 25
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .1
+						Button:
+							text: 'Save'
+							on_release: root.savedata()
+							size_hint: .4, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							background_color: 0, 1.2, 2, .5
+						Label:
+							size_hint_y: .1
+					BoxLayout:
+						orientation: 'vertical'
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Load project path:'
+							size_hint_y: .3
+							color: (0,0,0,1)
+							font_size: 30
+							bold: True
+						TextInput:
+							id: pullpath
+							multiline: False
+							size_hint: .8, .35
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .1
+						Button:
+							text: 'Load'
+							on_release: root.pulldata()
+							size_hint: .4, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							background_color: 0, 1.2, 2, .5
+						Label:
+							size_hint_y: .1
 	TabbedPanelItem:
 		text: 'Visualization'
 		BoxLayout:
