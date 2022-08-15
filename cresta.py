@@ -289,6 +289,7 @@ class Tabs(TabbedPanel):
 
 		self.ids.notecoord.text = ""
 		self.ids.notesave.text = ""
+		os.remove(chim3)
 		return
 
 	def right_pick(self):
