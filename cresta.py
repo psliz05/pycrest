@@ -16,6 +16,8 @@ import math
 import glob
 
 #importing necessary kivy features
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 from kivy.app import App
 from kivy.graphics import Canvas, Color
 from kivy.lang import Builder
