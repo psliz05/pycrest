@@ -2,6 +2,7 @@
 import kivy
 kivy.require('2.1.0')
 
+#python packages
 import os, subprocess
 from subprocess import call
 import re
@@ -15,9 +16,10 @@ from pathlib import Path
 import math
 import glob
 
-#importing necessary kivy features
+#disabling multi-touch kivy emulation
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+#importing necessary kivy features
 from kivy.app import App
 from kivy.graphics import Canvas, Color
 from kivy.lang import Builder
@@ -76,6 +78,7 @@ class Tabs(TabbedPanel):
 	def savedata(self):
 		if self.ids.save.text[-1] != '/':
 			self.ids.save.text = self.ids.save.text + '/'
+	#	create text file with saved project data and text inputs
 		save = self.ids.save.text + self.ids.savename.text + '.txt'
 		file_opt = open(save, 'w')
 		file_opt.writelines('Project ' + self.ids.savename.text + '\n')
@@ -104,6 +107,7 @@ class Tabs(TabbedPanel):
 
 	def pulldata(self):
 		load = self.ids.pullpath.text
+	#	load existing project information
 		with open(load) as pull:
 			direct, proj = os.path.split(load)
 			self.ids.save.text = direct
@@ -225,11 +229,6 @@ class Tabs(TabbedPanel):
 		# os.system("/Users/psliz05/kivy_venv/tom_av3_stackbrowser_2.fig")
 		return'''
 
-	def infocoord(self):
-		popup = Popup(title='Help', content=Label(text='Parent directory pointed to by star file.'), size_hint=(.4, .25))
-		popup.open()
-		return
-
 	def pick_coord(self):
 		ChimeraX_dir = self.ids.chimera_path.text
 		listName = self.ids.mainstar.text
@@ -238,7 +237,6 @@ class Tabs(TabbedPanel):
 		levels = self.ids.surface_level.text
 		pxsz = float(self.ids.A1.text)
 		curindex = int(self.ids.index.text)
-		cmmdir = self.ids.chimera_out.text
 		self.ids.pickcoordtext.text = 'Please wait. Opening ChimeraX.'
 	#	Find the filename for the current index
 		pat = '.mrc'
@@ -263,34 +261,31 @@ class Tabs(TabbedPanel):
 			print('The index is outside of the file limits.')
 			self.ids.filenameget.text = ""
 		else:
-			if self.ids.chimera_out.text == '/':
-				if os.path.isdir(cwd + '/cmm_files') == False:
-					os.mkdir(cwd + '/cmm_files')
-				self.ids.chimera_out.text = '/cmm_files'
-				cmmdir = self.ids.chimera_out.text
+			if self.ids.chimera_out.text[0] != '/':
+				self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
+			if self.ids.chimera_out.text[-1] == '/':
+				self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
+			if self.ids.codcheck.active == True:
+				cmmdir = cwd + self.ids.chimera_out.text
 			else:
-				if self.ids.chimera_out.text[0] != '/':
-					self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
-				if self.ids.chimera_out.text[-1] == '/':
-					self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
 				cmmdir = self.ids.chimera_out.text
-				if os.path.isdir(cwd + cmmdir) == False:
-					os.mkdir(cwd + cmmdir)
+			if os.path.isdir(cmmdir) == False:
+				os.mkdir(cmmdir)
 			starind = curindex - 1
 			starfinal = stardom[starind]
 			chim3 = cwd + '/chimcoord.py'
 			tmpflnam = direct + starfinal
 		#	Creates the script to run Chimera with proper parameters
 			file_opt = open(chim3, 'w')
-			file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cwd + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")"))
+			file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")"))
 			file_opt.close()
 			print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax chimcoord.py'))
 			cmmflip = starfinal.replace('.mrc', '.cmm')
 			endfile = os.path.split(cmmflip)
 			endcmm = endfile[1]
 			self.ids.filenameget.text = starfinal
-			if os.path.exists(cwd + cmmdir + '/coord.cmm') == True:
-				shutil.move(cwd + cmmdir + '/coord.cmm', (cwd + cmmdir + '/' + endcmm))
+			if os.path.exists(cmmdir + '/coord.cmm') == True:
+				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + endcmm))
 				statstat = 1
 			else:
 				statstat = 0
@@ -312,7 +307,7 @@ class Tabs(TabbedPanel):
 
 	def left_pick(self):
 		self.ids.index.text = str((int(self.ids.index.text) - 1))
-		self.pick_coord( )
+		self.pick_coord()
 		return
 
 	def filename(self):
@@ -383,6 +378,12 @@ class Tabs(TabbedPanel):
 			directory = direct + self.ids.chimera_coord.text
 		else:
 			directory = self.ids.chimera_coord.text
+		if self.ids.codcheck.active == True:
+			cmmdir = direct + self.ids.chimera_out.text
+		else:
+			cmmdir = self.ids.chimera_out.text
+		if cmmdir[-1] != '/':
+			cmmdir = cmmdir + '/'
 		if os.path.exists(directory) == False:
 			os.mkdir(directory)
 		slash, star = os.path.split(listName)
@@ -391,12 +392,13 @@ class Tabs(TabbedPanel):
 		if directory[-1] != '/':
 			directory = directory + '/'
 		directoread = os.fsencode(directory)
+		cmmdread = os.fsencode(cmmdir)
 		tomoname = directory + 'TomoName.txt'
 		file_opt = open(tomoname, 'w')
 		file_opt.writelines('')
 		file_opt.close()
 	#	Removes string of numbers at end of file name
-		for file in os.listdir(directoread):
+		for file in os.listdir(cmmdread):
 			filename = os.fsdecode(file)
 			if filename.endswith(".cmm"):
 				emanelif = filename[::-1]
@@ -423,13 +425,13 @@ class Tabs(TabbedPanel):
 				if os.path.exists(directory + bucket) == False:
 					os.mkdir(directory + bucket)
 				Tomo = directory + bucket
-				filerun = sorted(os.listdir(directoread))
+				filerun = sorted(os.listdir(cmmdread))
 				for file in filerun:
 					filename = os.fsdecode(file)
 					#	Move each cmm file into the proper tomogram folder
 					if filename.endswith(".cmm"):
 						if filename[0:3] == bucket[0:3]:
-							shutil.move((directory + filename), Tomo)
+							shutil.move((cmmdir + filename), Tomo)
 							with open(Tomo + '/' + filename) as ftomo:
 								for line in ftomo:
 								#	finding selected coordinates and shifting based on box size
