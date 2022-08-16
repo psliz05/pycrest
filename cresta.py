@@ -272,6 +272,8 @@ class Tabs(TabbedPanel):
 				if self.ids.chimera_out.text[-1] == '/':
 					self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
 				cmmdir = self.ids.chimera_out.text
+				if os.path.isdir(cwd + cmmdir) == False:
+					os.mkdir(cwd + cmmdir)
 			starind = curindex - 1
 			starfinal = stardom[starind]
 			chim3 = cwd + '/chimcoord.py'
