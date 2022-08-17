@@ -62,7 +62,16 @@ class Tabs(TabbedPanel):
 			else:
 				self.ids.mainstar.text = self.ids.maincwd.text + self.ids.mainstar.text
 		else:
-			self.ids.mainstar.text = self.ids.mainstar.text
+			if self.ids.maincwd.text in self.ids.mainstar.text:
+				self.ids.mainstar.text = self.ids.mainstar.text.replace(self.ids.maincwd.text, '')
+			else:
+				self.ids.mainstar.text = self.ids.mainstar.text
+		self.ids.starstatus.text = 'path saved'
+		self.ids.starstatus.color = (0,.6,0,1)
+
+	def triggerstar(self):
+		self.ids.starstatus.text = 'path not saved'
+		self.ids.starstatus.color = (.6,0,0,1)
 
 	def mrcsave(self):
 		if self.ids.mainmrc.text[0] !=  '/':
@@ -73,7 +82,16 @@ class Tabs(TabbedPanel):
 			else:
 				self.ids.mainmrc.text = self.ids.maincwd.text + self.ids.mainmrc.text
 		else:
-			self.ids.mainmrc.text = self.ids.mainmrc.text
+			if self.ids.maincwd.text in self.ids.mainmrc.text:
+				self.ids.mainmrc.text = self.ids.mainmrc.text.replace(self.ids.maincwd.text, '')
+			else:
+				self.ids.mainmrc.text = self.ids.mainmrc.text
+		self.ids.mrcstatus.text = 'path saved'
+		self.ids.mrcstatus.color = (0,.6,0,1)
+
+	def triggermrc(self):
+		self.ids.mrcstatus.text = 'path not saved'
+		self.ids.mrcstatus.color = (.6,0,0,1)
 
 	def savedata(self):
 		if self.ids.save.text[-1] != '/':

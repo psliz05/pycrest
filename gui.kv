@@ -98,7 +98,6 @@
 								id: maincwd
 					BoxLayout:
 						orientation: 'vertical'
-						spacing: 15
 						size_hint_y: .6
 						canvas:
 							Color:
@@ -124,6 +123,7 @@
 								CheckBox:
 									state: 'down'
 									id: starcheck
+									on_press: root.triggerstar()
 								Label:
 									text: 'cwd'
 							Label:
@@ -136,6 +136,14 @@
 								font_size: 25
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstar
+								on_text: root.triggerstar()
+						Label:
+							size_hint_y: .06
+							font_size: 25
+							color: (.6,0,0,1)
+							text: 'path not saved'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							id: starstatus
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Save star path'
@@ -144,7 +152,6 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}
 					BoxLayout:
 						orientation: 'vertical'
-						spacing: 15
 						size_hint_y: .6
 						canvas:
 							Color:
@@ -170,6 +177,7 @@
 								CheckBox:
 									state: 'down'
 									id: mrccheck
+									on_press: root.triggermrc()
 								Label:
 									text: 'cwd'
 							Label:
@@ -182,6 +190,14 @@
 								font_size: 25
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainmrc
+								on_text: root.triggermrc()
+						Label:
+							size_hint_y: .06
+							font_size: 25
+							color: (.6,0,0,1)
+							text: 'path not saved'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							id: mrcstatus
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Save mrc path'
