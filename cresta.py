@@ -96,37 +96,39 @@ class Tabs(TabbedPanel):
 		self.ids.mrcstatus.color = (.6,0,0,1)
 
 	def savedata(self):
-		if self.ids.save.text[-1] != '/':
-			self.ids.save.text = self.ids.save.text + '/'
+		try:
+			if self.ids.save.text[-1] != '/':
+				self.ids.save.text = self.ids.save.text + '/'
 	#	create text file with saved project data and text inputs
-		save = self.ids.save.text + self.ids.savename.text + '.txt'
-		file_opt = open(save, 'w')
-		file_opt.writelines('Project ' + self.ids.savename.text + '\n')
-		file_opt.writelines('Cwd:' + '\t' + self.ids.maincwd.text + '\n')
-		file_opt.writelines('StarFile:' + '\t' + self.ids.mainstar.text + '\n')
-		file_opt.writelines('StarCheck:' + '\t' + str(self.ids.starcheck.active) + '\n')
-		file_opt.writelines('MrcPath:' + '\t' + self.ids.mainmrc.text + '\n')
-		file_opt.writelines('MrcCheck:' + '\t' + str(self.ids.mrccheck.active) + '\n')
-		file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
-		file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
-		file_opt.writelines('ChimeraX:' + '\t' + self.ids.chimera_path.text + '\n')
-		file_opt.writelines('ChimeraOutput:' + '\t' + self.ids.chimera_out.text + '\n')
-		file_opt.writelines('Index:' + '\t' + self.ids.index.text + '\n')
-		file_opt.writelines('Indall:' + '\t' + self.ids.index2.text + '\n')
-		file_opt.writelines('SurfaceLvl:' + '\t' + self.ids.surface_level.text + '\n')
-		file_opt.writelines('Defocus:' + '\t' + self.ids.defoc.text + '\n')
-		file_opt.writelines('SnrFall:' + '\t' + self.ids.snrval.text + '\n')
-		file_opt.writelines('Sigma:' + '\t' + self.ids.sigma.text + '\n')
-		file_opt.writelines('Filename:' + '\t' + self.ids.filenameget.text + '\n')
-		file_opt.writelines('CmmFile:' + '\t' + self.ids.cmmf.text + '\n')
-		file_opt.writelines('CoordFile:' + '\t' + self.ids.coordf.text + '\n')
-		file_opt.writelines('FirstSuf:' + '\t' + self.ids.suffixt.text + '\n')
-		file_opt.writelines('FirstBin:' + '\t' + self.ids.binnt.text + '\n')
-		file_opt.writelines('SecondSuf:' + '\t' + self.ids.suffixf.text + '\n')
-		file_opt.writelines('SecondBin:' + '\t' + self.ids.binnf.text + '\n')
-		file_opt.close()
-		self.ids.pullpath.text = save
-
+			save = self.ids.save.text + self.ids.savename.text + '.txt'
+			file_opt = open(save, 'w')
+			file_opt.writelines('Project ' + self.ids.savename.text + '\n')
+			file_opt.writelines('Cwd:' + '\t' + self.ids.maincwd.text + '\n')
+			file_opt.writelines('StarFile:' + '\t' + self.ids.mainstar.text + '\n')
+			file_opt.writelines('StarCheck:' + '\t' + str(self.ids.starcheck.active) + '\n')
+			file_opt.writelines('MrcPath:' + '\t' + self.ids.mainmrc.text + '\n')
+			file_opt.writelines('MrcCheck:' + '\t' + str(self.ids.mrccheck.active) + '\n')
+			file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
+			file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
+			file_opt.writelines('ChimeraX:' + '\t' + self.ids.chimera_path.text + '\n')
+			file_opt.writelines('ChimeraOutput:' + '\t' + self.ids.chimera_out.text + '\n')
+			file_opt.writelines('Index:' + '\t' + self.ids.index.text + '\n')
+			file_opt.writelines('Indall:' + '\t' + self.ids.index2.text + '\n')
+			file_opt.writelines('SurfaceLvl:' + '\t' + self.ids.surface_level.text + '\n')
+			file_opt.writelines('Defocus:' + '\t' + self.ids.defoc.text + '\n')
+			file_opt.writelines('SnrFall:' + '\t' + self.ids.snrval.text + '\n')
+			file_opt.writelines('Sigma:' + '\t' + self.ids.sigma.text + '\n')
+			file_opt.writelines('Filename:' + '\t' + self.ids.filenameget.text + '\n')
+			file_opt.writelines('CmmFile:' + '\t' + self.ids.cmmf.text + '\n')
+			file_opt.writelines('CoordFile:' + '\t' + self.ids.coordf.text + '\n')
+			file_opt.writelines('FirstSuf:' + '\t' + self.ids.suffixt.text + '\n')
+			file_opt.writelines('FirstBin:' + '\t' + self.ids.binnt.text + '\n')
+			file_opt.writelines('SecondSuf:' + '\t' + self.ids.suffixf.text + '\n')
+			file_opt.writelines('SecondBin:' + '\t' + self.ids.binnf.text + '\n')
+			file_opt.close()
+			self.ids.pullpath.text = save
+		except IndexError:
+			print('Enter a project directory and name')
 	def pulldata(self):
 		load = self.ids.pullpath.text
 	#	load existing project information
