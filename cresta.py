@@ -130,63 +130,67 @@ class Tabs(TabbedPanel):
 		except IndexError:
 			print('Enter a project directory and name')
 	def pulldata(self):
-		load = self.ids.pullpath.text
-	#	load existing project information
-		with open(load) as pull:
-			direct, proj = os.path.split(load)
-			self.ids.save.text = direct
-			self.ids.savename.text = proj.replace('.txt', '')
-			for line in pull:
-				pinfo = line.split()
-				try:
-					yank = pinfo[1]
-				except IndexError:
-					yank = ''
-				if re.search('Cwd', line):
-					self.ids.maincwd.text = yank
-				if re.search('StarFile', line):
-					self.ids.mainstar.text = yank
-				if re.search('StarCheck', line):
-					self.ids.starcheck.active = eval(yank)
-				if re.search('MrcPath', line):
-					self.ids.mainmrc.text = yank
-				if re.search('MrcCheck', line):
-					self.ids.mrccheck.active = eval(yank)
-				if re.search('BoxSize', line):
-					self.ids.px1.text = yank
-				if re.search('PxSize', line):
-					self.ids.A1.text = yank
-				if re.search('ChimeraX', line):
-					self.ids.chimera_path.text = yank
-				if re.search('ChimeraOut', line):
-					self.ids.chimera_out.text = yank
-				if re.search('Index', line):
-					self.ids.index.text = yank
-				if re.search('Indall', line):
-					self.ids.index2.text = yank
-				if re.search('SurfaceLvl', line):
-					self.ids.surface_level.text = yank
-				if re.search('Defocus', line):
-					self.ids.defoc.text = yank
-				if re.search('SnrFall', line):
-					self.ids.snrval.text = yank
-				if re.search('Sigma', line):
-					self.ids.sigma.text = yank
-				if re.search('Filename', line):
-					self.ids.filenameget.text = yank
-				if re.search('CmmFile', line):
-					self.ids.cmmf.text = yank
-				if re.search('CoordFile', line):
-					self.ids.coordf.text = yank
-				if re.search('FirstSuf', line):
-					self.ids.suffixt.text = yank
-				if re.search('FirstBin', line):
-					self.ids.binnt.text = yank
-				if re.search('SecondSuf', line):
-					self.ids.suffixf.text = yank
-				if re.search('SecondBin', line):
-					self.ids.binnf.text = yank
-
+		try:
+			load = self.ids.pullpath.text
+		#	load existing project information
+			with open(load) as pull:
+				direct, proj = os.path.split(load)
+				self.ids.save.text = direct
+				self.ids.savename.text = proj.replace('.txt', '')
+				for line in pull:
+					pinfo = line.split()
+					try:
+						yank = pinfo[1]
+					except IndexError:
+						yank = ''
+					if re.search('Cwd', line):
+						self.ids.maincwd.text = yank
+					if re.search('StarFile', line):
+						self.ids.mainstar.text = yank
+					if re.search('StarCheck', line):
+						self.ids.starcheck.active = eval(yank)
+					if re.search('MrcPath', line):
+						self.ids.mainmrc.text = yank
+					if re.search('MrcCheck', line):
+						self.ids.mrccheck.active = eval(yank)
+					if re.search('BoxSize', line):
+						self.ids.px1.text = yank
+					if re.search('PxSize', line):
+						self.ids.A1.text = yank
+					if re.search('ChimeraX', line):
+						self.ids.chimera_path.text = yank
+					if re.search('ChimeraOut', line):
+						self.ids.chimera_out.text = yank
+					if re.search('Index', line):
+						self.ids.index.text = yank
+					if re.search('Indall', line):
+						self.ids.index2.text = yank
+					if re.search('SurfaceLvl', line):
+						self.ids.surface_level.text = yank
+					if re.search('Defocus', line):
+						self.ids.defoc.text = yank
+					if re.search('SnrFall', line):
+						self.ids.snrval.text = yank
+					if re.search('Sigma', line):
+						self.ids.sigma.text = yank
+					if re.search('Filename', line):
+						self.ids.filenameget.text = yank
+					if re.search('CmmFile', line):
+						self.ids.cmmf.text = yank
+					if re.search('CoordFile', line):
+						self.ids.coordf.text = yank
+					if re.search('FirstSuf', line):
+						self.ids.suffixt.text = yank
+					if re.search('FirstBin', line):
+						self.ids.binnt.text = yank
+					if re.search('SecondSuf', line):
+						self.ids.suffixf.text = yank
+					if re.search('SecondBin', line):
+						self.ids.binnf.text = yank	
+		except FileNotFoundError:
+			print('Enter a file path')
+		except IsADirectoryError:
+			print('Enter a text file')
 
 
 	def filter_vol(self):
