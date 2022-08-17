@@ -76,6 +76,8 @@ class Tabs(TabbedPanel):
 	def mrcsave(self):
 		if self.ids.mainmrc.text[0] !=  '/':
 			self.ids.mainmrc.text = '/' + self.ids.mainmrc.text
+		if self.ids.mainmrc.text[-1] !=  '/':
+			self.ids.mainmrc.text = self.ids.mainmrc.text + '/'
 		if self.ids.mrccheck.active == True:
 			if self.ids.maincwd.text in self.ids.mainmrc.text:
 				self.ids.mainmrc.text = self.ids.mainmrc.text

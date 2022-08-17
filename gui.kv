@@ -19,7 +19,7 @@
 			GridLayout:
 				cols:2
 				rows:2
-				size_hint: .35, .15
+				size_hint: .35, .125
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				Label:
 					text: 'Box size (px)'
@@ -33,9 +33,6 @@
 					id: A1
 					text: '2.62'
 					multiline: False
-			Label:
-				text: ''
-				size_hint_y: .01
 			TextInput:
 				canvas:
 					Color:
@@ -45,7 +42,7 @@
 						size: self.size
 				multiline: True
 				readonly: True
-				size_hint_y: .18
+				size_hint_y: .15
 				size_hint_x: .9
 				pos_hint: {'center_x': .5, 'center_y': .6}
 				text: 'First, enter your current working directory or press Get CWD to fill it in. Then, if your file is located under your CWD, check the CWD box and enter the remaining file path. If the file is located elsewhere, uncheck the CWD box and type the full path. Last, hit the save button for each path.'
@@ -58,8 +55,8 @@
 					spacing: 10
 					BoxLayout:
 						orientation: 'vertical'
-						spacing: 15
-						size_hint_y: .55
+						spacing: 10
+						size_hint_y: .35
 						canvas:
 							Color:
 								rgba: 1, 1, 1, .6
@@ -84,14 +81,14 @@
 									text: 'get cwd'
 									on_press: root.cwd()
 									pos_hint: {'center_x': .7, 'center_y': .5}
-									size_hint: .55, .7
+									size_hint: .55, .95
 									background_color: 0, 1.2, 2, .5
 						BoxLayout:
 							size_hint: .7, .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							TextInput:
 								text: ''
-								size_hint: .7, .4
+								size_hint: 1.1, .5
 								font_size: 22.5
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								multiline: False
@@ -204,6 +201,29 @@
 							on_press: root.mrcsave()
 							size_hint: .3, .12
 							pos_hint: {'center_x': .5, 'center_y': .5}
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint_y: .35
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label: 
+							text: 'ChimeraX path (default is SBgrid location)'
+							size_hint_y: .2
+							bold: True
+							color: (0,0,0,1)
+						TextInput:
+							text: '/opt/sbgrid/i386-mac/chimerax/1.3/ChimeraX.app/Contents/bin'
+							multiline: False
+							font_size: 25
+							size_hint: .8, .25
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							id: chimera_path
+						Label:
+							size_hint_y: .1
 				BoxLayout:
 					orientation: 'vertical'
 					spacing: 10
@@ -503,15 +523,8 @@
 					pos_hint: {'center_x': .5}
 					BoxLayout:
 						orientation: 'vertical'
-						Label: 
-							text: 'ChimeraX path (default is SBgrid location)'
-							size_hint_y: .6
-						TextInput:
-							text: '/opt/sbgrid/i386-mac/chimerax/1.3/ChimeraX.app/Contents/bin'
-							multiline: False
-							size_hint: .9, .4
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							id: chimera_path
+						Label:
+							size_hint_y: .25
 						Label:
 							text: 'ChimeraX output directory'
 							size_hint_y: .5
@@ -604,6 +617,8 @@
 							size_hint_y: .25
 							color: (250, 250, 31, 1)
 							id: pickcoordtext
+						Label:
+							size_hint_y: .25
 					TextInput:
 						multiline: True
 						readonly: True
