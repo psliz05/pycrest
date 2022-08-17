@@ -104,7 +104,9 @@ class Tabs(TabbedPanel):
 		file_opt.writelines('Project ' + self.ids.savename.text + '\n')
 		file_opt.writelines('Cwd:' + '\t' + self.ids.maincwd.text + '\n')
 		file_opt.writelines('StarFile:' + '\t' + self.ids.mainstar.text + '\n')
+		file_opt.writelines('StarCheck:' + '\t' + str(self.ids.starcheck.active) + '\n')
 		file_opt.writelines('MrcPath:' + '\t' + self.ids.mainmrc.text + '\n')
+		file_opt.writelines('MrcCheck:' + '\t' + str(self.ids.mrccheck.active) + '\n')
 		file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
 		file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
 		file_opt.writelines('ChimeraX:' + '\t' + self.ids.chimera_path.text + '\n')
@@ -142,8 +144,12 @@ class Tabs(TabbedPanel):
 					self.ids.maincwd.text = yank
 				if re.search('StarFile', line):
 					self.ids.mainstar.text = yank
+				if re.search('StarCheck', line):
+					self.ids.starcheck.active = eval(yank)
 				if re.search('MrcPath', line):
 					self.ids.mainmrc.text = yank
+				if re.search('MrcCheck', line):
+					self.ids.mrccheck.active = eval(yank)
 				if re.search('BoxSize', line):
 					self.ids.px1.text = yank
 				if re.search('PxSize', line):
