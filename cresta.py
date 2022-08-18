@@ -823,7 +823,7 @@ class Tabs(TabbedPanel):
 		centers2data = pd.read_csv(final, delimiter = '$')
 		centers2data.to_csv(tempo + '/centers2data.csv', index=None)
 	#	get euler angles script
-		print(subprocess.getstatusoutput('python ' + cwd + '/transform_project_JL.py ' + 'calcangles --csv ' + tempo + '/centers2data.csv ' + '--outdir ' + tempo))
+		print(subprocess.getstatusoutput('python3 ' + cwd + '/transform_project_JL.py ' + 'calcangles --csv ' + tempo + '/centers2data.csv ' + '--outdir ' + tempo))
 		nounds = tempo + '/neweulerangs_round.csv'
 		nanc = tempo + '/neweulerangs.csv'
 		nangnames = 0
