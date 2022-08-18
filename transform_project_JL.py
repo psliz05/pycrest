@@ -1,17 +1,10 @@
 import sys
 import subprocess
 
-print(subprocess.getstatusoutput('python -m pip install scipy'))
-print(subprocess.getstatusoutput('python -m pip install scikit-spatial'))
-print(subprocess.getstatusoutput('python -m pip install glob'))
-print(subprocess.getstatusoutput('python -m pip install tqdm'))
-'''print(subprocess.getstatusoutput('python -m pip install '))
-print(subprocess.getstatusoutput('python -m pip install '))
-print(subprocess.getstatusoutput('python -m pip install '))
-print(subprocess.getstatusoutput('python -m pip install '))
-print(subprocess.getstatusoutput('python -m pip install '))
-print(subprocess.getstatusoutput('python -m pip install '))
-print(subprocess.getstatusoutput('python -m pip install '))'''
+print(subprocess.getstatusoutput('python3 -m pip install scipy'))
+print(subprocess.getstatusoutput('python3 -m pip install scikit-spatial'))
+print(subprocess.getstatusoutput('python3 -m pip install glob'))
+print(subprocess.getstatusoutput('python3 -m pip install tqdm'))
 from scipy.spatial.transform import Rotation as R
 import csv
 import numpy as n
