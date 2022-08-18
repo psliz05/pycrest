@@ -825,8 +825,9 @@ class Tabs(TabbedPanel):
 	#	get euler angles script
 		print(subprocess.getstatusoutput('python ' + cwd + '/transform_project_JL.py ' + 'calcangles --csv ' + tempo + '/centers2data.csv ' + '--outdir ' + tempo))
 		nounds = tempo + '/neweulerangs_round.csv'
+		nanc = tempo + '/neweulerangs.csv'
 		nangnames = 0
-		with open(tempo + '/neweulerangs.csv', 'r') as nangs, open(nounds, 'w') as nound:
+		with open(nanc, 'r') as nangs, open(nounds, 'w') as nound:
 			reader = csv.reader(nangs, delimiter = ',')
 			writer = csv.writer(nound, delimiter = ',')
 			for row in reader:
@@ -842,7 +843,7 @@ class Tabs(TabbedPanel):
 				colValues.append(Tomname)
 				writer.writerow(colValues)
 				nangnames = nangnames + 1
-		os.rename(nounds, tempo + '/neweulerangs.csv')
+		os.rename(nounds, nanc)
 		AllTomo = os.fsencode(openup)
 		Tomo = actual
 		if re.search('_filt', Tomo):
@@ -875,7 +876,7 @@ class Tabs(TabbedPanel):
 								fract = line.split()
 								microname = fract[Micropos]
 								optic = fract[Opticspos]
-					with open(tempo + '/neweulerangs.csv') as findang:
+					with open(nanc) as findang:
 						for line in findang:
 							if re.search(swap, line):
 								broke = line.split(',')
@@ -893,7 +894,7 @@ class Tabs(TabbedPanel):
 		file_opt.close()
 	#	get rid of all temp files
 		os.rename(expanded, newstar)
-		os.remove(tempo + '/neweulerangs.csv')
+		os.remove(nanc)
 		os.remove(tempo + '/centers2data.csv')
 		os.remove(smallstar)
 		os.remove(smalleststar)
