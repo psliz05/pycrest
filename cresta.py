@@ -632,6 +632,7 @@ class Tabs(TabbedPanel):
 	def calculate_ang(self):
 		self.cwdempty()
 		star = self.ids.mainstar.text
+		self.ids.coordf.text = self.ids.coordf.text.strip()
 		if self.ids.coordf.text[-1] != '/':
 			self.ids.coordf.text = self.ids.coordf.text + '/'
 		CoordDir = self.ids.coordf.text

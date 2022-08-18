@@ -446,7 +446,7 @@ class transformall(object):
             newcen = r.apply(vector_2[w])
             #print(newcen)
             newangs[w, :] = r.as_euler('ZYZ', degrees=True)
-        n.savetxt(os.path.join(outdir,"neweulerangs.csv"), newangs, delimiter=",")
+        n.savetxt(os.path.join(outdir + "/neweulerangs.csv"), newangs, delimiter=",")
         return
 
     def _get_num_lines(self, file_path):
