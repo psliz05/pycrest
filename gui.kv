@@ -304,181 +304,101 @@
 	TabbedPanelItem:
 		text: 'Visualization'
 		BoxLayout:
-			spacing: 10
-			orientation: 'vertical'
 			canvas:
 				Color:
-					rgba: 1, 1, 1, .2
+					rgba: 1, 1, 1, .6
 				Rectangle:
 					pos: self.pos
 					size: self.size
-			GridLayout:
-				rows: 2
-				cols: 2
-				spacing: 15
+			orientation: 'horizontal'
+			Label:
+				size_hint_x: .2
+			BoxLayout:
 				canvas:
 					Color:
-						rgba: 1, 1, 1, .6
+						rgba: .5, .5, .5, 0.4
 					Rectangle:
 						pos: self.pos
 						size: self.size
+				orientation: 'vertical'
+				size_hint: .5, .5
+				pos_hint: {'center_x': .5, 'center_y': .5}
+				Label: 
+					text: 'Filter mrc'
+					color: (0,0,0,1)
+					font_size: 35
+					pos_hint: {'center_x': .12}
+					size_hint_y: .6
+					bold: True
+				Label:
+					text: 'Filter type'
+					pos_hint: {'center_x': .15}
+					size_hint_y: .6
 				BoxLayout:
-					canvas:
-						Color:
-							rgba: .5, .5, .5, 0.4
-						Rectangle:
-							pos: self.pos
-							size: self.size
-					orientation: 'vertical'
-					Label: 
-						text: 'Filter mrc'
-						color: (0,0,0,1)
-						font_size: 35
-						pos_hint: {'center_x': .12}
-						size_hint_y: .6
-						bold: True
-					Label:
-						text: 'Filter type'
-						pos_hint: {'center_x': .15}
-						size_hint_y: .6
+					orientation: 'horizontal'
 					BoxLayout:
 						orientation: 'horizontal'
-						BoxLayout:
-							orientation: 'horizontal'
-							CheckBox:
-								state: 'down'
-								group: 'g2'
-								id: wienerbutton
-							Label:
-								text: 'Wiener'
-						BoxLayout:
-							orientation: 'vertical'
-							Label:
-								text: 'Avg defocus (um)'
-							TextInput:
-								size_hint_x: .7
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								text: '3'
-								multiline: False
-								id: defoc
-						BoxLayout:
-							orientation: 'vertical'
-							Label:
-								text: 'SNR falloff'
-							TextInput:
-								size_hint_x: .7
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								text: '1.2'
-								multiline: False
-								id: snrval
-					BoxLayout:
-						orientation: 'horizontal'
-						BoxLayout:
-							orientation: 'horizontal'
-							CheckBox: 
-								group: 'g2'
-								id: gaussianbutton
-							Label:
-								text: 'Gaussian'
-						BoxLayout:
-							orientation: 'vertical'
-							Label: 
-								text: 'sigma'
-							TextInput:
-								size_hint_x: .7
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								text: '5'
-								multiline: False
-								id: sigma
+						CheckBox:
+							state: 'down'
+							group: 'g2'
+							id: wienerbutton
 						Label:
-							text: ' '
-					Label:
-						text: ' '
-						size_hint_y: .3
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Filter Volumes'
-						on_release: root.filter_vol()
-						size_hint: .4, .7
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label: 
-						text: ' '
-						size_hint_y: 1.2
-
+							text: 'Wiener'
+					BoxLayout:
+						orientation: 'vertical'
+						Label:
+							text: 'Avg defocus (um)'
+						TextInput:
+							size_hint_x: .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: '3'
+							multiline: False
+							id: defoc
+					BoxLayout:
+						orientation: 'vertical'
+						Label:
+							text: 'SNR falloff'
+						TextInput:
+							size_hint_x: .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: '1.2'
+							multiline: False
+							id: snrval
 				BoxLayout:
-					orientation: 'vertical'
-					canvas:
-						Color:
-							rgba: .5, .5, .5, 0.4
-						Rectangle:
-							pos: self.pos
-							size: self.size
-					Label: 
-						color: (0,0,0,1)
-						font_size: 35
-						text: 'Stackbrowser'
-						pos_hint: {'center_x': .15}
-						bold: True
-					Label: 
-						text: 'Star file path'
-						size_hint_y: .7
-					TextInput:
-						text: 'test.star'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Label:
-						text: 'Align file name (output)'
-						size_hint_y: .7
-					TextInput: 
-						text: 'Align.mat'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
+					orientation: 'horizontal'
+					BoxLayout:
+						orientation: 'horizontal'
+						CheckBox: 
+							group: 'g2'
+							id: gaussianbutton
+						Label:
+							text: 'Gaussian'
+					BoxLayout:
+						orientation: 'vertical'
+						Label: 
+							text: 'sigma'
+						TextInput:
+							size_hint_x: .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: '5'
+							multiline: False
+							id: sigma
 					Label:
 						text: ' '
-						size_hint_y: .1
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Make Align File'
-						on_release: root.align()
-						size_hint: .5, 1.2
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label:
-						text: 'Align file for stackbrowser'
-						size_hint_y: .7
-					TextInput:
-						text: 'Align.mat'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-						id: aligninput
-					Label:
-						text: ' '
-						size_hint_y: .1
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Open Stackbrowser'
-						on_release: root.stack()
-						size_hint: .5, 1.2
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label:
-						text: ' '
-						size_hint_y: .1
-					
-				BoxLayout:
-					size_hint_y: .8
-					orientation: 'vertical'
-					spacing: 15
-					Label:
-						text: ' '
-
-				BoxLayout:
-					size_hint_y: .8
-					orientation: 'vertical'
-					spacing: 15
-					Label: 
-						text: ' '
+				Label:
+					text: ' '
+					size_hint_y: .3
+				Button:
+					background_color: 0.2, 0.6, 0.2, .55
+					text: 'Filter Volumes'
+					on_release: root.filter_vol()
+					size_hint: .4, .7
+					pos_hint: {'center_x': .5, 'center_y': .5}
+				Label: 
+					text: ' '
+					size_hint_y: 1.2
+			Label:
+				size_hint_x: .2
 
 	TabbedPanelItem:
 		text: 'Coord. Picker'
@@ -1493,7 +1413,7 @@
 				BoxLayout:
 
 	TabbedPanelItem:
-		text: 'Obsolete'
+		text: 'Inspect'
 		BoxLayout:
 			spacing: 10
 			orientation: 'vertical'
@@ -1637,14 +1557,69 @@
 						size_hint_y: .1
 					
 				BoxLayout:
-					size_hint_y: .7
+					size_hint_y: .8
 					orientation: 'vertical'
-					spacing: 15
+					canvas:
+						Color:
+							rgba: .5, .5, .5, 0.4
+						Rectangle:
+							pos: self.pos
+							size: self.size
+					Label: 
+						color: (0,0,0,1)
+						font_size: 35
+						text: 'Stackbrowser'
+						pos_hint: {'center_x': .15}
+						bold: True
+					Label: 
+						text: 'Star file path'
+						size_hint_y: .7
+					TextInput:
+						text: 'test.star'
+						size_hint_x: .9
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						multiline: False
+					Label:
+						text: 'Align file name (output)'
+						size_hint_y: .7
+					TextInput: 
+						text: 'Align.mat'
+						size_hint_x: .9
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						multiline: False
 					Label:
 						text: ' '
+						size_hint_y: .1
+					Button:
+						background_color: 0.2, 0.6, 0.2, .55
+						text: 'Make Align File'
+						on_release: root.align()
+						size_hint: .5, 1.2
+						pos_hint: {'center_x': .5, 'center_y': .5}
+					Label:
+						text: 'Align file for stackbrowser'
+						size_hint_y: .7
+					TextInput:
+						text: 'Align.mat'
+						size_hint_x: .9
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						multiline: False
+						id: aligninput
+					Label:
+						text: ' '
+						size_hint_y: .1
+					Button:
+						background_color: 0.2, 0.6, 0.2, .55
+						text: 'Open Stackbrowser'
+						on_release: root.stack()
+						size_hint: .5, 1.2
+						pos_hint: {'center_x': .5, 'center_y': .5}
+					Label:
+						text: ' '
+						size_hint_y: .1
 
 				BoxLayout:
-					size_hint_y: .7
+					size_hint_y: .8
 					orientation: 'vertical'
 					spacing: 15
 					Label:
