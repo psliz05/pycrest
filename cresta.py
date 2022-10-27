@@ -311,7 +311,7 @@ class Tabs(TabbedPanel):
 			file_opt = open(chim3, 'w')
 			file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")"))
 			file_opt.close()
-			print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax chimcoord.py'))
+			print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax' + chim3))
 			cmmflip = starfinal.replace('.mrc', '.cmm')
 			endfile = os.path.split(cmmflip)
 			endcmm = endfile[1]
