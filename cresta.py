@@ -220,26 +220,43 @@ class Tabs(TabbedPanel):
 				#new_sub = tom_mrcread(fullFileName)
 			#	fopen('/Volumes/atbimac23/20210403MPI/T04/T04_ali.mrc')
 			#	wiener button
-				if filttypebutton == True:
-					highpass = np.linspace(0, 1, 2048)
-					highpass2 = []
-					for num in highpass:
-						low = float(num)/.01
-						highpass2.append(min(1, low) * np.pi)
-					highpass3 = []
-					for num in highpass2:
-						highpass3.append(1-math.cos(float(num)))
+				if filttypebutton == False:
+					from scipy.ndimage.filters import gaussian_filter
 
-					ex = np.linspace(0, -1, 2048) * snrratio * 100 / angpix
-					ext = []
-					for num in ex:
-						ext.append(math.exp(float(num)) * 1000)
+					def gaussian_filter_all(direct, sigval):
+   					# Parameters:
+   					# myDir - directory containing folders with subtomograms
+    				# sigval - standard deviation of the Gaussian filter
+						mySubDirs = os.listdir(direct)
+						for subDir in mySubDirs:
+							subDirPath = os.path.join(direct, subDir)
+							if os.path.isdir(subDirPath):
+            					# delete existing filtered files
+								filtered_files = [f for f in os.listdir(subDirPath) if f.endswith("_filt.mrc")]
+								for f in filtered_files:
+									os.remove(os.path.join(subDirPath, f))
 
-			#	gaussian button
+            					# apply filter to all .mrc files in the folder
+								myFiles = [f for f in os.listdir(subDirPath) if f.endswith(".mrc")]
+								for fileName in myFiles:
+									fullFileName = os.path.join(subDirPath, fileName)
+									print('Now filtering ' + fullFileName)
+
+                					# read .mrc file and apply filter
+									new_sub = np.memmap(fullFileName, dtype='float32', mode='r+', shape=(128, 128, 128))
+									subtomo_filt = gaussian_filter(new_sub, sigma=sigval)
+
+                					# write filtered .mrc file
+									baseFileName, extension = os.path.splitext(fileName)
+									newFileName = os.path.join(subDirPath, baseFileName + '_filt.mrc')
+									print('Now writing ' + newFileName)
+									np.memmap(newFileName, dtype='float32', mode='w+', shape=subtomo_filt.shape)[...] = subtomo_filt
+
+			#	wiener button
 				#else:
 					#subtomo_filt = imgaussfilt3()
-				newFileName = direct + baseFileName + '_filt.mrc'
-				print('Now writing ' + newFileName + '\n')
+				#newFileName = direct + baseFileName + '_filt.mrc'
+				#print('Now writing ' + newFileName + '\n')
 			#	tom_mrcwrite()
 
 
