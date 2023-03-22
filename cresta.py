@@ -204,61 +204,94 @@ class Tabs(TabbedPanel):
 		sigval = float(self.ids.sigma.text)
 	#	if os.path.exists(listName) == False:
 	#		sys.exit('Star file not found')
-		filttypebutton = self.ids.wienerbutton.active
+		wienerbutton = self.ids.wienerbutton.active
+		gaussianbutton = self.ids.gaussianbutton.active
 	#	set up for filtering
-		mySubDirs = os.fsencode(direct)
-		for file in os.listdir(mySubDirs):
-			filename = os.fsdecode(file)
-			if filename.endswith('filt.mrc'):
-				os.remove(direct + filename)
-		for file in os.listdir(mySubDirs):
-			filename = os.fsdecode(file)
-			if filename.endswith('.mrc'):
-				baseFileName = Path(filename).stem
-				fullFileName = direct + filename
-				print('Now filtering ' + fullFileName + '\n')
-				#new_sub = tom_mrcread(fullFileName)
-			#	fopen('/Volumes/atbimac23/20210403MPI/T04/T04_ali.mrc')
-			#	wiener button
-				if filttypebutton == False:
-					from scipy.ndimage.filters import gaussian_filter
+	#	mySubDirs = os.fsencode(direct)
+	#	for file in os.listdir(mySubDirs):
+	#		filename = os.fsdecode(file)
+	#		if filename.endswith('filt.mrc'):
+	#			os.remove(direct + filename)
+	#	for file in os.listdir(mySubDirs):
+	#		filename = os.fsdecode(file)
+	#		if filename.endswith('.mrc'):
+	#			baseFileName = Path(filename).stem
+	#			fullFileName = direct + filename
+	#			print('Now filtering ' + fullFileName + '\n')
+		if wienerbutton == False and gaussianbutton == False:
+			print("At least one option needs to be selected.")
+	#	wiener
+		if wienerbutton == True:
+			
+			from os.path import join, isdir
+			from shutil import rmtree
+			import mrcfile
+			from tomopy.deconv import deconvolution
+			from tomopy.util.mrc import read_mrc, write_mrc
 
-					def gaussian_filter_all(direct, sigval):
+
+			def deconv_filter_all(direct, angpix, defocus, snrratio):
+
+#Parameters:
+#- direct: directory containing folders with subtomograms
+#- angpix: angstrom per pixel
+#    - defocus: defocus in micrometers, positive = underfocus
+#    - snrratio: signal-to-noise ratio
+
+#    - This function performs deconvolution on all .mrc files within all subdirectories of `direct` 
+#      and saves the filtered files as _filt.mrc in the same directory as the original .mrc files.
+
+				mySubDirs = [subdir for subdir in os.listdir(direct) if isdir(join(direct, subdir))]
+				for subdir in mySubDirs:
+					folder = join(direct, subdir)
+					filt_files = [join(folder, f) for f in os.listdir(folder) if f.endswith("_filt.mrc")]
+					for file in filt_files:
+						os.remove(file)
+
+					files = [join(folder, f) for f in os.listdir(folder) if f.endswith(".mrc")]
+					for file in files:
+						print(f"Now filtering {file}")
+						with mrcfile.open(file, permissive=True) as mrc:
+							data = mrc.data
+						subtomo_filt = deconvolution(data, size=data.shape[1], angpix=angpix, defocus_um=defocus, snr_ratio=snrratio)
+
+						filename = os.path.splitext(file)[0] + "_filt.mrc"
+						print(f"Now writing {filename}")
+						write_mrc(filename, subtomo_filt)
+
+
+	#	gaussian
+		if gaussianbutton == True:
+			from scipy.ndimage.filters import gaussian_filter
+
+			def gaussian_filter_all(direct, sigval):
    					# Parameters:
-   					# myDir - directory containing folders with subtomograms
+   					# direct - directory containing folders with subtomograms
     				# sigval - standard deviation of the Gaussian filter
-						mySubDirs = os.listdir(direct)
-						for subDir in mySubDirs:
-							subDirPath = os.path.join(direct, subDir)
-							if os.path.isdir(subDirPath):
-            					# delete existing filtered files
-								filtered_files = [f for f in os.listdir(subDirPath) if f.endswith("_filt.mrc")]
-								for f in filtered_files:
-									os.remove(os.path.join(subDirPath, f))
+				mySubDirs = os.listdir(direct)
+				for subDir in mySubDirs:
+					subDirPath = os.path.join(direct, subDir)
+					if os.path.isdir(subDirPath):
+            			# delete existing filtered files
+						filtered_files = [f for f in os.listdir(subDirPath) if f.endswith("_filt.mrc")]
+						for f in filtered_files:
+							os.remove(os.path.join(subDirPath, f))
 
-            					# apply filter to all .mrc files in the folder
-								myFiles = [f for f in os.listdir(subDirPath) if f.endswith(".mrc")]
-								for fileName in myFiles:
-									fullFileName = os.path.join(subDirPath, fileName)
-									print('Now filtering ' + fullFileName)
+            			# apply filter to all .mrc files in the folder
+						myFiles = [f for f in os.listdir(subDirPath) if f.endswith(".mrc")]
+						for fileName in myFiles:
+							fullFileName = os.path.join(subDirPath, fileName)
+							print('Now filtering ' + fullFileName)
 
-                					# read .mrc file and apply filter
-									new_sub = np.memmap(fullFileName, dtype='float32', mode='r+', shape=(128, 128, 128))
-									subtomo_filt = gaussian_filter(new_sub, sigma=sigval)
+                			# read .mrc file and apply filter
+							new_sub = np.memmap(fullFileName, dtype='float32', mode='r+', shape=(128, 128, 128))
+							subtomo_filt = gaussian_filter(new_sub, sigma=sigval)
 
-                					# write filtered .mrc file
-									baseFileName, extension = os.path.splitext(fileName)
-									newFileName = os.path.join(subDirPath, baseFileName + '_filt.mrc')
-									print('Now writing ' + newFileName)
-									np.memmap(newFileName, dtype='float32', mode='w+', shape=subtomo_filt.shape)[...] = subtomo_filt
-
-			#	wiener button
-				#else:
-					#subtomo_filt = imgaussfilt3()
-				#newFileName = direct + baseFileName + '_filt.mrc'
-				#print('Now writing ' + newFileName + '\n')
-			#	tom_mrcwrite()
-
+                			# write filtered .mrc file
+							baseFileName, extension = os.path.splitext(fileName)
+							newFileName = os.path.join(subDirPath, baseFileName + '_filt.mrc')
+							print('Now writing ' + newFileName)
+							np.memmap(newFileName, dtype='float32', mode='w+', shape=subtomo_filt.shape)[...] = subtomo_filt
 
 
 	def rotate(self):
