@@ -232,14 +232,14 @@ class Tabs(TabbedPanel):
 
 			def deconv_filter_all(direct, angpix, defocus, snrratio):
 
-#Parameters:
-#- direct: directory containing folders with subtomograms
-#- angpix: angstrom per pixel
-#    - defocus: defocus in micrometers, positive = underfocus
-#    - snrratio: signal-to-noise ratio
+				#Parameters:
+				#- direct: directory containing folders with subtomograms
+				#- angpix: angstrom per pixel
+				#    - defocus: defocus in micrometers, positive = underfocus
+				#    - snrratio: signal-to-noise ratio
 
-#    - This function performs deconvolution on all .mrc files within all subdirectories of `direct` 
-#      and saves the filtered files as _filt.mrc in the same directory as the original .mrc files.
+				#    - This function performs deconvolution on all .mrc files within all subdirectories of `direct` 
+				#      and saves the filtered files as _filt.mrc in the same directory as the original .mrc files.
 
 				mySubDirs = [subdir for subdir in os.listdir(direct) if isdir(join(direct, subdir))]
 				for subdir in mySubDirs:
@@ -265,9 +265,9 @@ class Tabs(TabbedPanel):
 			from scipy.ndimage.filters import gaussian_filter
 
 			def gaussian_filter_all(direct, sigval):
-   					# Parameters:
-   					# direct - directory containing folders with subtomograms
-    				# sigval - standard deviation of the Gaussian filter
+   				# Parameters:
+   				# direct - directory containing folders with subtomograms
+    			# sigval - standard deviation of the Gaussian filter
 				mySubDirs = os.listdir(direct)
 				for subDir in mySubDirs:
 					subDirPath = os.path.join(direct, subDir)
