@@ -212,23 +212,28 @@ class Tabs(TabbedPanel):
 	#	wiener
 		if wienerbutton == True:
 			import mrcfile
-			from tomopy.deconv import deconvolution
-			from tomopy.util.mrc import read_mrc, write_mrc
+		#	from tomopy.deconv import deconvolution
 
+			# remove current filtered .mrc files
 			filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
 			for f in filtered_files:
 				os.remove(os.path.join(direct, f))
 
-			files = [join(folder, f) for f in os.listdir(folder) if f.endswith(".mrc")]
-			for file in files:
-				print(f"Now filtering {file}")
-				with mrcfile.open(file, permissive=True) as mrc:
-					data = mrc.data
-				subtomo_filt = deconvolution(data, size=data.shape[1], angpix=angpix, defocus_um=defocus, snr_ratio=snrratio)
+			# apply filter to all .mrc files in the folder
+			myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
+			for f in myFiles:
+				fullFileName = os.path.join(direct, f)
+				print('Now filtering ' + fullFileName)
 
-				filename = os.path.splitext(file)[0] + "_filt.mrc"
-				print(f"Now writing {filename}")
-				write_mrc(filename, subtomo_filt)
+				# read .mrc file and apply filter
+				mrc = mrcfile.read(fullFileName)
+			#	subtomo_filt = deconvolution(mrc, size=mrc.shape[1], angpix=angpix, defocus_um=defocus, snr_ratio=snrratio)
+
+				# write filtered .mrc file
+				baseFileName, extension = os.path.splitext(f)
+				newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
+				print('Now writing ' + newFileName)
+				mrcfile.new(newFileName, subtomo_filt)
 
 
 	#	gaussian
@@ -236,6 +241,7 @@ class Tabs(TabbedPanel):
 			from scipy.ndimage import gaussian_filter
 			import mrcfile
 
+			# remove current filtered .mrc files
 			filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
 			for f in filtered_files:
 				os.remove(os.path.join(direct, f))

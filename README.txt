@@ -4,6 +4,7 @@ python3 -m pip install --upgrade pip setuptools virtualenv
   -Note: some machines may need to add '--users' to end of above command
 python3 -m pip install "kivy[base]"
 pip3 install pandas
+pip3 install mrcfile
 
 then 'cd' to the pycrest directory
 use 'source bin/activate' in pycrest directory
