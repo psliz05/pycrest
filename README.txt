@@ -3,6 +3,9 @@
 Install Homebrew:
 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+-Note on Apple Silicon, insert the following line in the .bash_profile file: 
+eval "$(/opt/homebrew/bin/brew shellenv)"
 ------------------------
 Install sld2 packages:
 
@@ -16,22 +19,22 @@ Install virtualenv:
 
 python3 -m pip install --upgrade pip setuptools virtualenv
   -Note: some machines may need to add '--users' to end of above command
-  -Note: on Apple Silicon, virtualenv gets installed in /Users/<username>/Library/Python...
 ------------------------------------------------
 Install kivy:
 
 python3 -m pip install "kivy[base] @ https://github.com/kivy/kivy/archive/master.zip"
-  -Note: on Apple Silicon, kivy gets installed in /Users/<username>/Library/Python...
 ------------------------
 Install pandas:
 
 pip3 install pandas
-  -Note: on Apple Silicon, some pandas scripts get installed in /Users/<username>/Library/Python...
+------------------------
+Install scipy:
+
+pip3 install scipy
 ------------------------
 Install mrcfile:
 
 pip3 install mrcfile
-  -Note: on Apple Silicon, some mrcfile scripts get installed in /Users/<username>/Library/Python...
 ------------------------
 then 'cd' to the pycrest directory
 use 'source bin/activate' in pycrest directory
