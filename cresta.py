@@ -206,6 +206,7 @@ class Tabs(TabbedPanel):
 	#		sys.exit('Star file not found')
 		wienerbutton = self.ids.wienerbutton.active
 		gaussianbutton = self.ids.gaussianbutton.active
+		phasebutton = self.ids.phaseflip.active
 	
 		if wienerbutton == False and gaussianbutton == False:
 			print("At least one option needs to be selected.")
@@ -256,7 +257,10 @@ class Tabs(TabbedPanel):
 					highpass = 1 - np.cos(highpass)
 
 					snr = np.exp((np.arange(0, -1, -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
-					ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
+					if phasebutton == True:
+						ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
+					else:
+						ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
 					wiener = ctf / (ctf * ctf + 1 / snr)
 
 					s1 = -np.floor(vol.shape[0] / 2)

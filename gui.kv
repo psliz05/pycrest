@@ -347,9 +347,9 @@
 					BoxLayout:
 						orientation: 'vertical'
 						Label:
-							text: 'Avg defocus (um)'
+							text: 'Defocus (um)'
 						TextInput:
-							size_hint_x: .7
+							size_hint_x: .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							text: '3'
 							multiline: False
@@ -359,11 +359,21 @@
 						Label:
 							text: 'SNR falloff'
 						TextInput:
-							size_hint_x: .7
+							size_hint_x: .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							text: '1.2'
 							multiline: False
 							id: snrval
+					BoxLayout:
+						orientation: 'vertical'
+						Label:
+							text: 'Phase-Flipped'
+						CheckBox:
+							state: 'down'
+							id: phaseflip
+				Label:
+					text: ' '
+					size_hint_y: .3
 				BoxLayout:
 					orientation: 'horizontal'
 					BoxLayout:
@@ -378,16 +388,18 @@
 						Label: 
 							text: 'sigma'
 						TextInput:
-							size_hint_x: .7
+							size_hint_x: .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							text: '5'
 							multiline: False
 							id: sigma
 					Label:
 						text: ' '
+					Label:
+						text: ' '
 				Label:
 					text: ' '
-					size_hint_y: .3
+					size_hint_y: .5
 				Button:
 					background_color: 0.2, 0.6, 0.2, .55
 					text: 'Filter Volumes'
@@ -396,7 +408,7 @@
 					pos_hint: {'center_x': .5, 'center_y': .5}
 				Label: 
 					text: ' '
-					size_hint_y: 1.2
+					size_hint_y: 0.4
 			Label:
 				size_hint_x: .2
 
