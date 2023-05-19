@@ -252,11 +252,11 @@ class Tabs(TabbedPanel):
 					return ctf
 				
 				def tom_deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist):
-					highpass = np.arange(0, 1, 1 / 2047)
+					highpass = np.arange(1 / 2047, 1 + 1 / 2047, 1 / 2047)
 					highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
 					highpass = 1 - np.cos(highpass)
 
-					snr = np.exp((np.arange(0, -1, -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
+					snr = np.exp((np.arange(-1 / 2047, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
 					if phasebutton == True:
 						ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
 					else:
