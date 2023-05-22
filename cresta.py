@@ -262,11 +262,13 @@ class Tabs(TabbedPanel):
 						ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
 					else:
 						ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-				#	wiener = ctf / (ctf * ctf + 1 / snr)
-					wiener = np.where(snr == 0, snr, (ctf / (ctf * ctf + 1 / snr)))
-
-					print(wiener)
-
+					wiener = []
+					for x in snr:
+						if x == 0.0:
+							v = 0.0
+						else:
+							v = ctf / (ctf * ctf + 1 / x)
+						wiener.append(v)
 
 					s1 = -np.floor(vol.shape[0] / 2)
 					f1 = s1 + vol.shape[0] - 1

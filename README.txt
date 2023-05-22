@@ -7,6 +7,15 @@ Install Homebrew:
 -Note on Apple Silicon, insert the following line in the .bash_profile file: 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 ------------------------
+run:
+brew doctor
+to make sure that the installation is OK.
+
+If it says that command line tools are outdated, run:
+
+sudo rm -rf /Library/Developer/CommandLineTools
+sudo xcode-select --install
+------------------------
 Install sld2 packages:
 
 brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer 
