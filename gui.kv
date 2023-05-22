@@ -312,7 +312,7 @@
 					size: self.size
 			orientation: 'horizontal'
 			Label:
-				size_hint_x: .2
+				size_hint_x: .1
 			BoxLayout:
 				canvas:
 					Color:
@@ -321,7 +321,7 @@
 						pos: self.pos
 						size: self.size
 				orientation: 'vertical'
-				size_hint: .5, .5
+				size_hint: .8, .6
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				Label: 
 					text: 'Filter mrc'
@@ -367,6 +367,16 @@
 					BoxLayout:
 						orientation: 'vertical'
 						Label:
+							text: 'Highpassnyquist'
+						TextInput:
+							size_hint_x: .5
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: '0.01'
+							multiline: False
+							id: highpass
+					BoxLayout:
+						orientation: 'vertical'
+						Label:
 							text: 'Input Tomogram'
 						Label:
 							text: 'Phase-Flipped?'
@@ -399,6 +409,8 @@
 						text: ' '
 					Label:
 						text: ' '
+					Label:
+						text: ' '
 				Label:
 					text: ' '
 					size_hint_y: .5
@@ -412,7 +424,7 @@
 					text: ' '
 					size_hint_y: 0.4
 			Label:
-				size_hint_x: .2
+				size_hint_x: .1
 
 	TabbedPanelItem:
 		text: 'Coord. Picker'

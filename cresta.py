@@ -201,6 +201,7 @@ class Tabs(TabbedPanel):
 		angpix = float(self.ids.A1.text)
 		defocus = float(self.ids.defoc.text)
 		snrratio = float(self.ids.snrval.text)
+		highpassnyquist = float(self.ids.highpass.text)
 		sigval = float(self.ids.sigma.text)
 	#	if os.path.exists(listName) == False:
 	#		sys.exit('Star file not found')
@@ -252,16 +253,20 @@ class Tabs(TabbedPanel):
 					return ctf
 				
 				def tom_deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist):
-					highpass = np.arange(1 / 2047, 1 + 1 / 2047, 1 / 2047)
+					highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
 					highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
 					highpass = 1 - np.cos(highpass)
 
-					snr = np.exp((np.arange(-1 / 2047, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
+					snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
 					if phasebutton == True:
 						ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
 					else:
 						ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-					wiener = ctf / (ctf * ctf + 1 / snr)
+				#	wiener = ctf / (ctf * ctf + 1 / snr)
+					wiener = np.where(snr == 0, snr, (ctf / (ctf * ctf + 1 / snr)))
+
+					print(wiener)
+
 
 					s1 = -np.floor(vol.shape[0] / 2)
 					f1 = s1 + vol.shape[0] - 1
@@ -277,13 +282,13 @@ class Tabs(TabbedPanel):
 					r = np.sqrt(x**2 + y**2 + z**2)
 					r = np.minimum(1, r)
 					r = np.fft.ifftshift(r)
-					x = np.arange(0, 1, 1 / 2047)
+					x = np.arange(0, 1 + 1/2047, 1 / 2047)
 
 					ramp = interp1d(x, wiener, kind='linear', fill_value='extrapolate')(r)
 					deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
 					return deconv
 				
-				subtomo_filt = tom_deconv_tomo(mrc, angpix=angpix, defocus=defocus, snrfalloff=snrratio, highpassnyquist=.01)
+				subtomo_filt = tom_deconv_tomo(mrc, angpix=angpix, defocus=defocus, snrfalloff=snrratio, highpassnyquist=highpassnyquist)
 				subtomo_filt = subtomo_filt.astype('float32')
 
 				# write filtered .mrc file
