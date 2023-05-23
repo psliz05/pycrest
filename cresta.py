@@ -194,137 +194,140 @@ class Tabs(TabbedPanel):
 
 
 	def filter_vol(self):
-		listName = self.ids.mainstar.text
-		direct = self.ids.mainmrc.text
-		if self.ids.mainmrc.text[-1] != '/':
-			direct = self.ids.mainmrc.text + '/'
-		angpix = float(self.ids.A1.text)
-		defocus = float(self.ids.defoc.text)
-		snrratio = float(self.ids.snrval.text)
-		highpassnyquist = float(self.ids.highpass.text)
-		sigval = float(self.ids.sigma.text)
-	#	if os.path.exists(listName) == False:
-	#		sys.exit('Star file not found')
-		wienerbutton = self.ids.wienerbutton.active
-		gaussianbutton = self.ids.gaussianbutton.active
-		phasebutton = self.ids.phaseflip.active
-	
-		if wienerbutton == False and gaussianbutton == False:
-			print("At least one option needs to be selected.")
-	#	wiener
-		if wienerbutton == True:
-			import mrcfile
-			import numpy as np
-			from scipy.interpolate import interp1d
-			from scipy.fftpack import fftn, ifftn
+		try:
+			listName = self.ids.mainstar.text
+			direct = self.ids.mainmrc.text
+			if self.ids.mainmrc.text[-1] != '/':
+				direct = self.ids.mainmrc.text + '/'
+			angpix = float(self.ids.A1.text)
+			defocus = float(self.ids.defoc.text)
+			snrratio = float(self.ids.snrval.text)
+			highpassnyquist = float(self.ids.highpass.text)
+			sigval = float(self.ids.sigma.text)
+		#	if os.path.exists(listName) == False:
+		#		sys.exit('Star file not found')
+			wienerbutton = self.ids.wienerbutton.active
+			gaussianbutton = self.ids.gaussianbutton.active
+			phasebutton = self.ids.phaseflip.active
 
-			# remove current filtered .mrc files
-			filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
-			for f in filtered_files:
-				os.remove(os.path.join(direct, f))
+			if wienerbutton == False and gaussianbutton == False:
+				print("At least one option needs to be selected.")
+		#	wiener
+			if wienerbutton == True:
+				import mrcfile
+				import numpy as np
+				from scipy.interpolate import interp1d
+				from scipy.fftpack import fftn, ifftn
 
-			# apply filter to all .mrc files in the folder
-			myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-			for f in myFiles:
-				fullFileName = os.path.join(direct, f)
-				print('Now filtering ' + fullFileName)
+				# remove current filtered .mrc files
+				filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
+				for f in filtered_files:
+					os.remove(os.path.join(direct, f))
 
-				# read .mrc file and apply filter
-				mrc = mrcfile.read(fullFileName)
-	
-				def tom_ctf1d(n, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
-					ny = 1 / (pixelsize)
-					lambda_ = 12.2643247 / np.sqrt(voltage * (1.0 + voltage * 0.978466e-6)) * 1e-10
-					lambda2 = lambda_ * 2
+				# apply filter to all .mrc files in the folder
+				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
+				for f in myFiles:
+					fullFileName = os.path.join(direct, f)
+					print('Now filtering ' + fullFileName)
 
-					points = np.arange(0, n)
-					points = points / (2 * n) * ny
-					k2 = n**2
+					# read .mrc file and apply filter
+					mrc = mrcfile.read(fullFileName)
 
-					term1 = lambda_**3 * cs * k2**2
-					w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
+					def tom_ctf1d(n, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
+						ny = 1 / (pixelsize)
+						lambda_ = 12.2643247 / np.sqrt(voltage * (1.0 + voltage * 0.978466e-6)) * 1e-10
+						lambda2 = lambda_ * 2
 
-					acurve = np.cos(w) * amplitude_contrast
-					pcurve = -np.sqrt(1 - amplitude_contrast**2) * np.sin(w)
-					bfactor_term = math.exp(-bfactor * k2 * 0.25)
+						points = np.arange(0, n)
+						points = points / (2 * n) * ny
+						k2 = n**2
 
-					ctf = (pcurve + acurve) * (bfactor_term)
+						term1 = lambda_**3 * cs * k2**2
+						w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
 
-					return ctf
-				
-				def tom_deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist):
-					highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
-					highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
-					highpass = 1 - np.cos(highpass)
+						acurve = np.cos(w) * amplitude_contrast
+						pcurve = -np.sqrt(1 - amplitude_contrast**2) * np.sin(w)
+						bfactor_term = math.exp(-bfactor * k2 * 0.25)
 
-					snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
-					if phasebutton == True:
-						ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-					else:
-						ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-					wiener = []
-					for x in snr:
-						if x == 0.0:
-							v = 0.0
+						ctf = (pcurve + acurve) * (bfactor_term)
+
+						return ctf
+					
+					def tom_deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist):
+						highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
+						highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
+						highpass = 1 - np.cos(highpass)
+
+						snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
+						if phasebutton == True:
+							ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
 						else:
-							v = ctf / (ctf * ctf + 1 / x)
-						wiener.append(v)
+							ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
+						wiener = []
+						for x in snr:
+							if x == 0.0:
+								v = 0.0
+							else:
+								v = ctf / (ctf * ctf + 1 / x)
+							wiener.append(v)
 
-					s1 = -np.floor(vol.shape[0] / 2)
-					f1 = s1 + vol.shape[0] - 1
-					s2 = -np.floor(vol.shape[1] / 2)
-					f2 = s2 + vol.shape[1] - 1
-					s3 = -np.floor(vol.shape[2] / 2)
-					f3 = s3 + vol.shape[2] - 1
+						s1 = -np.floor(vol.shape[0] / 2)
+						f1 = s1 + vol.shape[0] - 1
+						s2 = -np.floor(vol.shape[1] / 2)
+						f2 = s2 + vol.shape[1] - 1
+						s3 = -np.floor(vol.shape[2] / 2)
+						f3 = s3 + vol.shape[2] - 1
 
-					x, y, z = np.mgrid[s1:f1+1, s2:f2+1, s3:f3+1]
-					x = x / np.abs(s1)
-					y = y / np.abs(s2)
-					z = z / max(1, np.abs(s3))
-					r = np.sqrt(x**2 + y**2 + z**2)
-					r = np.minimum(1, r)
-					r = np.fft.ifftshift(r)
-					x = np.arange(0, 1 + 1/2047, 1 / 2047)
+						x, y, z = np.mgrid[s1:f1+1, s2:f2+1, s3:f3+1]
+						x = x / np.abs(s1)
+						y = y / np.abs(s2)
+						z = z / max(1, np.abs(s3))
+						r = np.sqrt(x**2 + y**2 + z**2)
+						r = np.minimum(1, r)
+						r = np.fft.ifftshift(r)
+						x = np.arange(0, 1 + 1/2047, 1 / 2047)
 
-					ramp = interp1d(x, wiener, kind='linear', fill_value='extrapolate')(r)
-					deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
-					return deconv
-				
-				subtomo_filt = tom_deconv_tomo(mrc, angpix=angpix, defocus=defocus, snrfalloff=snrratio, highpassnyquist=highpassnyquist)
-				subtomo_filt = subtomo_filt.astype('float32')
+						ramp = interp1d(x, wiener, kind='linear', fill_value='extrapolate')(r)
+						deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
+						return deconv
+					
+					subtomo_filt = tom_deconv_tomo(mrc, angpix=angpix, defocus=defocus, snrfalloff=snrratio, highpassnyquist=highpassnyquist)
+					subtomo_filt = subtomo_filt.astype('float32')
 
-				# write filtered .mrc file
-				baseFileName, extension = os.path.splitext(f)
-				newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
-				print('Now writing ' + newFileName)
-				mrcfile.new(newFileName, subtomo_filt)
+					# write filtered .mrc file
+					baseFileName, extension = os.path.splitext(f)
+					newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
+					print('Now writing ' + newFileName)
+					mrcfile.new(newFileName, subtomo_filt)
 
+		#	gaussian
+			if gaussianbutton == True:
+				from scipy.ndimage import gaussian_filter
+				import mrcfile
 
-	#	gaussian
-		if gaussianbutton == True:
-			from scipy.ndimage import gaussian_filter
-			import mrcfile
+				# remove current filtered .mrc files
+				filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
+				for f in filtered_files:
+					os.remove(os.path.join(direct, f))
 
-			# remove current filtered .mrc files
-			filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
-			for f in filtered_files:
-				os.remove(os.path.join(direct, f))
+				# apply filter to all .mrc files in the folder
+				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
+				for f in myFiles:
+					fullFileName = os.path.join(direct, f)
+					print('Now filtering ' + fullFileName)
 
-			# apply filter to all .mrc files in the folder
-			myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-			for f in myFiles:
-				fullFileName = os.path.join(direct, f)
-				print('Now filtering ' + fullFileName)
+					# read .mrc file and apply filter
+					mrc = mrcfile.read(fullFileName)
+					subtomo_filt = gaussian_filter(mrc, sigma=sigval)
 
-				# read .mrc file and apply filter
-				mrc = mrcfile.read(fullFileName)
-				subtomo_filt = gaussian_filter(mrc, sigma=sigval)
-	
-				# write filtered .mrc file
-				baseFileName, extension = os.path.splitext(f)
-				newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
-				print('Now writing ' + newFileName)
-				mrcfile.new(newFileName, subtomo_filt)
+					# write filtered .mrc file
+					baseFileName, extension = os.path.splitext(f)
+					newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
+					print('Now writing ' + newFileName)
+					mrcfile.new(newFileName, subtomo_filt)
+
+		except FileNotFoundError:
+			print("This directory does not exist")
 
 
 	def rotate(self):
@@ -345,81 +348,79 @@ class Tabs(TabbedPanel):
 		return'''
 
 	def pick_coord(self):
-		ChimeraX_dir = self.ids.chimera_path.text
-		listName = self.ids.mainstar.text
-		cwd = self.ids.maincwd.text
-		direct = self.ids.mainmrc.text
-		levels = self.ids.surface_level.text
-		pxsz = float(self.ids.A1.text)
-		curindex = int(self.ids.index.text)
-		self.ids.pickcoordtext.text = 'Please wait. Opening ChimeraX.'
-	#	Find the filename for the current index
-		pat = '.mrc'
-		img = 'ImageName'
-		fnlength = 0
-		stardom = []
-		statstat = 0
-		fileNames = open(listName, 'r')
-		for line in fileNames:
-			if re.search(img, line):
-				for m in line:
-					if m.isdigit():
-						columnstar = int(m) - 1
-			if re.search(pat, line):
-				fnlength += 1 
-				starline = line.split()
-				stardex = starline[columnstar]
-				stardom.append(stardex)
-		flength = str(fnlength)
-		self.ids.index2.text = flength
-		if curindex < 1 or curindex > fnlength:
-			print('The index is outside of the file limits.')
-			self.ids.filenameget.text = ""
-		else:
-			if self.ids.chimera_out.text[0] != '/':
-				self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
-			if self.ids.chimera_out.text[-1] == '/':
-				self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
-			if self.ids.codcheck.active == True:
-				cmmdir = cwd + self.ids.chimera_out.text
+		try:
+			ChimeraX_dir = self.ids.chimera_path.text
+			listName = self.ids.mainstar.text
+			cwd = self.ids.maincwd.text
+			direct = self.ids.mainmrc.text
+			levels = self.ids.surface_level.text
+			pxsz = float(self.ids.A1.text)
+			curindex = int(self.ids.index.text)
+			self.ids.pickcoordtext.text = 'Please wait. Opening ChimeraX.'
+		#	Find the filename for the current index
+			pat = '.mrc'
+			img = 'ImageName'
+			fnlength = 0
+			stardom = []
+			statstat = 0
+			fileNames = open(listName, 'r')
+			for line in fileNames:
+				if re.search(img, line):
+					for m in line:
+						if m.isdigit():
+							columnstar = int(m) - 1
+				if re.search(pat, line):
+					fnlength += 1 
+					starline = line.split()
+					stardex = starline[columnstar]
+					stardom.append(stardex)
+			flength = str(fnlength)
+			self.ids.index2.text = flength
+			if curindex < 1 or curindex > fnlength:
+				print('The index is outside of the file limits.')
+				self.ids.filenameget.text = ""
 			else:
-				cmmdir = self.ids.chimera_out.text
-			if os.path.isdir(cmmdir) == False:
-				os.mkdir(cmmdir)
-			starind = curindex - 1
-			starfinal = stardom[starind]
-			chim3 = cwd + '/chimcoord.py'
-			tmpflnam = direct + starfinal
-		#	Creates the script to run Chimera with proper parameters
-			file_opt = open(chim3, 'w')
-			file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")" + "\n" + "run(session, \"ui tool show \'Side View\'\")"))
-			file_opt.close()
-			print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax ' + chim3))
-			cmmflip = starfinal.replace('.mrc', '.cmm')
-			endfile = os.path.split(cmmflip)
-			endcmm = endfile[1]
-			self.ids.filenameget.text = starfinal
-			if os.path.exists(cmmdir + '/coord.cmm') == True:
-				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + endcmm))
-				statstat = 1
+				if self.ids.chimera_out.text[0] != '/':
+					self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
+				if self.ids.chimera_out.text[-1] == '/':
+					self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
+				if self.ids.codcheck.active == True:
+					cmmdir = cwd + self.ids.chimera_out.text
+				else:
+					cmmdir = self.ids.chimera_out.text
+				if os.path.isdir(cmmdir) == False:
+					os.mkdir(cmmdir)
+				starind = curindex - 1
+				starfinal = stardom[starind]
+				chim3 = cwd + '/chimcoord.py'
+				tmpflnam = direct + starfinal
+			#	Creates the script to run Chimera with proper parameters
+				file_opt = open(chim3, 'w')
+				file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")" + "\n" + "run(session, \"ui tool show \'Side View\'\")"))
+				file_opt.close()
+				print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax ' + chim3))
+				cmmflip = starfinal.replace('.mrc', '.cmm')
+				endfile = os.path.split(cmmflip)
+				endcmm = endfile[1]
+				self.ids.filenameget.text = starfinal
+				if os.path.exists(cmmdir + '/coord.cmm') == True:
+					shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + endcmm))
+					statstat = 1
+				else:
+					statstat = 0
+
+			if statstat == 1:
+				self.ids.pickcoordtext.text = 'Coords saved.'
 			else:
-				statstat = 0
+				self.ids.pickcoordtext.text = 'No coords selected.'
 
-		if statstat == 1:
-			self.ids.pickcoordtext.text = 'Coords saved.'
-		else:
-			self.ids.pickcoordtext.text = 'No coords selected.'
+			self.ids.notecoord.text = ""
+			self.ids.notesave.text = ""
+			os.remove(chim3)
 
-		self.ids.notecoord.text = ""
-		self.ids.notesave.text = ""
-		os.remove(chim3)
-#	making a log file here
-	#	log = cwd + '/logfile.txt'
-	#	if os.path.isdir(log) == False:
-	#		os.mkdir(log)
-	#	logfile = log + '/logfile.txt'
-	#	file_opt = open(logfile, 'w')
-	#	file_opt.writelines("Project")
+		except FileNotFoundError:
+			print("This directory does not exist")
+			self.ids.pickcoordtext.text = 'Click above to begin.'
 
 		return
 
@@ -434,44 +435,56 @@ class Tabs(TabbedPanel):
 		return
 
 	def filename(self):
-		ChimeraX_dir = self.ids.chimera_path.text
-		listName = self.ids.mainstar.text
-		cwd = self.ids.maincwd.text
-		direct = self.ids.mainmrc.text
-		levels = self.ids.surface_level.text
-		pxsz = float(self.ids.A1.text)
-		curindex = int(self.ids.index.text)
-		cmmdir = self.ids.chimera_out.text
-		pat = 'Extract'
-		img = 'ImageName'
-		fnlength = 0
-		stardom = []
-		fileNames = open(listName, 'r')
-		for line in fileNames:
-			if re.search(img, line):
-				for m in line:
-					if m.isdigit():
-						columnstar = int(m) - 1
-			if re.search(pat, line):
-				fnlength += 1 
-				starline = line.split()
-				stardex = starline[columnstar]
-				stardom.append(stardex)
-		flength = str(fnlength)
-		starind = curindex - 1
-		if curindex < 1 or curindex > fnlength:
-			print('The index is outside of the file limits.')
-			self.ids.filenameget.text = ""
-		else:
-			starfinal = stardom[starind]
-			self.ids.filenameget.text = starfinal
+		try:
+			ChimeraX_dir = self.ids.chimera_path.text
+			listName = self.ids.mainstar.text
+			cwd = self.ids.maincwd.text
+			direct = self.ids.mainmrc.text
+			levels = self.ids.surface_level.text
+			pxsz = float(self.ids.A1.text)
+			curindex = int(self.ids.index.text)
+			cmmdir = self.ids.chimera_out.text
+			pat = 'Extract'
+			img = 'ImageName'
+			fnlength = 0
+			stardom = []
+			fileNames = open(listName, 'r')
+			for line in fileNames:
+				if re.search(img, line):
+					for m in line:
+						if m.isdigit():
+							columnstar = int(m) - 1
+				if re.search(pat, line):
+					fnlength += 1 
+					starline = line.split()
+					stardex = starline[columnstar]
+					stardom.append(stardex)
+			flength = str(fnlength)
+			starind = curindex - 1
+			if curindex < 1 or curindex > fnlength:
+				print('The index is outside of the file limits.')
+				self.ids.filenameget.text = ""
+			else:
+				starfinal = stardom[starind]
+				self.ids.filenameget.text = starfinal
+		except FileNotFoundError:
+			print('This directory does not exist')
 		return
 
 	def note(self):
+		from datetime import date
 		cwd = self.ids.maincwd.text
-		coordnote = cwd + '/coordpickernote.txt'
+		today = date.today()
+		w = '/coordpickernote' + str(today)
+		coordnote = cwd + w + '.txt'
+		if os.path.exists(coordnote):
+			w = w + '0'
+			coordnote = cwd + w + '.txt'
+			if os.path.exists(coordnote):
+				w = w + '1'
+				coordnote = cwd + w + '.txt'
 
-		while os.path.exists(cwd + '/coordpickernote.txt') == False:
+		while os.path.exists(coordnote) == False:
 			file_opt = open(coordnote, 'w')
 			file_opt.writelines('index$filename$note')
 			file_opt.close()
@@ -480,8 +493,8 @@ class Tabs(TabbedPanel):
 		file_opt.writelines("\n" + self.ids.index.text + '$' + self.ids.filenameget.text + '$' + self.ids.notecoord.text)
 		file_opt.close()
 		notedata = pd.read_csv(coordnote, delimiter = '$')
-		notedata.to_csv(cwd + '/coordpickernote.csv', index=None)
-		self.ids.notesave.text = 'Saved to /coordpickernote.csv'
+		notedata.to_csv(cwd + w + '.csv', index=None)
+		self.ids.notesave.text = 'Saved to ' + w + '.csv'
 		return
 
 	def create_coords(self):
