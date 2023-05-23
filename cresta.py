@@ -374,6 +374,8 @@ class Tabs(TabbedPanel):
 			wiener.append(v)
 
 		plt.plot(wiener)
+		plt.grid(True)
+		plt.title('Wiener Function')
 		plt.ylabel('wiener')
 		plt.show()
 
