@@ -192,7 +192,6 @@ class Tabs(TabbedPanel):
 		except IsADirectoryError:
 			print('Enter a text file')
 
-
 	def filter_vol(self):
 		try:
 			listName = self.ids.mainstar.text
@@ -329,6 +328,54 @@ class Tabs(TabbedPanel):
 		except FileNotFoundError:
 			print("This directory does not exist")
 
+	def plot_wiener(self):
+		import matplotlib.pyplot as plt
+		angpix = float(self.ids.A1.text)
+		defocus = float(self.ids.defoc.text)
+		snrratio = float(self.ids.snrval.text)
+		highpassnyquist = float(self.ids.highpass.text)
+		phasebutton = self.ids.phaseflip.active
+
+		def tom_ctf1d(n, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
+			ny = 1 / (pixelsize)
+			lambda_ = 12.2643247 / np.sqrt(voltage * (1.0 + voltage * 0.978466e-6)) * 1e-10
+			lambda2 = lambda_ * 2
+
+			points = np.arange(0, n)
+			points = points / (2 * n) * ny
+			k2 = n**2
+
+			term1 = lambda_**3 * cs * k2**2
+			w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
+
+			acurve = np.cos(w) * amplitude_contrast
+			pcurve = -np.sqrt(1 - amplitude_contrast**2) * np.sin(w)
+			bfactor_term = math.exp(-bfactor * k2 * 0.25)
+
+			ctf = (pcurve + acurve) * (bfactor_term)
+
+			return ctf
+		
+		highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
+		highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
+		highpass = 1 - np.cos(highpass)
+
+		snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrratio * 100 / angpix) * 1000 * highpass
+		if phasebutton == True:
+			ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
+		else:
+			ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
+		wiener = []
+		for x in snr:
+			if x == 0.0:
+				v = 0.0
+			else:
+				v = ctf / (ctf * ctf + 1 / x)
+			wiener.append(v)
+
+		plt.plot(wiener)
+		plt.ylabel('wiener')
+		plt.show()
 
 	def rotate(self):
 		print("rotated")
