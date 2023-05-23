@@ -45,6 +45,10 @@ Install mrcfile:
 
 pip3 install mrcfile
 ------------------------
+Install matplotlib:
+
+pip3 install matplotlib
+------------------------
 then 'cd' to the pycrest directory
 use 'source bin/activate' in pycrest directory
 enter 'python3 cresta.py' to open
