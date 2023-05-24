@@ -261,7 +261,7 @@ class Tabs(TabbedPanel):
 							ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
 						else:
 							ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-						#wiener = []
+						# wiener = []
 						# for x in snr:
 						# 	if x == 0.0:
 						# 		v = 0.0
@@ -292,7 +292,6 @@ class Tabs(TabbedPanel):
 						r = np.fft.ifftshift(r)
 						x = np.arange(0, 1 + 1/2047, 1 / 2047)
 
-					#	ramp = interp1d(x, wiener, kind='linear', fill_value='extrapolate')(r)
 						ramp = np.interp(r, x, wiener)
 						deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
 						return deconv
@@ -306,7 +305,7 @@ class Tabs(TabbedPanel):
 					print('Now writing ' + newFileName)
 					mrcfile.new(newFileName, subtomo_filt)
 				if plot_wiener == True:
-					plt.show()
+					plt.show(block=False)
 
 		#	gaussian
 			if gaussianbutton == True:

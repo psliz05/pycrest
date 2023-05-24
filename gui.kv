@@ -321,7 +321,7 @@
 						pos: self.pos
 						size: self.size
 				orientation: 'vertical'
-				size_hint: .8, .6
+				size_hint: .8, .8
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				BoxLayout:
 					orientation: 'horizontal'
@@ -352,9 +352,7 @@
                 			pos: self.pos
                 			size: self.size
 				Label:
-					text: 'Filter type'
-					pos_hint: {'center_x': .15}
-					size_hint_y: .6
+					size_hint_y: .3
 				BoxLayout:
 					orientation: 'horizontal'
 					BoxLayout:
@@ -405,9 +403,38 @@
 						CheckBox:
 							state: 'normal'
 							id: phaseflip
-				Label:
-					text: ' '
-					size_hint_y: .3
+				BoxLayout:
+					orientation: 'horizontal'
+					Label:
+						text: ' '
+					CheckBox: 
+						id: plot_wiener
+						state: 'down'
+					Label:
+						text: 'Plot Wiener'
+						bold: True
+					Label:
+						text: ' '
+					Label:
+						text: ' '
+					Label:
+						text: ' '
+					Label:
+						text: ' '
+					Label:
+						text: ' '
+					Label:
+						text: ' '
+				Widget:
+					id: separator
+        			size_hint_y: None
+        			height: 8
+        			canvas:
+            			Color:
+                			rgba: 0., 0., 0., 0.6
+            			Rectangle:
+                			pos: self.pos
+                			size: self.size
 				BoxLayout:
 					orientation: 'horizontal'
 					BoxLayout:
@@ -437,29 +464,25 @@
 				Label:
 					text: ' '
 					size_hint_y: .5
-				BoxLayout:
-					orientation: 'horizontal'
-					size_hint_x: .75
+				Widget:
+					id: separator
+					size_hint_y: None
+					height: 8
+					canvas:
+						Color:
+							rgba: 0., 0., 0., 0.6
+						Rectangle:
+							pos: self.pos
+							size: self.size
+				Label: 
+					text: ' '
+					size_hint_y: 0.4
+				Button:
+					background_color: 0.2, 0.6, 0.2, .55
+					text: 'Filter Volumes'
+					on_release: root.filter_vol()
+					size_hint: .4, .7
 					pos_hint: {'center_x': .5, 'center_y': .5}
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Filter Volumes'
-						on_release: root.filter_vol()
-						size_hint: 1.1, .7
-						pos_hint: {'center_x': .4, 'center_y': .5}
-					Label:
-						text: ' '
-						size_hint_x: .4
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: .55, .5
-						pos_hint: {'center_x': .7, 'center_y': .5}
-						CheckBox: 
-							id: plot_wiener
-							state: 'down'
-						Label:
-							text: 'Plot Wiener'
-							bold: True
 				Label: 
 					text: ' '
 					size_hint_y: 0.4
