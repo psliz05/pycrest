@@ -302,7 +302,7 @@
 						Label:
 							size_hint_y: .1
 	TabbedPanelItem:
-		text: 'Visualization'
+		text: 'Filtering'
 		BoxLayout:
 			canvas:
 				Color:
@@ -323,13 +323,34 @@
 				orientation: 'vertical'
 				size_hint: .8, .6
 				pos_hint: {'center_x': .5, 'center_y': .5}
-				Label: 
-					text: 'Filter mrc'
-					color: (0,0,0,1)
-					font_size: 35
-					pos_hint: {'center_x': .12}
-					size_hint_y: .6
-					bold: True
+				BoxLayout:
+					orientation: 'horizontal'
+					Label: 
+						text: 'Filter mrc'
+						color: (0,0,0,1)
+						font_size: 35
+						size_hint_y: .6
+						bold: True
+					Label:
+						text: ' '
+						size_hint_x: .35
+					Label:
+						text: 'Note: mrc directory and Px size (A) must be entered on Master Key tab'
+						color: (.6,0,0,1)
+						font_size: 25
+						size_hint_y: .6
+					Label:
+						text: ' '
+				Widget:
+					id: separator
+        			size_hint_y: None
+        			height: 8
+        			canvas:
+            			Color:
+                			rgba: 0., 0., 0., 0.6
+            			Rectangle:
+                			pos: self.pos
+                			size: self.size
 				Label:
 					text: 'Filter type'
 					pos_hint: {'center_x': .15}
@@ -382,7 +403,7 @@
 						Label:
 							text: 'Phase-Flipped?'
 						CheckBox:
-							state: 'down'
+							state: 'normal'
 							id: phaseflip
 				Label:
 					text: ' '
@@ -424,16 +445,21 @@
 						background_color: 0.2, 0.6, 0.2, .55
 						text: 'Filter Volumes'
 						on_release: root.filter_vol()
-						size_hint: 1.0, .7
-						pos_hint: {'center_x': .3, 'center_y': .5}
+						size_hint: 1.1, .7
+						pos_hint: {'center_x': .4, 'center_y': .5}
 					Label:
 						text: ' '
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Plot Wiener'
-						on_release: root.plot_wiener()
+						size_hint_x: .4
+					BoxLayout:
+						orientation: 'horizontal'
 						size_hint: .55, .5
 						pos_hint: {'center_x': .7, 'center_y': .5}
+						CheckBox: 
+							id: plot_wiener
+							state: 'down'
+						Label:
+							text: 'Plot Wiener'
+							bold: True
 				Label: 
 					text: ' '
 					size_hint_y: 0.4

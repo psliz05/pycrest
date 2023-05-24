@@ -194,7 +194,6 @@ class Tabs(TabbedPanel):
 
 	def filter_vol(self):
 		try:
-			listName = self.ids.mainstar.text
 			direct = self.ids.mainmrc.text
 			if self.ids.mainmrc.text[-1] != '/':
 				direct = self.ids.mainmrc.text + '/'
@@ -203,11 +202,10 @@ class Tabs(TabbedPanel):
 			snrratio = float(self.ids.snrval.text)
 			highpassnyquist = float(self.ids.highpass.text)
 			sigval = float(self.ids.sigma.text)
-		#	if os.path.exists(listName) == False:
-		#		sys.exit('Star file not found')
 			wienerbutton = self.ids.wienerbutton.active
 			gaussianbutton = self.ids.gaussianbutton.active
 			phasebutton = self.ids.phaseflip.active
+			plot_wiener = self.ids.plot_wiener.active
 
 			if wienerbutton == False and gaussianbutton == False:
 				print("At least one option needs to be selected.")
@@ -217,6 +215,7 @@ class Tabs(TabbedPanel):
 				import numpy as np
 				from scipy.interpolate import interp1d
 				from scipy.fftpack import fftn, ifftn
+				import matplotlib.pyplot as plt
 
 				# remove current filtered .mrc files
 				filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
@@ -232,21 +231,21 @@ class Tabs(TabbedPanel):
 					# read .mrc file and apply filter
 					mrc = mrcfile.read(fullFileName)
 
-					def tom_ctf1d(n, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
+					def tom_ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
 						ny = 1 / (pixelsize)
 						lambda_ = 12.2643247 / np.sqrt(voltage * (1.0 + voltage * 0.978466e-6)) * 1e-10
 						lambda2 = lambda_ * 2
 
-						points = np.arange(0, n)
-						points = points / (2 * n) * ny
-						k2 = n**2
-
+						points = np.arange(0, length)
+						points = points / (2 * length) * ny
+						k2 = length ** 2
 						term1 = lambda_**3 * cs * k2**2
+
 						w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
 
 						acurve = np.cos(w) * amplitude_contrast
 						pcurve = -np.sqrt(1 - amplitude_contrast**2) * np.sin(w)
-						bfactor_term = math.exp(-bfactor * k2 * 0.25)
+						bfactor_term = np.exp(-bfactor * k2 * 0.25)
 
 						ctf = (pcurve + acurve) * (bfactor_term)
 
@@ -269,6 +268,12 @@ class Tabs(TabbedPanel):
 							else:
 								v = ctf / (ctf * ctf + 1 / x)
 							wiener.append(v)
+						
+						if plot_wiener == True:
+							plt.plot(wiener)
+							plt.grid(True)
+							plt.title('Wiener Function')
+							plt.ylabel('wiener')
 
 						s1 = -np.floor(vol.shape[0] / 2)
 						f1 = s1 + vol.shape[0] - 1
@@ -298,6 +303,8 @@ class Tabs(TabbedPanel):
 					newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
 					print('Now writing ' + newFileName)
 					mrcfile.new(newFileName, subtomo_filt)
+				if plot_wiener == True:
+					plt.show()
 
 		#	gaussian
 			if gaussianbutton == True:
@@ -327,57 +334,6 @@ class Tabs(TabbedPanel):
 
 		except FileNotFoundError:
 			print("This directory does not exist")
-
-	def plot_wiener(self):
-		import matplotlib.pyplot as plt
-		angpix = float(self.ids.A1.text)
-		defocus = float(self.ids.defoc.text)
-		snrratio = float(self.ids.snrval.text)
-		highpassnyquist = float(self.ids.highpass.text)
-		phasebutton = self.ids.phaseflip.active
-
-		def tom_ctf1d(n, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
-			ny = 1 / (pixelsize)
-			lambda_ = 12.2643247 / np.sqrt(voltage * (1.0 + voltage * 0.978466e-6)) * 1e-10
-			lambda2 = lambda_ * 2
-
-			points = np.arange(0, n)
-			points = points / (2 * n) * ny
-			k2 = n**2
-
-			term1 = lambda_**3 * cs * k2**2
-			w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
-
-			acurve = np.cos(w) * amplitude_contrast
-			pcurve = -np.sqrt(1 - amplitude_contrast**2) * np.sin(w)
-			bfactor_term = math.exp(-bfactor * k2 * 0.25)
-
-			ctf = (pcurve + acurve) * (bfactor_term)
-
-			return ctf
-		
-		highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
-		highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
-		highpass = 1 - np.cos(highpass)
-
-		snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrratio * 100 / angpix) * 1000 * highpass
-		if phasebutton == True:
-			ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-		else:
-			ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-		wiener = []
-		for x in snr:
-			if x == 0.0:
-				v = 0.0
-			else:
-				v = ctf / (ctf * ctf + 1 / x)
-			wiener.append(v)
-
-		plt.plot(wiener)
-		plt.grid(True)
-		plt.title('Wiener Function')
-		plt.ylabel('wiener')
-		plt.show()
 
 	def rotate(self):
 		print("rotated")
