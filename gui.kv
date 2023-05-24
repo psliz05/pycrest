@@ -403,28 +403,8 @@
 						CheckBox:
 							state: 'normal'
 							id: phaseflip
-				BoxLayout:
-					orientation: 'horizontal'
-					Label:
-						text: ' '
-					CheckBox: 
-						id: plot_wiener
-						state: 'down'
-					Label:
-						text: 'Plot Wiener'
-						bold: True
-					Label:
-						text: ' '
-					Label:
-						text: ' '
-					Label:
-						text: ' '
-					Label:
-						text: ' '
-					Label:
-						text: ' '
-					Label:
-						text: ' '
+				Label:
+					size_hint_y: .3
 				Widget:
 					id: separator
         			size_hint_y: None
@@ -435,6 +415,9 @@
             			Rectangle:
                 			pos: self.pos
                 			size: self.size
+				Label:
+					text: ' '
+					size_hint_y: .3
 				BoxLayout:
 					orientation: 'horizontal'
 					BoxLayout:
@@ -463,7 +446,7 @@
 						text: ' '
 				Label:
 					text: ' '
-					size_hint_y: .5
+					size_hint_y: .4
 				Widget:
 					id: separator
 					size_hint_y: None

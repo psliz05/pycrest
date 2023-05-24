@@ -205,7 +205,6 @@ class Tabs(TabbedPanel):
 			wienerbutton = self.ids.wienerbutton.active
 			gaussianbutton = self.ids.gaussianbutton.active
 			phasebutton = self.ids.phaseflip.active
-			plot_wiener = self.ids.plot_wiener.active
 
 			if wienerbutton == False and gaussianbutton == False:
 				print("At least one option needs to be selected.")
@@ -269,12 +268,12 @@ class Tabs(TabbedPanel):
 							else:
 								v = c / (c * c + 1 / s)
 							wiener.append(v)
+
 						
-						if plot_wiener == True:
-							plt.plot(wiener)
-							plt.grid(True)
-							plt.title('Wiener Function')
-							plt.ylabel('wiener')
+						plt.plot(np.arange(0, 1 + 1 / 2047, 1 / 2047), wiener)
+						plt.grid(True)
+						plt.title('Wiener Function')
+						plt.ylabel('wiener')
 
 						s1 = -np.floor(vol.shape[0] / 2)
 						f1 = s1 + vol.shape[0] - 1
@@ -304,8 +303,8 @@ class Tabs(TabbedPanel):
 					newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
 					print('Now writing ' + newFileName)
 					mrcfile.new(newFileName, subtomo_filt)
-				if plot_wiener == True:
-					plt.show(block=False)
+
+				plt.show(block=False)
 
 		#	gaussian
 			if gaussianbutton == True:
