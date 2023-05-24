@@ -238,7 +238,7 @@ class Tabs(TabbedPanel):
 
 						points = np.arange(0, length)
 						points = points / (2 * length) * ny
-						k2 = length ** 2
+						k2 = points ** 2
 						term1 = lambda_**3 * cs * k2**2
 
 						w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
@@ -261,13 +261,14 @@ class Tabs(TabbedPanel):
 							ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
 						else:
 							ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
-						wiener = []
-						for x in snr:
-							if x == 0.0:
-								v = 0.0
-							else:
-								v = ctf / (ctf * ctf + 1 / x)
-							wiener.append(v)
+						#wiener = []
+						# for x in snr:
+						# 	if x == 0.0:
+						# 		v = 0.0
+						# 	else:
+						# 		v = ctf / (ctf * ctf + 1 / x)
+						# 	wiener.append(v)
+						wiener = ctf / (ctf * ctf + 1 / snr)
 						
 						if plot_wiener == True:
 							plt.plot(wiener)
@@ -291,7 +292,8 @@ class Tabs(TabbedPanel):
 						r = np.fft.ifftshift(r)
 						x = np.arange(0, 1 + 1/2047, 1 / 2047)
 
-						ramp = interp1d(x, wiener, kind='linear', fill_value='extrapolate')(r)
+					#	ramp = interp1d(x, wiener, kind='linear', fill_value='extrapolate')(r)
+						ramp = np.interp(r, x, wiener)
 						deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
 						return deconv
 					
