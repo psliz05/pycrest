@@ -217,7 +217,7 @@ class Tabs(TabbedPanel):
 				import matplotlib.pyplot as plt
 
 				# remove current filtered .mrc files
-				filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
+				filtered_files = [f for f in os.listdir(direct) if f.endswith("_wiener.mrc")]
 				for f in filtered_files:
 					os.remove(os.path.join(direct, f))
 
@@ -269,11 +269,10 @@ class Tabs(TabbedPanel):
 								v = c / (c * c + 1 / s)
 							wiener.append(v)
 
-						
 						plt.plot(np.arange(0, 1 + 1 / 2047, 1 / 2047), wiener)
 						plt.grid(True)
 						plt.title('Wiener Function')
-						plt.ylabel('wiener')
+						plt.ylabel('Wiener Filter Function')
 
 						s1 = -np.floor(vol.shape[0] / 2)
 						f1 = s1 + vol.shape[0] - 1
@@ -300,7 +299,7 @@ class Tabs(TabbedPanel):
 
 					# write filtered .mrc file
 					baseFileName, extension = os.path.splitext(f)
-					newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
+					newFileName = os.path.join(direct, baseFileName + '_wiener.mrc')
 					print('Now writing ' + newFileName)
 					mrcfile.new(newFileName, subtomo_filt)
 
@@ -312,7 +311,7 @@ class Tabs(TabbedPanel):
 				import mrcfile
 
 				# remove current filtered .mrc files
-				filtered_files = [f for f in os.listdir(direct) if f.endswith("_filt.mrc")]
+				filtered_files = [f for f in os.listdir(direct) if f.endswith("_gauss.mrc")]
 				for f in filtered_files:
 					os.remove(os.path.join(direct, f))
 
@@ -328,7 +327,7 @@ class Tabs(TabbedPanel):
 
 					# write filtered .mrc file
 					baseFileName, extension = os.path.splitext(f)
-					newFileName = os.path.join(direct, baseFileName + '_filt.mrc')
+					newFileName = os.path.join(direct, baseFileName + '_gauss.mrc')
 					print('Now writing ' + newFileName)
 					mrcfile.new(newFileName, subtomo_filt)
 
