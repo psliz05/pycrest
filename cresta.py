@@ -230,6 +230,7 @@ class Tabs(TabbedPanel):
 
 	def filter_vol(self):
 		try:
+			self.ids['sigma'] = weakref.ref(Tabs.sigma)
 			direct = self.ids.mainmrc.text
 			if self.ids.mainmrc.text[-1] != '/':
 				direct = self.ids.mainmrc.text + '/'
