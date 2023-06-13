@@ -47,6 +47,10 @@ class Cresta(App):
 
 #giving buttons functionality
 class Tabs(TabbedPanel):
+	
+	label = Label(text="Sigma")
+	label2 = Label(text=" ", size_hint_y=.8)
+	sigma = TextInput(text="5", multiline=False, size_hint_x=.12, size_hint_y=1.9, pos_hint={'center_x': .5, 'center_y': .5})
 
 	def cwd(self):
 		self.ids.maincwd.text = os.getcwd()
@@ -99,6 +103,7 @@ class Tabs(TabbedPanel):
 
 	def savedata(self):
 		try:
+			self.ids['sigma'] = weakref.ref(Tabs.sigma)
 			if self.ids.save.text[-1] != '/':
 				self.ids.save.text = self.ids.save.text + '/'
 	#	create text file with saved project data and text inputs
@@ -131,8 +136,10 @@ class Tabs(TabbedPanel):
 			self.ids.pullpath.text = save
 		except IndexError:
 			print('Enter a project directory and name')
+
 	def pulldata(self):
 		try:
+			self.ids['sigma'] = weakref.ref(Tabs.sigma)
 			load = self.ids.pullpath.text
 		#	load existing project information
 			with open(load) as pull:
@@ -210,13 +217,9 @@ class Tabs(TabbedPanel):
 			self.ids.second_row_wiener.add_widget(self.ids.boxeight)
 
 		if self.ids.gaussianbutton.active == True:
-			label = Label(text="Sigma")
-			label2 = Label(text=" ", size_hint_y=.8)
-			sigma = TextInput(text="5", multiline=False, size_hint_x=.12, size_hint_y=1.9, pos_hint={'center_x': .5, 'center_y': .5})
-			self.ids['sigma'] = weakref.ref(sigma)
-			self.ids.gaussian_row.add_widget(label)
-			self.ids.gaussian_row.add_widget(label2)
-			self.ids.gaussian_row.add_widget(sigma)
+			self.ids.gaussian_row.add_widget(Tabs.label)
+			self.ids.gaussian_row.add_widget(Tabs.label2)
+			self.ids.gaussian_row.add_widget(Tabs.sigma)
 
 		if not(self.ids.wienerbutton.active) and not(self.ids.gaussianbutton.active):
 			text = Label(text="Please select a filter")
@@ -230,17 +233,18 @@ class Tabs(TabbedPanel):
 			direct = self.ids.mainmrc.text
 			if self.ids.mainmrc.text[-1] != '/':
 				direct = self.ids.mainmrc.text + '/'
+			wienerbutton = self.ids.wienerbutton.active
+			gaussianbutton = self.ids.gaussianbutton.active
 			angpix = float(self.ids.A1.text)
 			defoc = float(self.ids.defoc.text)
 			snrratio = float(self.ids.snrval.text)
 			highpassnyquist = float(self.ids.highpass.text)
-			sigval = float(self.ids.sigma.text)
+			if gaussianbutton == True:
+				sigval = float(self.ids.sigma.text)
 			voltage = float(self.ids.voltage.text)
 			cs = float(self.ids.cs.text)
 			envelope = float(self.ids.envelope.text)
 			bfactor = float(self.ids.bfactor.text)
-			wienerbutton = self.ids.wienerbutton.active
-			gaussianbutton = self.ids.gaussianbutton.active
 			phasebutton = self.ids.phaseflip.active
 
 			if wienerbutton == False and gaussianbutton == False:
