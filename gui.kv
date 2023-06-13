@@ -310,9 +310,27 @@
 				Rectangle:
 					pos: self.pos
 					size: self.size
-			orientation: 'horizontal'
-			Label:
-				size_hint_x: .1
+			orientation: 'vertical'
+			BoxLayout:
+				orientation: 'horizontal'
+				size_hint_y: .1
+				pos_hint: {'center_x': .5, 'center_y': .5}
+				Label: 
+					text: 'Filter mrc'
+					color: (0,0,0,1)
+					font_size: 35
+					size_hint_y: .6
+					bold: True
+				Label:
+					text: ' '
+					size_hint_x: .35
+				Label:
+					text: 'Note: mrc directory and Px size (A) must be entered on Master Key tab'
+					color: (.6,0,.6,1)
+					font_size: 25
+					size_hint_y: .6
+				Label:
+					text: ' '
 			BoxLayout:
 				canvas:
 					Color:
@@ -321,51 +339,41 @@
 						pos: self.pos
 						size: self.size
 				orientation: 'vertical'
-				size_hint: .8, .8
+				size_hint: .95, .9
 				pos_hint: {'center_x': .5, 'center_y': .5}
+				id: gray_box
+				Label:
+					size_hint_y: .2
 				BoxLayout:
 					orientation: 'horizontal'
-					Label: 
-						text: 'Filter mrc'
-						color: (0,0,0,1)
-						font_size: 35
-						size_hint_y: .6
+					size_hint: .5, .1
+					pos_hint: {'center_x': .5}
+					CheckBox:
+						group: 'g2'
+						id: wienerbutton
+						on_active: root.show_screen()
+						state: 'down'
+					Label:
+						text: 'Wiener'
 						bold: True
 					Label:
-						text: ' '
-						size_hint_x: .35
+						size_hint_x: .2
+					CheckBox: 
+						group: 'g2'
+						id: gaussianbutton
+						on_active: root.show_screen()
 					Label:
-						text: 'Note: mrc directory and Px size (A) must be entered on Master Key tab'
-						color: (.6,0,0,1)
-						font_size: 25
-						size_hint_y: .6
-					Label:
-						text: ' '
-				Widget:
-					id: separator
-        			size_hint_y: None
-        			height: 8
-        			canvas:
-            			Color:
-                			rgba: 0., 0., 0., 0.6
-            			Rectangle:
-                			pos: self.pos
-                			size: self.size
+						text: 'Gaussian'
+						bold: True
 				Label:
-					size_hint_y: .3
+					size_hint_y: .2
 				BoxLayout:
 					orientation: 'horizontal'
-					BoxLayout:
-						orientation: 'horizontal'
-						CheckBox:
-							state: 'down'
-							group: 'g2'
-							id: wienerbutton
-						Label:
-							text: 'Wiener'
-							bold: True
+					size_hint_y: .45
+					id: first_row_wiener
 					BoxLayout:
 						orientation: 'vertical'
+						id: boxone
 						Label:
 							text: 'Defocus (um)'
 						TextInput:
@@ -374,8 +382,17 @@
 							text: '3'
 							multiline: False
 							id: defoc
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Label:
+							text: ' '
+							color: (.6,0,0,1)
+							font_size: 22
+							size_hint_y: .1
 					BoxLayout:
 						orientation: 'vertical'
+						id: boxtwo
 						Label:
 							text: 'SNR falloff'
 						TextInput:
@@ -389,11 +406,12 @@
 							size_hint_y: .3
 						Label:
 							text: 'recommended range: 0.9 to 1.2'
-							color: (.6,0,0,1)
+							color: (.6,0,.6,1)
 							font_size: 22
 							size_hint_y: .1
 					BoxLayout:
 						orientation: 'vertical'
+						id: boxthree
 						Label:
 							text: 'Highpassnyquist'
 						TextInput:
@@ -402,83 +420,128 @@
 							text: '0.01'
 							multiline: False
 							id: highpass
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Label:
+							text: ' '
+							color: (.6,0,0,1)
+							font_size: 22
+							size_hint_y: .1
 					BoxLayout:
 						orientation: 'vertical'
+						id: boxfour
 						Label:
-							text: 'Input Tomogram'
-						Label:
-							text: 'Phase-Flipped?'
+							text: 'Input Tomogram\nPhase-Flipped?'
 						CheckBox:
 							state: 'normal'
 							id: phaseflip
-				Label:
-					size_hint_y: .3
-				Widget:
-					id: separator
-        			size_hint_y: None
-        			height: 8
-        			canvas:
-            			Color:
-                			rgba: 0., 0., 0., 0.6
-            			Rectangle:
-                			pos: self.pos
-                			size: self.size
-				Label:
-					text: ' '
-					size_hint_y: .3
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Label:
+							text: ' '
+							color: (.6,0,0,1)
+							font_size: 22
+							size_hint_y: .1
+				BoxLayout:
+					orientation: 'vertical'
+					id: gaussian_row
+					size_hint_y: .25
 				BoxLayout:
 					orientation: 'horizontal'
-					BoxLayout:
-						orientation: 'horizontal'
-						CheckBox: 
-							group: 'g2'
-							id: gaussianbutton
-						Label:
-							text: 'Gaussian'
-							bold: True
+					size_hint_y: .45
+					id: second_row_wiener
 					BoxLayout:
 						orientation: 'vertical'
-						Label: 
-							text: 'sigma'
+						id: boxfive
+						Label:
+							text: 'Voltage (eV)'
 						TextInput:
 							size_hint_x: .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							text: '5'
+							text: '300e3'
 							multiline: False
-							id: sigma
-					Label:
-						text: ' '
-					Label:
-						text: ' '
-					Label:
-						text: ' '
+							id: voltage
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Label:
+							text: 'for Titan Krios'
+							color: (.6,0,.6,1)
+							font_size: 22
+							size_hint_y: .1
+					BoxLayout:
+						orientation: 'vertical'
+						id: boxsix
+						Label:
+							text: 'CS'
+						TextInput:
+							size_hint_x: .5
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: '2.7e-3'
+							multiline: False
+							id: cs
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Label:
+							text: 'for Titan Krios'
+							color: (.6,0,.6,1)
+							font_size: 22
+							size_hint_y: .1
+					BoxLayout:
+						orientation: 'vertical'
+						id: boxseven
+						Label:
+							text: 'Envelope'
+						TextInput:
+							size_hint_x: .5
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: '0.07'
+							multiline: False
+							id: envelope
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Label:
+							text: 'for Titan Krios'
+							color: (.6,0,.6,1)
+							font_size: 22
+							size_hint_y: .1
+					BoxLayout:
+						orientation: 'vertical'
+						id: boxeight
+						Label:
+							text: 'B-Factor'
+						TextInput:
+							size_hint_x: .5
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: '0'
+							multiline: False
+							id: bfactor
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Label:
+							text: ' '
+							color: (.6,0,0,1)
+							font_size: 22
+							size_hint_y: .1
 				Label:
-					text: ' '
 					size_hint_y: .4
-				Widget:
-					id: separator
-					size_hint_y: None
-					height: 8
-					canvas:
-						Color:
-							rgba: 0., 0., 0., 0.6
-						Rectangle:
-							pos: self.pos
-							size: self.size
-				Label: 
-					text: ' '
-					size_hint_y: 0.4
 				Button:
 					background_color: 0.2, 0.6, 0.2, .55
 					text: 'Filter Volumes'
 					on_release: root.filter_vol()
-					size_hint: .4, .7
+					size_hint: .4, .3
 					pos_hint: {'center_x': .5, 'center_y': .5}
-				Label: 
-					text: ' '
-					size_hint_y: 0.4
+				Label:
+					size_hint_y: .4
+
+
 			Label:
-				size_hint_x: .1
+				size_hint_y: .1
 
 	TabbedPanelItem:
 		text: 'Coord. Picker'

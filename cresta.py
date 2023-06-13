@@ -15,6 +15,8 @@ import csv
 from pathlib import Path
 import math
 import glob
+import matplotlib.pyplot as plt
+import weakref
 
 #disabling multi-touch kivy emulation
 from kivy.config import Config
@@ -192,16 +194,51 @@ class Tabs(TabbedPanel):
 		except IsADirectoryError:
 			print('Enter a text file')
 
+	def show_screen(self):
+		self.ids.first_row_wiener.clear_widgets()
+		self.ids.second_row_wiener.clear_widgets()
+		self.ids.gaussian_row.clear_widgets()
+		
+		if self.ids.wienerbutton.active == True:
+			self.ids.first_row_wiener.add_widget(self.ids.boxone)
+			self.ids.first_row_wiener.add_widget(self.ids.boxtwo)
+			self.ids.first_row_wiener.add_widget(self.ids.boxthree)
+			self.ids.first_row_wiener.add_widget(self.ids.boxfour)
+			self.ids.second_row_wiener.add_widget(self.ids.boxfive)
+			self.ids.second_row_wiener.add_widget(self.ids.boxsix)
+			self.ids.second_row_wiener.add_widget(self.ids.boxseven)
+			self.ids.second_row_wiener.add_widget(self.ids.boxeight)
+
+		if self.ids.gaussianbutton.active == True:
+			label = Label(text="Sigma")
+			label2 = Label(text=" ", size_hint_y=.8)
+			sigma = TextInput(text="5", multiline=False, size_hint_x=.12, size_hint_y=1.9, pos_hint={'center_x': .5, 'center_y': .5})
+			self.ids['sigma'] = weakref.ref(sigma)
+			self.ids.gaussian_row.add_widget(label)
+			self.ids.gaussian_row.add_widget(label2)
+			self.ids.gaussian_row.add_widget(sigma)
+
+		if not(self.ids.wienerbutton.active) and not(self.ids.gaussianbutton.active):
+			text = Label(text="Please select a filter")
+			self.ids.gaussian_row.add_widget(text)
+	
+
+	plt.ion()
+
 	def filter_vol(self):
 		try:
 			direct = self.ids.mainmrc.text
 			if self.ids.mainmrc.text[-1] != '/':
 				direct = self.ids.mainmrc.text + '/'
 			angpix = float(self.ids.A1.text)
-			defocus = float(self.ids.defoc.text)
+			defoc = float(self.ids.defoc.text)
 			snrratio = float(self.ids.snrval.text)
 			highpassnyquist = float(self.ids.highpass.text)
 			sigval = float(self.ids.sigma.text)
+			voltage = float(self.ids.voltage.text)
+			cs = float(self.ids.cs.text)
+			envelope = float(self.ids.envelope.text)
+			bfactor = float(self.ids.bfactor.text)
 			wienerbutton = self.ids.wienerbutton.active
 			gaussianbutton = self.ids.gaussianbutton.active
 			phasebutton = self.ids.phaseflip.active
@@ -214,7 +251,6 @@ class Tabs(TabbedPanel):
 				import numpy as np
 				from scipy.interpolate import interp1d
 				from scipy.fftpack import fftn, ifftn
-				import matplotlib.pyplot as plt
 
 				# remove current filtered .mrc files
 				filtered_files = [f for f in os.listdir(direct) if f.endswith("_wiener.mrc")]
@@ -257,9 +293,9 @@ class Tabs(TabbedPanel):
 
 						snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
 						if phasebutton == True:
-							ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
+							ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
 						else:
-							ctf = (tom_ctf1d(2048, angpix * 1e-10, 300e3, 2.7e-3, -defocus * 1e-6, 0.07, 0, 0))
+							ctf = (tom_ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
 
 						wiener = []
 						for c, s in zip(ctf, snr):
@@ -269,6 +305,7 @@ class Tabs(TabbedPanel):
 								v = c / (c * c + 1 / s)
 							wiener.append(v)
 
+						plt.close()
 						plt.plot(np.arange(0, 1 + 1 / 2047, 1 / 2047), wiener)
 						plt.grid(True)
 						plt.title('Wiener Function')
@@ -294,7 +331,7 @@ class Tabs(TabbedPanel):
 						deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
 						return deconv
 					
-					subtomo_filt = tom_deconv_tomo(mrc, angpix=angpix, defocus=defocus, snrfalloff=snrratio, highpassnyquist=highpassnyquist)
+					subtomo_filt = tom_deconv_tomo(mrc, angpix=angpix, defocus=defoc, snrfalloff=snrratio, highpassnyquist=highpassnyquist)
 					subtomo_filt = subtomo_filt.astype('float32')
 
 					# write filtered .mrc file
