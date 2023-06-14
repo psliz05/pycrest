@@ -36,6 +36,8 @@ from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.textinput import TextInput
+from kivy.core.window import Window
+Window.size = (800,800)
 
 #importing kivy file
 Builder.load_file(os.getcwd() + '/gui.kv')
@@ -1056,9 +1058,75 @@ class Tabs(TabbedPanel):
 		return
 
 	def mask(self):
+		import mrcfile
+		direct = self.ids.mainmrc.text
+		box = int(self.ids.px1.text)
+		pxsz = float(self.ids.A1.text)
+		rad = float(self.ids.radius.text)
+		height = float(self.ids.height.text)
+		vertshift = float(self.ids.vertical.text)
+		maskmrc = self.ids.maskname.text
+		masktype = self.ids.spinner.text
+		
+		def spheremask(vol, radius, sigma, center):
+			x, y, z = np.mgrid[0:vol.shape[0], 0:vol.shape[1], 0:vol.shape[2]]
+			x = np.sqrt((x + 1 - center[0])**2 + (y + 1 - center[1])**2 + (z + 1 - center[2])**2)
+			ind = np.where(x >= radius)
+			mask = np.ones(vol.shape, dtype=np.float32)
+			mask[ind] = 0
+
+			if sigma > 0:
+				mask[ind] = np.exp(-((x[ind] - radius) / sigma)**2)
+				ind = np.where(mask < np.exp(-2))
+				mask[ind] = 0
+
+			vol = vol * mask
+			return vol
+
+		def cylindermask(vol, radius, sigma, center):
+			x, y = np.mgrid[0:vol.shape[0], 0:vol.shape[1]]
+			x = np.sqrt((x + 1 - center[0])**2 + (y + 1 - center[1])**2)
+			ind = np.where(x >= radius)
+			mask = np.ones((vol.shape[0], vol.shape[1]), dtype=np.float32)
+			mask[ind] = 0
+
+			if sigma > 0:
+				mask[ind] = np.exp(-((x[ind] - radius) / sigma)**2)
+				ind = np.where(mask < np.exp(-2))
+				mask[ind] = 0
+
+			for iz in range(vol.shape[2]):
+				vol[:, :, iz] = vol[:, :, iz] * mask
+
+			return vol
+
+		if masktype == 'Sphere':
+			sphere = spheremask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2), round(box/2)])
+			sphere = sphere.astype('float32')
+			newMask = os.path.join(direct, maskmrc)
+			print('Now writing ' + newMask)
+			mrcfile.new(newMask, sphere)
+
+		if masktype == 'Cylinder':
+			curve = 9649
+			offset = 0
+			cylinder = cylindermask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2)])
+			sph_top = (spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+offset-round(height/2)-curve])-1) * -1
+			sph_bot = (spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+offset+round(height/2)+curve])-1) * -1
+			mask_final = cylinder * sph_top * sph_bot
+
+			mask_final = mask_final.astype('float32')
+			newMask = os.path.join(direct, maskmrc)
+			print('Now writing ' + newMask)
+			mrcfile.new(newMask, mask_final)
+
 		return
 
 	def volume(self):
+		import mrcfile
+		direct = self.ids.mainmrc.text
+		mrcvol = self.ids.tomxyz.text
+
 		return
 
 	def reextract(self):

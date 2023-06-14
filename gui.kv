@@ -1155,7 +1155,9 @@
 						size: self.size
 				spacing: 0, 18
 				BoxLayout:
-					orientation: 'horizontal'
+					orientation: 'vertical'
+					Label:
+						size_hint_y: .05
 					BoxLayout:
 						canvas:
 							Color:
@@ -1163,86 +1165,101 @@
 							Rectangle:
 								pos: self.pos
 								size: self.size
-						orientation: 'vertical'
+						orientation: 'horizontal'
 						spacing: 15
 						size_hint_x: .9
 						pos_hint: {'center_x': .5}
-						Label:
-							text: 'Create Mask'
-							color: (0,0,0,1)
-							font_size: 35
-							pos_hint: {'center_x': .15}
-							bold: True
-						Spinner:
-							background_color: 0, 0, 1, .7
-							text: 'Cylinder'
-							values: 'Sphere', 'Cylinder'
-							size_hint_x: .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						GridLayout:
-							cols:2
-							rows:2
-							size_hint: .9, 1.2
-							spacing: 15
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
-								text: 'Mask radius (px)'
-								size_hint: .9, .7
-								pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
-								text: 'Cyl height (px)'
-								size_hint: .9, .7
-								pos_hint: {'center_x': .5, 'center_y': .5}
-							TextInput:
-								text: '35'
-								size_hint_x: .5
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								multiline: False
-							TextInput:
-								text: '65'
-								size_hint_x: .5
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								multiline: False
-						Label:
-							text: 'Vertical Translation (px)'
-							size_hint: .7, .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						TextInput:
-							text: '-8'
-							size_hint: .2, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
-							text: 'Save mask as'
-							size_hint: .8, .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						TextInput:
-							text: 'mask.mrc'
-							size_hint: .6, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Make Mask'
-							on_release: root.mask()
-							size_hint_x: .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
-							text: ' '
-							size_hint_y: .1
-					AnchorLayout:
-						anchor_y: 'top'
 						BoxLayout:
-							canvas:
-								Color:
-									rgba: .5, .5, .5, 0.4
-								Rectangle:
-									pos: self.pos
-									size: self.size
 							orientation: 'vertical'
-							spacing: 15
-							size_hint: .9, .5
-							pos_hint: {'center_x': .5}
+							Label:
+								text: 'Create Mask'
+								color: (0,0,0,1)
+								font_size: 35
+								pos_hint: {'center_x': .15}
+								bold: True
+							Spinner:
+								background_color: 0, 0, 1, .7
+								text: 'Cylinder'
+								values: 'Sphere', 'Cylinder'
+								size_hint_x: .5
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								id: spinner
+							GridLayout:
+								cols:2
+								rows:2
+								size_hint: .9, 1.2
+								spacing: 15
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								Label:
+									text: 'Mask radius (px)'
+									size_hint: .9, .7
+									pos_hint: {'center_x': .5, 'center_y': .5}
+								Label:
+									text: 'Cyl height (px)'
+									size_hint: .9, .7
+									pos_hint: {'center_x': .5, 'center_y': .5}
+								TextInput:
+									text: '35'
+									size_hint: .3, .5
+									pos_hint: {'center_x': .5, 'center_y': .5}
+									multiline: False
+									id: radius
+								TextInput:
+									text: '65'
+									size_hint: .3, .5
+									pos_hint: {'center_x': .5, 'center_y': .5}
+									multiline: False
+									id: height
+							Label:
+								size_hint_y: .35
+						BoxLayout:
+							orientation: 'vertical'
+							Label:
+								text: 'Vertical Translation (px)'
+								size_hint: .5, .3
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							TextInput:
+								text: '-8'
+								size_hint: .2, .3
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								multiline: False
+								id: vertical
+							Label:
+								text: 'Save mask as'
+								size_hint: .8, .5
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							TextInput:
+								text: 'mask.mrc'
+								size_hint: .4, .3
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								multiline: False
+								id: maskname
+							Label:
+								size_hint_y: .1
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: 'Make Mask'
+								on_release: root.mask()
+								size_hint: .4, .6
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							Label:
+								text: ' '
+								size_hint_y: .1
+					Label:
+						size_hint_y: .05
+					BoxLayout:
+						orientation: 'horizontal'
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						spacing: 15
+						size_hint: .9, .5
+						pos_hint: {'center_x': .5}
+						BoxLayout:
+							orientation: 'vertical'
 							Label:
 								text: 'Display mrc in tom xyz'
 								color: (0,0,0,1)
@@ -1256,11 +1273,19 @@
 								size_hint_x: .6
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								multiline: False
+								id: tomxyz
+							Label:
+								size_hint_y: .5
+						BoxLayout:
+							orientation: 'vertical'
+							Label:
+								text: ' '
+								size_hint_y: .1
 							Button:
 								background_color: 0.2, 0.6, 0.2, .55
 								text: 'Display Volume'
 								on_release: root.volume()
-								size_hint_x: .5
+								size_hint: .5, .4
 								pos_hint: {'center_x': .5, 'center_y': .5}
 							Label:
 								text: ' '
