@@ -10,6 +10,9 @@ import shutil
 import time
 import pandas as pd
 import numpy as np
+from scipy.fftpack import fftn, ifftn, ifftshift
+import starfile
+import mrcfile
 import sys
 import csv
 from pathlib import Path
@@ -17,6 +20,8 @@ import math
 import glob
 import matplotlib.pyplot as plt
 import weakref
+
+import tom
 
 #disabling multi-touch kivy emulation
 from kivy.config import Config
@@ -134,6 +139,12 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('FirstBin:' + '\t' + self.ids.binnt.text + '\n')
 			file_opt.writelines('SecondSuf:' + '\t' + self.ids.suffixf.text + '\n')
 			file_opt.writelines('SecondBin:' + '\t' + self.ids.binnf.text + '\n')
+			file_opt.writelines('MaskPath:' + '\t' + self.ids.maskpath.text + '\n')
+			file_opt.writelines('Subtomogramdirectory:' + '\t' + self.ids.subtomodir.text + '\n')
+			file_opt.writelines('OutputDirectory:' + '\t' + self.ids.subtractionoutput.text + '\n')
+			file_opt.writelines('SDThresh:' + '\t' + self.ids.sdrange.text + '\n')
+			file_opt.writelines('SDShift:' + '\t' + self.ids.sdshift.text + '\n')
+			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
 			file_opt.close()
 			self.ids.pullpath.text = save
 		except IndexError:
@@ -198,6 +209,18 @@ class Tabs(TabbedPanel):
 						self.ids.suffixf.text = yank
 					if re.search('SecondBin', line):
 						self.ids.binnf.text = yank	
+					if re.search('MaskPath', line):
+						self.ids.maskpath.text = yank	
+					if re.search('Subtomogramdirectory', line):
+						self.ids.subtomodir.text = yank	
+					if re.search('OutputDirectory', line):
+						self.ids.subtractionoutput.text = yank	
+					if re.search('SDThresh', line):
+						self.ids.sdrange.text = yank
+					if re.search('SDShift', line):
+						self.ids.sdshift.text = yank	
+					if re.search('MaskBlur', line):
+						self.ids.blurrate.text = yank	
 		except FileNotFoundError:
 			print('Enter a file path')
 		except IsADirectoryError:
@@ -657,6 +680,7 @@ class Tabs(TabbedPanel):
 												if re.search(filenoend, line):
 													starline = line.split()
 													roots = starline[imagefile]
+													imageFileName = roots.split("/")
 													nameroots = roots.replace('.mrc', '.cmm')
 													ogx = float(starline[colux])
 													ogy = float(starline[coluy])
@@ -1068,41 +1092,9 @@ class Tabs(TabbedPanel):
 			vertshift = float(self.ids.vertical.text)
 			maskmrc = self.ids.maskname.text
 			masktype = self.ids.spinner.text
-			
-			def spheremask(vol, radius, sigma, center):
-				x, y, z = np.mgrid[0:vol.shape[0], 0:vol.shape[1], 0:vol.shape[2]]
-				x = np.sqrt((x + 1 - center[0])**2 + (y + 1 - center[1])**2 + (z + 1 - center[2])**2)
-				ind = np.where(x >= radius)
-				mask = np.ones(vol.shape, dtype=np.float32)
-				mask[ind] = 0
-
-				if sigma > 0:
-					mask[ind] = np.exp(-((x[ind] - radius) / sigma)**2)
-					ind = np.where(mask < np.exp(-2))
-					mask[ind] = 0
-
-				vol = vol * mask
-				return vol
-
-			def cylindermask(vol, radius, sigma, center):
-				x, y = np.mgrid[0:vol.shape[0], 0:vol.shape[1]]
-				x = np.sqrt((x + 1 - center[0])**2 + (y + 1 - center[1])**2)
-				ind = np.where(x >= radius)
-				mask = np.ones((vol.shape[0], vol.shape[1]), dtype=np.float32)
-				mask[ind] = 0
-
-				if sigma > 0:
-					mask[ind] = np.exp(-((x[ind] - radius) / sigma)**2)
-					ind = np.where(mask < np.exp(-2))
-					mask[ind] = 0
-
-				for iz in range(vol.shape[2]):
-					vol[:, :, iz] = vol[:, :, iz] * mask
-
-				return vol
 
 			if masktype == 'Sphere':
-				sphere = spheremask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2), round(box/2)])
+				sphere = tom.spheremask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2), round(box/2)])
 				sphere = sphere.astype('float32')
 				newMask = os.path.join(direct, maskmrc)
 				print('Now writing ' + newMask)
@@ -1110,9 +1102,9 @@ class Tabs(TabbedPanel):
 
 			if masktype == 'Cylinder':
 				curve = 9649
-				cylinder = cylindermask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2)])
-				sph_top = (spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+vertshift-round(height/2)-curve])-1) * -1
-				sph_bot = (spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+vertshift+round(height/2)+curve])-1) * -1
+				cylinder = tom.cylindermask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2)])
+				sph_top = (tom.spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+vertshift-round(height/2)-curve])-1) * -1
+				sph_bot = (tom.spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+vertshift+round(height/2)+curve])-1) * -1
 				mask_final = cylinder * sph_top * sph_bot
 
 				mask_final = mask_final.astype('float32')
@@ -1126,6 +1118,39 @@ class Tabs(TabbedPanel):
 		return
 
 	def reextract(self):
+		mask = self.ids.maskpath.text
+		starf = self.ids.mainstar.text
+		direc = self.ids.subtomodir.text
+		out = self.ids.subtractionoutput.text
+		boxsize = float(self.ids.px1.text)
+		pxsz = float(self.ids.A1.text)
+		filter = self.ids.filterbackground.active
+		grow = float(self.ids.blurrate.text)
+		normalizeit = self.ids.normalized.active
+		sdrange = float(self.ids.sdrange.text)
+		sdshift = float(self.ids.sdshift.text)
+		blackdust = self.ids.blackdust.active
+		whitedust = self.ids.whitedust.active
+		shiftfil = self.ids.shiftbysd.active
+		randfilt = self.ids.randnoise.active
+		permutebg = self.ids.permutebg.active
+		
+		def cut_part_and_movefunc(maskname, listName, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
+			offSetCenter = [0, 0 ,0]
+			boxsize = [boxsize, boxsize, boxsize]
+			orig_size = [boxsize, boxsize, boxsize]
+			fileNames, angles, shifts, list_length, pickPos = tom.readList(listName, pxsz)
+			fileNames = [direc + name for name in fileNames]
+			maskh1 = mrcfile.read(maskname)
+		#	maskh1 = maskh1.Value
+		#	parfor?
+			posNew = []
+			for i in range(len(fileNames)):
+				outH1, posNew[:i] = tom.processParticle(fileNames[i], angles[:,i].conj().transpose(), shifts[:,i], maskh1, pickPos[:,i].conj().transpose(), offSetCenter, boxsize, filter, grow, normalizeit, sdrange, sdshift,blackdust,whitedust,shiftfil,randfilt,permutebg)
+			#	writeParticle(fileNames(i), outH1, out)
+				mrcfile.write(out, outH1)
+
+		cut_part_and_movefunc(mask, starf, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg)
 		return
 
 	def calculate_ccc(self):
