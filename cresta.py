@@ -21,6 +21,7 @@ import glob
 import matplotlib.pyplot as plt
 import weakref
 
+#import tom.py
 import tom
 
 #disabling multi-touch kivy emulation
@@ -295,73 +296,8 @@ class Tabs(TabbedPanel):
 
 					# read .mrc file and apply filter
 					mrc = mrcfile.read(fullFileName)
-
-					def tom_ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
-						ny = 1 / (pixelsize)
-						lambda_ = 12.2643247 / np.sqrt(voltage * (1.0 + voltage * 0.978466e-6)) * 1e-10
-						lambda2 = lambda_ * 2
-
-						points = np.arange(0, length)
-						points = points / (2 * length) * ny
-						k2 = points ** 2
-						term1 = lambda_**3 * cs * k2**2
-
-						w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
-
-						acurve = np.cos(w) * amplitude_contrast
-						pcurve = -np.sqrt(1 - amplitude_contrast**2) * np.sin(w)
-						bfactor_term = np.exp(-bfactor * k2 * 0.25)
-
-						ctf = (pcurve + acurve) * (bfactor_term)
-
-						return ctf
 					
-					def tom_deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist):
-						highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
-						highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
-						highpass = 1 - np.cos(highpass)
-
-						snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
-						if phasebutton == True:
-							ctf = np.abs(tom_ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
-						else:
-							ctf = (tom_ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
-
-						wiener = []
-						for c, s in zip(ctf, snr):
-							if s == 0:
-								v = 0
-							else:
-								v = c / (c * c + 1 / s)
-							wiener.append(v)
-
-						plt.close()
-						plt.plot(np.arange(0, 1 + 1 / 2047, 1 / 2047), wiener)
-						plt.grid(True)
-						plt.title('Wiener Function')
-						plt.ylabel('Wiener Filter Function')
-
-						s1 = -np.floor(vol.shape[0] / 2)
-						f1 = s1 + vol.shape[0] - 1
-						s2 = -np.floor(vol.shape[1] / 2)
-						f2 = s2 + vol.shape[1] - 1
-						s3 = -np.floor(vol.shape[2] / 2)
-						f3 = s3 + vol.shape[2] - 1
-
-						x, y, z = np.mgrid[s1:f1+1, s2:f2+1, s3:f3+1]
-						x = x / np.abs(s1)
-						y = y / np.abs(s2)
-						z = z / max(1, np.abs(s3))
-						r = np.sqrt(x**2 + y**2 + z**2)
-						r = np.minimum(1, r)
-						r = np.fft.ifftshift(r)
-						x = np.arange(0, 1 + 1/2047, 1 / 2047)
-
-						ramp = np.interp(r, x, wiener)
-						deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
-						return deconv
-					
-					subtomo_filt = tom_deconv_tomo(mrc, angpix=angpix, defocus=defoc, snrfalloff=snrratio, highpassnyquist=highpassnyquist)
+					subtomo_filt = tom.deconv_tomo(mrc, angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
 					subtomo_filt = subtomo_filt.astype('float32')
 
 					# write filtered .mrc file

@@ -12,6 +12,74 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import warnings
 
+#Wiener filter functions
+def deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton):
+    highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
+    highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
+    highpass = 1 - np.cos(highpass)
+
+    snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
+    if phasebutton == True:
+        ctf = np.abs(ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
+    else:
+        ctf = (ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
+
+    wiener = []
+    for c, s in zip(ctf, snr):
+        if s == 0:
+            v = 0
+        else:
+            v = c / (c * c + 1 / s)
+        wiener.append(v)
+
+    plt.close()
+    plt.plot(np.arange(0, 1 + 1 / 2047, 1 / 2047), wiener)
+    plt.grid(True)
+    plt.title('Wiener Function')
+    plt.ylabel('Wiener Filter Function')
+
+    s1 = -np.floor(vol.shape[0] / 2)
+    f1 = s1 + vol.shape[0] - 1
+    s2 = -np.floor(vol.shape[1] / 2)
+    f2 = s2 + vol.shape[1] - 1
+    s3 = -np.floor(vol.shape[2] / 2)
+    f3 = s3 + vol.shape[2] - 1
+
+    x, y, z = np.mgrid[s1:f1+1, s2:f2+1, s3:f3+1]
+    x = x / np.abs(s1)
+    y = y / np.abs(s2)
+    z = z / max(1, np.abs(s3))
+    r = np.sqrt(x**2 + y**2 + z**2)
+    r = np.minimum(1, r)
+    r = np.fft.ifftshift(r)
+    x = np.arange(0, 1 + 1/2047, 1 / 2047)
+
+    ramp = np.interp(r, x, wiener)
+    deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
+    return deconv
+
+def ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
+    ny = 1 / (pixelsize)
+    lambda_ = 12.2643247 / np.sqrt(voltage * (1.0 + voltage * 0.978466e-6)) * 1e-10
+    lambda2 = lambda_ * 2
+
+    points = np.arange(0, length)
+    points = points / (2 * length) * ny
+    k2 = points ** 2
+    term1 = lambda_**3 * cs * k2**2
+
+    w = np.pi / 2 * (term1 + lambda2 * defocus * k2) - phase_shift
+
+    acurve = np.cos(w) * amplitude_contrast
+    pcurve = -np.sqrt(1 - amplitude_contrast**2) * np.sin(w)
+    bfactor_term = np.exp(-bfactor * k2 * 0.25)
+
+    ctf = (pcurve + acurve) * (bfactor_term)
+
+    return ctf
+
+
+#Create mask functions
 def spheremask(vol, radius, sigma=0, center=None):
     if center == None:
         #	maybe no +1
@@ -47,6 +115,8 @@ def cylindermask(vol, radius, sigma, center):
 
     return vol
 
+
+#3D Signal Subtraction Functions
 def readList(listName, pxsz):
     _, ext = os.path.splitext(listName)
     if ext == '.star':
@@ -350,7 +420,6 @@ def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_ce
         for i in range(num_of_steps):
             mask_old = mask_tmp
             mask_tmp = tom_grow_mask(mask_tmp, grow_rate, max_error, filt_cer)
-            print(mask_tmp.shape)
             mask_diff = mask_tmp - mask_old
             indd = np.where(mask_diff > 0.1)
             ind_rand = np.random.permutation(len(indd[0]))
@@ -364,13 +433,11 @@ def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_ce
 
             tmp_vox = np.array(tmp_vox)
             tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            print(tmp_vox.shape)
             
             #input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
             for i in range(cut_len):
                 index = indd[0][ind_rand2[i]]
                 input[index].append(tmp_vox)
-            print(tmp_vox.shape)
 
             if filt_ch[i] == 0:
                 in_f = input
@@ -379,15 +446,17 @@ def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_ce
 
             tmp_vox = in_f[indd[0][ind_rand[:cut_len]]]
             tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            print(tmp_vox.shape)
             input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
 
-    print(mask_tmp.shape)
 #    indd = np.array(np.where(mask_tmp < 0.1))
-    indd = np.argwhere(mask_tmp < 0.1)
-    print(indd.shape)
-    ind_rand = np.random.permutation(len(indd[0]))
-    input[indd] = input[indd[ind_rand]]
+    indd = np.array(np.where(mask_tmp < 0.1, mask_tmp, 0))
+    indd.reshape((256,256,256))
+    ind_rand = np.random.permutation(indd)
+    #input[indd] = input[indd[ind_rand]]
+    for i in range(indd.shape[0]):
+        for j in range(indd.shape[1]):
+            for k in range(indd.shape[2]):
+                input[indd[i, j, k]] = input[indd[i, j, k]][ind_rand[i, j, k]]
 
     out = input
 
