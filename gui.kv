@@ -1470,69 +1470,71 @@
 							size_hint_y: .1
 	TabbedPanelItem:
 		text: 'Cross-correl.'
-		BoxLayout:
-			spacing: 10
+		GridLayout:
+			rows: 1
 			canvas:
 				Color:
-					rgba: 1, 1, 1, .2
+					rgba: 1, 1, 1, .6
 				Rectangle:
 					pos: self.pos
 					size: self.size
-			orientation: 'vertical'
-			GridLayout:
-				cols: 2
-				rows: 2
+			BoxLayout:
+				spacing: 10
 				canvas:
 					Color:
-						rgba: 1, 1, 1, .6
+						rgba: 1, 1, 1, .2
 					Rectangle:
 						pos: self.pos
 						size: self.size
-				spacing: 15
-				AnchorLayout:
-					anchor_y: 'top'
-					BoxLayout:
-						size_hint_y: .8
-						orientation: 'vertical'
-						canvas:
-							Color:
-								rgba: .5, .5, .5, 0.4
-							Rectangle:
-								pos: self.pos
-								size: self.size
-						spacing: 15
-						Label:
-							text: 'Calculate CCC - Two Volumes'
-							color: (0,0,0,1)
-							font_size: 35
-							pos_hint: {'center_x': .32}
-							bold: True
-						Label: 
-							text: 'Volume 1'
-						TextInput:
-							text: '.mrc'
-							size_hint_x: .9
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
-							text: 'Volume 2'
-						TextInput:
-							text: '.mrc'
-							size_hint_x: .9
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Calculate CCC'
-							on_release: root.calculate_ccc()
-							size_hint_x: .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
-							text: ' '
-							size_hint_y: .04
-
+				orientation: 'vertical'
+				Label:
+					size_hint_y: .07
+				BoxLayout:
+					size_hint: .75, .5
+					orientation: 'vertical'
+					pos_hint: {'center_x': .5}
+					canvas:
+						Color:
+							rgba: .5, .5, .5, 0.4
+						Rectangle:
+							pos: self.pos
+							size: self.size
+					spacing: 15
+					Label:
+						text: 'Calculate CCC - Two Volumes'
+						color: (0,0,0,1)
+						font_size: 35
+						pos_hint: {'center_x': .32}
+						bold: True
+					Label: 
+						text: 'Volume 1'
+					TextInput:
+						text: '.mrc'
+						size_hint_x: .9
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						multiline: False
+					Label:
+						text: 'Volume 2'
+					TextInput:
+						text: '.mrc'
+						size_hint_x: .9
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						multiline: False
+					Button:
+						background_color: 0.2, 0.6, 0.2, .55
+						text: 'Calculate CCC'
+						on_release: root.calculate_ccc()
+						size_hint_x: .5
+						pos_hint: {'center_x': .5, 'center_y': .5}
+					Label:
+						text: ' '
+						size_hint_y: .04
+				Label:
+					size_hint_y: .07
 				BoxLayout:
 					orientation: 'vertical'
+					size_hint_x: .75
+					pos_hint: {'center_x': .5}
 					canvas:
 						Color:
 							rgba: .5, .5, .5, 0.4
@@ -1596,9 +1598,9 @@
 						pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						text: ' '
-						size_hint_y: .1
-				BoxLayout:
-				BoxLayout:
+						size_hint_y: .2
+				Label:
+					size_hint_y: .07
 
 	TabbedPanelItem:
 		text: 'Inspect'

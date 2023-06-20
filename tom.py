@@ -112,7 +112,6 @@ def cylindermask(vol, radius, sigma, center):
 
     for iz in range(vol.shape[2]):
         vol[:, :, iz] = vol[:, :, iz] * mask
-
     return vol
 
 
@@ -344,41 +343,6 @@ def tom_grow_mask(mask, factor, max_error=2, filter_cer=None):
     new_mask = remove_small_objects(labeled, dust_size)
     
     return new_mask
-
-# def tom_grow_mask(mask, factor, max_error=2, filter_cer=None):
-#     if filter_cer is None:
-#         fact4filt_cer = mask.shape[0] / 128
-#         filter_cer = int(round(3 * fact4filt_cer))
-#     thr_inc = 0.1
-#     thr_tmp = 0.4
-#     print(mask)
-#     org_num_of_vox = np.count_nonzero(mask)
-#     dust_size = round(org_num_of_vox - (0.3 * org_num_of_vox))
-
-#     max_itr = 1000
-
-#     mask_filt = tom_filter(mask, filter_cer)
-
-#     for ii in range(1, 30):
-#         thr_inc = thr_inc / ii
-#         thr_start = thr_tmp
-#         for i in range(1, max_itr):
-#             thr_tmp = thr_start - (thr_inc * i)
-#             labeled_array, num_features = label(mask_filt > thr_tmp)
-#             new_num = np.count_nonzero(labeled_array)
-
-#             if new_num > (org_num_of_vox * factor):
-#                 break
-
-#         act_error = ((new_num - (org_num_of_vox * factor)) / org_num_of_vox) * 100
-#         thr_tmp = thr_start - (thr_inc * (i - 1))
-
-#         if act_error < max_error:
-#             break
-
-#     new_mask = label(mask_filt > (thr_start - (thr_inc * i)))[0]
-
-#     return new_mask
 
 def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_cer=10, max_error=10):   
 
