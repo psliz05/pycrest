@@ -1,3 +1,4 @@
+
 #kivy needed for app
 import kivy
 kivy.require('2.1.0')
@@ -1078,7 +1079,6 @@ class Tabs(TabbedPanel):
 			fileNames, angles, shifts, list_length, pickPos = tom.readList(listName, pxsz)
 			fileNames = [direc + name for name in fileNames]
 			maskh1 = mrcfile.read(maskname)
-		#	maskh1 = maskh1.Value
 		#	parfor?
 			posNew = []
 			for i in range(len(fileNames)):

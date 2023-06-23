@@ -1,9 +1,16 @@
+#matlab tom functions converted into python
+
+import ctypes
+from ctypes import *
+so_file = "/Users/patricksliz/Documents/GitHub/pycrest/rot3d.so"
+rot_function = CDLL(so_file)
 import os
 from subprocess import call
 import pandas as pd
 import numpy as np
+import math
 from scipy.fftpack import fftn, ifftn, ifftshift, fftshift
-from scipy.ndimage import label
+from scipy.ndimage import label, binary_opening
 from skimage.morphology import remove_small_objects
 import starfile
 import mrcfile
@@ -149,21 +156,8 @@ def readList(listName, pxsz):
     
     return fileNames, angles, shifts, list_length, PickPos
 
-def writeParticle(filename, outH1, output):
-    nameLeft = filename.replace(output.findWhat, output.rplaceWith[0])
-    pFoldLeft = os.path.dirname(nameLeft)
-    warnings.filterwarnings("ignore")  # Turn off warnings
-    os.makedirs(pFoldLeft, exist_ok=True)  # Create directory (ignore if it already exists)
-    warnings.filterwarnings("default") 
-    if nameLeft == filename:
-        raise ValueError("Check output find what: " + filename + " == " + nameLeft)
-    mrcfile.write(nameLeft, outH1)
-
-
-
 def allocAlign(num_of_entries):
     Align = []
-
     for i in range(num_of_entries):
         align_entry = {
             'Filename': '',
@@ -198,9 +192,7 @@ def allocAlign(num_of_entries):
             'NormFlag': 0,
             'Filter': [0, 0]
         }
-
         Align.append(align_entry)
-
     return Align
 
 def eulerconvert_xmipp(rot, tilt, psi):
@@ -232,18 +224,14 @@ def eulerconvert_xmipp(rot, tilt, psi):
         euler_out[2] = 0
         euler_out[1] = 0
         euler_out[0] = np.arctan2(rotmatrix[1, 0], rotmatrix[0, 0]) * 180 / np.pi
-
     return euler_out
 
-def processParticle(filename,tmpAng,tmpShift,maskh1,PickPos,offSetCenter,boxsize, filter,grow, normalizeit, sdRange, sdShift,blackdust,whitedust,shiftfil,randfilt,permutebg):
+def processParticle(filename,tmpAng,tmpShift,maskh1,PickPos,offSetCenter,boxsize,filter,grow,normalizeit, sdRange, sdShift,blackdust,whitedust,shiftfil,randfilt,permutebg):
     volTmp = mrcfile.read(filename)
-#	volTmp = volTmp.Value
     maskh1Trans = shift(rotate(maskh1, tmpAng), tmpShift.conj().transpose())
     maskh1Trans = maskh1Trans > 0.14
-    
     vectTrans = pointrotate(offSetCenter,tmpAng[0],tmpAng[1],tmpAng[2])+tmpShift.conj().transpose()
     posNew=(np.round(vectTrans)+PickPos).conj().transpose()
-    topLeft = [0, 0, 0]
 
     outH1 = volTmp
     if filter == True:
@@ -253,6 +241,7 @@ def processParticle(filename,tmpAng,tmpShift,maskh1,PickPos,offSetCenter,boxsize
             outH1 = randnoise_filt(outH1,maskh1Trans,'', 0, sdRange,blackdust,whitedust)
     if permutebg == True:
         outH1 = permute_bg(outH1,maskh1Trans,'',grow,5,3)
+        print(outH1)
 
     if normalizeit == True:
         input = outH1
@@ -265,297 +254,10 @@ def processParticle(filename,tmpAng,tmpShift,maskh1,PickPos,offSetCenter,boxsize
         input[indd] = input[indd[ind_rand]]
         outH1 = input
 
-
     return outH1, posNew
-
-
-def clean_stat(vox, nstd):
-    mea_out = np.mean(vox)
-    std_out = np.std(vox)
-
-    idx = np.where((vox > (mea_out + (nstd * std_out))) + (vox < (mea_out - (nstd * std_out))))
-
-    out = vox.copy()
-    out[idx] = mea_out
-
-    return out
-
-
-def tom_filter(im, radius, flag='circ'):
-    if flag.lower() == 'circ':
-        mask = np.ones_like(im)
-        mask = spheremask(mask, radius)
-    elif flag.lower() == 'quadr':
-        mask = np.zeros_like(im)
-        if im.ndim > 2:
-            cent = [im.shape[0] // 2 + 1, im.shape[1] // 2 + 1, im.shape[2] // 2 + 1]
-            mask[cent[0] - radius // 2:cent[0] - radius // 2 + radius,
-                 cent[1] - radius // 2:cent[1] - radius // 2 + radius,
-                 cent[2] - radius // 2:cent[2] - radius // 2 + radius] = 1
-        elif im.ndim == 2 and im.shape[1] > 1:
-            cent = [im.shape[0] // 2 + 1, im.shape[1] // 2 + 1]
-            mask[cent[0] - radius // 2:cent[0] - radius // 2 + radius,
-                 cent[1] - radius // 2:cent[1] - radius // 2 + radius] = 1
-        else:
-            cent = [im.shape[0] // 2 + 1]
-            mask[cent[0] - radius // 2:cent[0] + radius] = 1
-    else:
-        raise ValueError("Invalid flag specified. Supported flags are 'circ' and 'quadr'.")
-
-    npix = np.sum(mask)
-    im = np.real(fftshift(ifftn(np.fft.fftshift(np.fft.fftn(mask) * np.fft.fftn(im))) / npix))
-    
-    return im
-
-def tom_grow_mask(mask, factor, max_error=2, filter_cer=None):
-    if max_error is None:
-        max_error = 2
-
-    if filter_cer is None:
-        fact4filt_cer = mask.shape[0] / 128
-        filter_cer = int(round(3 * fact4filt_cer))
-
-    thr_inc = 0.1
-    thr_tmp = 0.4
-
-    org_num_of_vox = np.sum(mask > 0)
-    dust_size = int(round(org_num_of_vox - (0.3 * org_num_of_vox)))
-
-    max_itr = 1000
-
-    mask_filt = tom_filter(mask, filter_cer)
-
-    for ii in range(1, 31):
-        thr_inc /= ii
-        thr_start = thr_tmp
-        for i in range(1, max_itr + 1):
-            thr_tmp = thr_start - (thr_inc * i)
-            labeled, num_features = label(mask_filt > thr_tmp)
-            new_num = np.sum(remove_small_objects(labeled, dust_size))
-            if new_num > (org_num_of_vox * factor):
-                break
-        act_error = ((new_num - (org_num_of_vox * factor)) / org_num_of_vox) * 100
-        thr_tmp = thr_start - (thr_inc * (i - 1))
-        if act_error < max_error:
-            break
-
-    labeled, _ = label(mask_filt > (thr_start - (thr_inc * (i - 1))))
-    new_mask = remove_small_objects(labeled, dust_size)
-    
-    return new_mask
-
-def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_cer=10, max_error=10):   
-
-    in_flag = '.em'
-
-    if isinstance(input, str):
-        if input.endswith('.em'):
-            input = emfile.read(input)
-            in_flag = 'em'
-        else:
-        #   input = tom_spiderread(input)
-            in_flag = 'spi'
-
-    if isinstance(mask, str):
-        print('Mask: ' + mask)
-        if mask.endswith('.em'):
-            mask = emfile.read(mask)
-        else:
-        #   mask = tom_spiderread(mask)
-            return
-
-    if isinstance(input, dict):
-        input = input['Value']
-
-    if isinstance(mask, dict):
-        mask = mask['Value']
-
-    if grow_rate == 0:
-        indd = np.where(mask < 0.1)
-        ind_rand = np.random.permutation(len(indd[0]))
-        input[indd] = input[indd[ind_rand]]
-
-    else:
-        mask_tmp = mask
-        smooth_ch = np.arange(100/num_of_steps, 100 + 100/num_of_steps, 100/num_of_steps)
-        std_ch = np.arange(4/num_of_steps, 4 + 4/num_of_steps, 4/num_of_steps)
-        filt_ch = np.round(np.arange(2, 0 - (2/num_of_steps), -(2/num_of_steps)))
-
-        for i in range(num_of_steps):
-            mask_old = mask_tmp
-            mask_tmp = tom_grow_mask(mask_tmp, grow_rate, max_error, filt_cer)
-            mask_diff = mask_tmp - mask_old
-            indd = np.where(mask_diff > 0.1)
-            ind_rand = np.random.permutation(len(indd[0]))
-            ind_rand2 = np.random.permutation(len(indd[0]))
-            cut_len = int(np.round(len(ind_rand) * (smooth_ch[i] / 100)))
-        #   tmp_vox = input[indd[0][ind_rand[:cut_len]]]
-            tmp_vox = []
-            for i in range(cut_len):
-                index = indd[0][ind_rand[i]]
-                tmp_vox.append(input[index])
-
-            tmp_vox = np.array(tmp_vox)
-            tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            
-            #input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
-            for i in range(cut_len):
-                index = indd[0][ind_rand2[i]]
-                input[index].append(tmp_vox)
-
-            if filt_ch[i] == 0:
-                in_f = input
-            else:
-                in_f = tom_filter(input, filt_ch[i])
-
-            tmp_vox = in_f[indd[0][ind_rand[:cut_len]]]
-            tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
-
-#    indd = np.array(np.where(mask_tmp < 0.1))
-    indd = np.array(np.where(mask_tmp < 0.1, mask_tmp, 0))
-    indd.reshape((256,256,256))
-    ind_rand = np.random.permutation(indd)
-    #input[indd] = input[indd[ind_rand]]
-    for i in range(indd.shape[0]):
-        for j in range(indd.shape[1]):
-            for k in range(indd.shape[2]):
-                input[indd[i, j, k]] = input[indd[i, j, k]][ind_rand[i, j, k]]
-
-    out = input
-
-    # if outputname != '':
-    #     if in_flag == 'spi':
-    #         print('Writing to: ' + outputname)
-    #         tom_spiderwrite(outputname, out)
-    #     else:
-    #         tom_emwrite(outputname, out)
-
-    return out
-
-
-def maskWithFil(input, mask, std2fil, std2shift, blackdust, whitedust):
-    in_flag = '.em'
-    if input.dtype == np.dtype('O'):
-        if input.endswith('.em'):
-            input = emfile.read(input)
-            in_flag = 'em'
-        else:
-        #   input = tom_spiderread(input)
-            in_flag = 'spi'
-
-    if mask.dtype == np.dtype('O'):
-        print('Mask: ' + mask)
-        if mask.endswith('.em'):
-            mask = emfile.read(mask)
-        else:
-        #   mask = tom_spiderread(mask)
-            return
-
-    if isinstance(input, dict):
-        input = input['Value']
-
-    if isinstance(mask, dict):
-        mask = mask['Value']
-
-    indd = np.where(mask < 0.1)
-    ind_mean = np.mean(input[indd])
-    ind_std = np.std(input[indd])
-
-    if whitedust == True:
-        # indd2 = np.where(input[indd] > (ind_mean + std2fil * ind_std))
-        # input[indd[0][indd2]] -= std2shift * ind_std
-        for idx in np.nditer(indd):
-            if input[idx] > (ind_mean + std2fil * ind_std):
-                input[idx] -= std2shift * ind_std
-
-    if blackdust == True:
-        for idx in np.nditer(indd):
-            if input[idx] > (ind_mean + std2fil * ind_std):
-                input[idx] += std2shift * ind_std
-
-    return input
-
-def randnoise_filt(input, mask, outputname, grow_rate, sdrange, blackdust, whitedust):
-    in_flag = '.em'
-
-    if isinstance(input, str):
-        if input.endswith('.em'):
-            input = emfile.read(input)
-            in_flag = 'em'
-        else:
-        #   input = tom_spiderread(input)
-            in_flag = 'spi'
-
-    if isinstance(mask, str):
-        print('Mask: ' + mask)
-        if mask.endswith('.em'):
-            mask = emfile.read(mask)
-        else:
-        #   mask = tom_spiderread(mask)
-            return
-
-    if isinstance(input, dict):
-        input = input['Value']
-
-    if isinstance(mask, dict):
-        mask = mask['Value']
-
-    if grow_rate == 0:
-        outmask = np.where(mask < 0.1)
-        outsmall = np.where(input[outmask] < -sdrange)
-        outlarge = np.where(input[outmask] > sdrange)
-
-        if whitedust == True:
-            for i in range(len(outlarge[0])):
-                input[outmask[0][outlarge[0][i]]] = np.random.normal(0, 1)
-
-        if blackdust == True:
-            for i in range(len(outsmall[0])):
-                input[outmask[0][outsmall[0][i]]] = np.random.normal(0, 1)
-
-    '''else:
-        mask_tmp = mask
-        smooth_ch = np.arange(100/num_of_steps, 100, 100/num_of_steps)
-        std_ch = np.arange(4/num_of_steps, 4, 4/num_of_steps)
-        filt_ch = np.arange(2, -2/num_of_steps, -2/num_of_steps)
-
-        for i in range(num_of_steps):
-            mask_old = mask_tmp
-            mask_tmp = tom_grow_mask(mask_tmp, grow_rate, max_error, filt_cer)
-            mask_diff = mask_tmp - mask_old
-            indd = np.where(mask_diff > 0.1)
-            ind_rand = np.random.permutation(len(indd[0]))
-            ind_rand2 = np.random.permutation(len(indd[0]))
-            cut_len = round(len(ind_rand) * (smooth_ch[i] / 100))
-            tmp_vox = input[indd[0][ind_rand[:cut_len]]]
-            tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
-
-            if filt_ch[i] == 0:
-                in_f = input
-            else:
-                in_f = tom_filter(input, filt_ch[i])
-
-            tmp_vox = in_f[indd[0][ind_rand[:cut_len]]]
-            tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
-    '''
-    out = input
-
-    if outputname != '':
-        if in_flag == 'spi':
-            print('Writing to: ' + outputname)
-        #   tom_spiderwrite(outputname, out)
-        else:
-            emfile.write(outputname, out)
-
-    return out
-
 
 def shift(im, delta):
     dimx, dimy, dimz = im.shape
-
     if delta.ndim > 1:
         delta = delta.flatten()
 
@@ -568,14 +270,12 @@ def shift(im, delta):
     delta /= [dimx, dimy, dimz]
     x = delta[0] * x + delta[1] * y + delta[2] * z
     
-    im = fftn(im)
-    im = np.real(ifftn(im * np.exp(-2j * np.pi * ifftshift(x))))
-
+    im = np.fft.fftn(im)
+    im = np.real(np.fft.ifftn(im * np.exp(-2j * np.pi * np.fft.ifftshift(x))))
     return im
 
 def rotate(*args):
     nargin = len(args)
-    
     if nargin == 5:
         taper = args[4]
         center = args[3]
@@ -594,36 +294,28 @@ def rotate(*args):
         taper = 'no'
     elif nargin == 2:
         center = np.ceil(np.array(args[0].shape) / 2)
-        ip = 'linear'
+        ip = 'l'
         taper = 'no'
     else:
         print('Wrong number of arguments')
         return -1
     
     in_array = args[0]
-    euler_angles = args[1]
+    in_array = in_array.astype(np.float32)
+    euler_angles = np.array(args[1])
+    euler_angles = euler_angles.astype(np.float32)
+    px = float(center[0])
+    py = float(center[1])
+    pz = float(center[2])
     
     if taper != 'taper':
         out = np.zeros_like(in_array, dtype=np.float32)
-   #    tom_rotatec(in_array.astype(np.float32), out, euler_angles.astype(np.float32), ip, center.astype(np.float32))
-        out = out.astype(np.float64)
-    else:
-        cent = np.round((np.array(in_array.shape) / 2)) + 1
-        if not np.array_equal(center, cent):
-            raise ValueError(f"taper only works with center n/2+1, center must be {cent}")
-        
-        old_sz = in_array.shape
-        sz = np.sort(in_array.shape)
-        max_sz = int(sz[-1] * np.sqrt(2))
-        max_size = [max_sz] * in_array.ndim
-        
-        in_array = tom_taper(in_array, max_size)
-        out = np.zeros_like(in_array, dtype=np.float32)
-        center = np.ceil(np.array(in_array.shape) / 2)
-        
-    #   tom_rotatec(in_array.astype(np.float32), out, euler_angles.astype(np.float32), ip, center.astype(np.float32))
-        
-        out = cut_out(out, tuple((max_size - old_sz) // 2 + 1), old_sz, 'nofill')
+        pointer_in = np.ctypeslib.ndpointer(shape = in_array.shape, dtype = np.float32)
+        pointer_out = np.ctypeslib.ndpointer(shape = out.shape, dtype = np.float32)
+        pointer_ang = np.ctypeslib.ndpointer(shape = euler_angles.shape, dtype = np.float32)
+        rot_function.rot3d.argtypes = (pointer_in, pointer_out, ctypes.c_long, ctypes.c_long, ctypes.c_long, pointer_ang, ctypes.c_wchar, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int)
+        rot_function.rot3d.restype = None
+        rot_function.rot3d(in_array, out, 256, 256, 256, euler_angles, ip, px, py, pz, 1)
         out = out.astype(np.float64)
     
     return out
@@ -678,7 +370,6 @@ def tom_taper(in_data, new_size):
 
     if new_size[2] == 1:
         return out
-
     for z in range(1, new_size[2] + 1):
         diff_z = np.round((new_size[2] - in_data.shape[2]) / 2)
         if z <= diff_z or z >= in_data.shape[2] + diff_z:
@@ -686,64 +377,8 @@ def tom_taper(in_data, new_size):
                 out[:, :, z - 1] = out[:, :, diff_z]
             else:
                 out[:, :, z - 1] = out[:, :, diff_z + in_data.shape[2] - 1]
-
     return out
-
-def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
-    if fill_flag != 'fill':
-        fill_flag = 'no-fill'
     
-    # Kick out values < 1
-    if not isinstance(pos, np.ndarray):
-        pos = np.floor((np.array(in_data.shape) - np.array(size_c)) / 2) + 1
-    
-    pos = np.where(pos > 0, pos, 1)
-    
-    num_of_dim = in_data.ndim
-    if in_data.shape[0] == 1:
-        in_size = in_data.shape[1]
-        num_of_dim = 1
-    else:
-        in_size = in_data.shape
-        num_of_dim = in_data.ndim
-    
-    bound = np.zeros(3)
-    
-    if (pos[0] + size_c[0]) <= in_size[0]:
-        bound[0] = pos[0] + size_c[0] - 1
-    else:
-        bound[0] = in_size[0]
-    
-    if num_of_dim > 1:
-        if (pos[1] + size_c[1]) <= in_size[1]:
-            bound[1] = pos[1] + size_c[1] - 1
-        else:
-            bound[1] = in_size[1]
-    else:
-        pos[1] = 0
-        bound[1] = 0
-    
-    if num_of_dim > 2:
-        if (pos[2] + size_c[2]) <= in_size[2]:
-            bound[2] = pos[2] + size_c[2] - 1
-        else:
-            bound[2] = in_size[2]
-    else:
-        pos[2] = 0
-        bound[2] = 0
-    
-    pos = np.round(pos).astype(int)
-    bound = np.round(bound).astype(int)
-    
-    # Cut it
-    if num_of_dim > 1:
-        out = in_data[pos[0]:bound[0], pos[1]:bound[1], pos[2]:bound[2]]
-    else:
-        out = in_data[pos[0]:bound[0]]
-    
-    return out
-
-
 def paste(a, b, coord):
     dims = b.shape
     s1, s2, s3 = a.shape
@@ -841,6 +476,60 @@ def paste(a, b, coord):
                         a[coord[0]:s1, coord[1]:s2, i] = b[0:(s1 - coord[0] + 1), 0:(s2 - coord[1] + 1), (i - ad)]
     return a
 
+def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
+    if fill_flag != 'fill':
+        fill_flag = 'no-fill'
+    
+    # Kick out values < 1
+    if not isinstance(pos, np.ndarray):
+        pos = np.floor((np.array(in_data.shape) - np.array(size_c)) / 2) + 1
+    
+    pos = np.where(pos > 0, pos, 1)
+    
+    num_of_dim = in_data.ndim
+    if in_data.shape[0] == 1:
+        in_size = in_data.shape[1]
+        num_of_dim = 1
+    else:
+        in_size = in_data.shape
+        num_of_dim = in_data.ndim
+    
+    bound = np.zeros(3)
+    
+    if (pos[0] + size_c[0]) <= in_size[0]:
+        bound[0] = pos[0] + size_c[0] - 1
+    else:
+        bound[0] = in_size[0]
+    
+    if num_of_dim > 1:
+        if (pos[1] + size_c[1]) <= in_size[1]:
+            bound[1] = pos[1] + size_c[1] - 1
+        else:
+            bound[1] = in_size[1]
+    else:
+        pos[1] = 0
+        bound[1] = 0
+    
+    if num_of_dim > 2:
+        if (pos[2] + size_c[2]) <= in_size[2]:
+            bound[2] = pos[2] + size_c[2] - 1
+        else:
+            bound[2] = in_size[2]
+    else:
+        pos[2] = 0
+        bound[2] = 0
+    
+    pos = np.round(pos).astype(int)
+    bound = np.round(bound).astype(int)
+    
+    # Cut it
+    if num_of_dim > 1:
+        out = in_data[pos[0]:bound[0], pos[1]:bound[1], pos[2]:bound[2]]
+    else:
+        out = in_data[pos[0]:bound[0]]
+    
+    return out
+    
 def pointrotate(r, phi, psi, the):
     phi = phi / 180 * np.pi
     psi = psi / 180 * np.pi
@@ -861,3 +550,196 @@ def pointrotate(r, phi, psi, the):
     r = matr @ r
     r = r.flatten()
     return r
+
+def maskWithFil(input, mask, std2fil, std2shift, blackdust, whitedust):
+
+    indd = np.where(mask < 0.1)
+    ind_mean = np.mean(input[indd])
+    ind_std = np.std(input[indd])
+
+    if whitedust == True:
+        for idx in np.nditer(indd):
+            if input[idx] > (ind_mean + std2fil * ind_std):
+                input[idx] -= std2shift * ind_std
+        # indd2 = np.where(input[indd] > (ind_mean + std2fil * ind_std))
+        # input[indd[indd2]] -= std2shift * ind_std
+
+    if blackdust == True:
+        for idx in np.nditer(indd):
+            if input[idx] > (ind_mean + std2fil * ind_std):
+                input[idx] += std2shift * ind_std
+        # indd2 = np.where(input[indd] < (ind_mean - std2fil * ind_std))
+        # input[indd[0][indd2]] += std2shift * ind_std
+
+    return input
+
+def randnoise_filt(input, mask, outputname, grow_rate, sdrange, blackdust, whitedust):
+
+    if grow_rate == 0:
+        outmask = np.where(mask < 0.1)
+        outsmall = np.where(input[outmask] < -sdrange)
+        outlarge = np.where(input[outmask] > sdrange)
+
+        if whitedust == True:
+            for i in range(len(outlarge[0])):
+                input[outmask[0][outlarge[0][i]]] = np.random.normal(0, 1)
+
+        if blackdust == True:
+            for i in range(len(outsmall[0])):
+                input[outmask[0][outsmall[0][i]]] = np.random.normal(0, 1)
+
+    '''else:
+        mask_tmp = mask
+        smooth_ch = np.arange(100/num_of_steps, 100, 100/num_of_steps)
+        std_ch = np.arange(4/num_of_steps, 4, 4/num_of_steps)
+        filt_ch = np.arange(2, -2/num_of_steps, -2/num_of_steps)
+
+        for i in range(num_of_steps):
+            mask_old = mask_tmp
+            mask_tmp = tom_grow_mask(mask_tmp, grow_rate, max_error, filt_cer)
+            mask_diff = mask_tmp - mask_old
+            indd = np.where(mask_diff > 0.1)
+            ind_rand = np.random.permutation(len(indd[0]))
+            ind_rand2 = np.random.permutation(len(indd[0]))
+            cut_len = round(len(ind_rand) * (smooth_ch[i] / 100))
+            tmp_vox = input[indd[0][ind_rand[:cut_len]]]
+            tmp_vox = clean_stat(tmp_vox, std_ch[i])
+            input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
+
+            if filt_ch[i] == 0:
+                in_f = input
+            else:
+                in_f = tom_filter(input, filt_ch[i])
+
+            tmp_vox = in_f[indd[0][ind_rand[:cut_len]]]
+            tmp_vox = clean_stat(tmp_vox, std_ch[i])
+            input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
+    '''
+
+    return input
+
+def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_cer=10, max_error=10):
+
+    if grow_rate == 0:
+        indd = np.where(mask < 0.1)
+        ind_rand = np.random.permutation(len(indd[0]))
+        input[indd] = input[indd[ind_rand]]
+
+    else:
+        mask_tmp = mask
+        smooth_ch = np.arange(100/num_of_steps, 100 + 100/num_of_steps, 100/num_of_steps)
+        std_ch = np.arange(4/num_of_steps, 4 + 4/num_of_steps, 4/num_of_steps)
+        filt_ch = np.round(np.arange(2, 0 - (2/num_of_steps), -(2/num_of_steps)))
+
+        for i in range(num_of_steps):
+            mask_old = mask_tmp
+            mask_tmp = tom_grow_mask(mask_tmp, grow_rate, max_error, filt_cer)
+            mask_old = mask_old.astype(int)
+            mask_tmp = mask_tmp.astype(int)
+            mask_diff = mask_tmp - mask_old
+
+            indd = np.flatnonzero(mask_diff)
+            ind_rand = np.random.permutation(len(indd))
+            ind_rand2 = np.random.permutation(len(indd))
+            cut_len = int(np.round(len(ind_rand) * (smooth_ch[i] / 100)))
+        #   tmp_vox = input[indd[0][ind_rand[:cut_len]]]
+            tmp_vox = []
+            inputshape = input.shape
+            input = input.flatten()
+            for ii in range(cut_len):
+                index = indd[ind_rand[ii]]
+                tmp_vox.append(input[index])
+
+            tmp_vox = np.array(tmp_vox)
+            tmp_vox = clean_stat(tmp_vox, std_ch[i])
+            
+            #input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
+            input[indd[ind_rand2[:cut_len]]] = tmp_vox
+            # for ii in range(cut_len):
+            #     index = indd[ind_rand2[ii]]
+            #     input[index].append(tmp_vox)
+
+            if filt_ch[i] == 0:
+                in_f = input
+            else:
+                input.reshape(inputshape)
+                in_f = tom_filter(input, filt_ch[i])
+
+            tmp_vox = in_f[indd[ind_rand[:cut_len]]]
+            tmp_vox = clean_stat(tmp_vox, std_ch[i])
+            input[indd[ind_rand2[:cut_len]]] = tmp_vox
+
+#    indd = np.array(np.where(mask_tmp < 0.1))
+    indd = np.array(np.where(mask_tmp < 0.1, mask_tmp, 0))
+    indd.reshape((256,256,256))
+    ind_rand = np.random.permutation(indd)
+    #input[indd] = input[indd[ind_rand]]
+    for i in range(indd.shape[0]):
+        for j in range(indd.shape[1]):
+            for k in range(indd.shape[2]):
+                input[indd[i, j, k]] = input[indd[i, j, k]][ind_rand[i, j, k]]
+
+    return input
+
+def tom_grow_mask(mask, factor, max_error=2, filter_cer=None):
+
+    thr_inc = 0.1
+    thr_tmp = 0.4
+
+    org_num_of_vox = np.sum(mask > 0)
+    dust_size = int(round(org_num_of_vox - (0.3 * org_num_of_vox)))
+
+    max_itr = 1000
+
+    mask_filt = tom_filter(mask, filter_cer)
+
+    for ii in range(1, 31):
+        thr_inc /= ii
+        thr_start = thr_tmp
+        for i in range(1, max_itr + 1):
+            thr_tmp = thr_start - (thr_inc * i)
+            new_num = np.sum(remove_small_objects(mask_filt > thr_tmp, min_size = dust_size, connectivity=6))
+            if new_num > (org_num_of_vox * factor):
+                break
+        act_error = ((new_num - (org_num_of_vox * factor)) / org_num_of_vox) * 100
+        thr_tmp = thr_start - (thr_inc * (i - 1))
+        if act_error < max_error:
+            break
+    new_mask = remove_small_objects(mask_filt > (thr_start - (thr_inc * i)), min_size = dust_size, connectivity = 6)
+    
+    return new_mask
+
+def clean_stat(vox, nstd):
+    mea_out = np.mean(vox)
+    std_out = np.std(vox)
+
+    idx = np.where((vox > (mea_out + (nstd * std_out))) + (vox < (mea_out - (nstd * std_out))))
+
+    out = vox.copy()
+    out[idx] = mea_out
+
+    return out
+
+
+def tom_filter(im, radius, flag='circ'):
+    if flag.lower() == 'circ':
+        mask = np.ones_like(im)
+        mask = spheremask(mask, radius)
+
+    npix = np.sum(mask)
+    mask = mask.astype(np.float32)
+    im = im.astype(np.float32)
+    im = np.real(np.fft.fftshift(np.fft.ifftn(np.fft.fftn(mask) * np.fft.fftn(im)) / npix))
+    # im = np.real(np.fft.fftshift(np.fft.ifftn((np.fft.fftn(mask) * np.fft.fftn(im))) / npix))
+    
+    return im
+
+def writeParticle(filename, outH1, output):
+    nameLeft = filename.replace(output.findWhat, output.rplaceWith[0])
+    pFoldLeft = os.path.dirname(nameLeft)
+    warnings.filterwarnings("ignore")  # Turn off warnings
+    os.makedirs(pFoldLeft, exist_ok=True)  # Create directory (ignore if it already exists)
+    warnings.filterwarnings("default") 
+    if nameLeft == filename:
+        raise ValueError("Check output find what: " + filename + " == " + nameLeft)
+    mrcfile.write(nameLeft, outH1)

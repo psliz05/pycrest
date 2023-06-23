@@ -1603,7 +1603,7 @@
 					size_hint_y: .07
 
 	TabbedPanelItem:
-		text: 'Inspect'
+		text: 'Modify'
 		BoxLayout:
 			spacing: 10
 			orientation: 'vertical'
@@ -1615,7 +1615,6 @@
 					size: self.size
 			GridLayout:
 				rows: 2
-				cols: 2
 				spacing: 15
 				canvas:
 					Color:
@@ -1624,201 +1623,195 @@
 						pos: self.pos
 						size: self.size
 				BoxLayout:
-					canvas:
-						Color:
-							rgba: .5, .5, .5, 0.4
-						Rectangle:
-							pos: self.pos
-							size: self.size
-					orientation: 'vertical'
-					Label:
-						text: 'Box Zoom'
-						color: (0,0,0,1)
-						font_size: 35
-						size_hint_y: .7
-						pos_hint: {'center_x': .12}
-						bold: True
+					orientation: 'horizontal'
 					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: .5, .8
-						pos_hint: {'center_x': .5}
-						Label: 
-							text: 'zoom box size (px)'
-							pos_hint: {'center_x': .2}
-						TextInput:
-							size_hint_x: .4
-							pos_hint: {'center_x': .8}
-							text: '90'
-							multiline: False
-					Label:
-						text: 'Star file path'
-						size_hint_y: .6
-					TextInput:
-						text: 'test.star'
-						size_hint: .9, .7
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Label:
-						text: 'Subtomogram directory'
-						size_hint_y: .6
-					TextInput: 
-						text: 'Extract/extract_test/201810XX_MPI/'
-						size_hint: .9, .7
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Label:
-						text: 'Output directory'
-						size_hint_y: .6
-					TextInput:
-						text: 'Extract/extract_test/201810XX_MPI_zoom/'
-						size_hint: .9, .7
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Label:
-						text: ' '
-						size_hint_y: .1
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Zoom and Cut'
-						on_release: root.zoomcut()
-						size_hint_x: .5
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label:
-						text: ' '
-						size_hint_y: .1
-
-				BoxLayout:
-					orientation: 'vertical'
-					canvas:
-						Color:
-							rgba: .5, .5, .5, 0.4
-						Rectangle:
-							pos: self.pos
-							size: self.size
-					Label:
-						text: 'Rotate Subtomograms'
-						color: (0,0,0,1)
-						font_size: 35
-						pos_hint: {'center_x': .24}
-						bold: True
-						size_hint_y: .8
-					Label:
-						text: 'Star file path'
-						size_hint_y: .8
-					TextInput:
-						text: 'test.star'
-						size_hint: .9, .7
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Label:
-						text: 'Subtomogram directory'
-						size_hint_y: .8
-					TextInput:
-						text: 'Extract/extract_test/201810XX_MPI/'
-						size_hint: .9, .7
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Label:
-						text: 'Output directory'
-						size_hint_y: .8
-					TextInput:
-						text: 'Extract/extract_test/201810XX_MPI_rot/'
-						size_hint: .9, .7
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: .5, .8
-						pos_hint: {'center_x': .4}
-						CheckBox:
-							state: 'down'
-							pos_hint: {'center_x': .3}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						orientation: 'vertical'
 						Label:
-							text: 'Apply translations'
-							pos_hint: {'center_x': .8}
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Rotate'
-						on_release: root.rotate()
-						size_hint: .4, .8
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label: 
-						text: ' '
-						size_hint_y: .1
-					
-				BoxLayout:
-					size_hint_y: .8
-					orientation: 'vertical'
-					canvas:
-						Color:
-							rgba: .5, .5, .5, 0.4
-						Rectangle:
-							pos: self.pos
-							size: self.size
-					Label: 
-						color: (0,0,0,1)
-						font_size: 35
-						text: 'Stackbrowser'
-						pos_hint: {'center_x': .15}
-						bold: True
-					Label: 
-						text: 'Star file path'
-						size_hint_y: .7
-					TextInput:
-						text: 'test.star'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
+							text: 'Box Zoom'
+							color: (0,0,0,1)
+							font_size: 35
+							size_hint_y: .7
+							pos_hint: {'center_x': .12}
+							bold: True
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .5, .8
+							pos_hint: {'center_x': .5}
+							Label: 
+								text: 'zoom box size (px)'
+								pos_hint: {'center_x': .2}
+							TextInput:
+								size_hint_x: .4
+								pos_hint: {'center_x': .8}
+								text: '90'
+								multiline: False
+						Label:
+							text: 'Star file path'
+							size_hint_y: .6
+						TextInput:
+							text: 'test.star'
+							size_hint: .9, .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: 'Subtomogram directory'
+							size_hint_y: .6
+						TextInput: 
+							text: 'Extract/extract_test/201810XX_MPI/'
+							size_hint: .9, .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: 'Output directory'
+							size_hint_y: .6
+						TextInput:
+							text: 'Extract/extract_test/201810XX_MPI_zoom/'
+							size_hint: .9, .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: ' '
+							size_hint_y: .1
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Zoom and Cut'
+							on_release: root.zoomcut()
+							size_hint_x: .5
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							text: ' '
+							size_hint_y: .1
 					Label:
-						text: 'Align file name (output)'
-						size_hint_y: .7
-					TextInput: 
-						text: 'Align.mat'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Label:
-						text: ' '
-						size_hint_y: .1
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Make Align File'
-						on_release: root.align()
-						size_hint: .5, 1.2
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label:
-						text: 'Align file for stackbrowser'
-						size_hint_y: .7
-					TextInput:
-						text: 'Align.mat'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-						id: aligninput
-					Label:
-						text: ' '
-						size_hint_y: .1
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Open Stackbrowser'
-						on_release: root.stack()
-						size_hint: .5, 1.2
-						pos_hint: {'center_x': .5, 'center_y': .5}
-					Label:
-						text: ' '
-						size_hint_y: .1
+						size_hint_x: .05
+					BoxLayout:
+						orientation: 'vertical'
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Rotate Subtomograms'
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .24}
+							bold: True
+							size_hint_y: .8
+						Label:
+							text: 'Star file path'
+							size_hint_y: .8
+						TextInput:
+							text: 'test.star'
+							size_hint: .9, .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: 'Subtomogram directory'
+							size_hint_y: .8
+						TextInput:
+							text: 'Extract/extract_test/201810XX_MPI/'
+							size_hint: .9, .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: 'Output directory'
+							size_hint_y: .8
+						TextInput:
+							text: 'Extract/extract_test/201810XX_MPI_rot/'
+							size_hint: .9, .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .5, .8
+							pos_hint: {'center_x': .4}
+							CheckBox:
+								state: 'down'
+								pos_hint: {'center_x': .3}
+							Label:
+								text: 'Apply translations'
+								pos_hint: {'center_x': .8}
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Rotate'
+							on_release: root.rotate()
+							size_hint: .4, .8
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label: 
+							text: ' '
+							size_hint_y: .1
 
 				BoxLayout:
-					size_hint_y: .8
-					orientation: 'vertical'
-					spacing: 15
+					orientation: 'horizontal'
 					Label:
-						text: ' '
-
-	TabbedPanelItem:
-		text: 'Change Log'
-		TextInput:
-			multiline: True
-			readonly: True
-			font_size: 25
-			text: 'Version 1.7\n-translated from MATLAB to Python script\n-added Master Key and implemented cwd checkboxes throughout program\n-added parser tool tab\n-moved box zoom and rotate subtomograms to obsolete tab\n\nVersion 1.63\n-added get dir button to filter function on Visualization tab\n-added help buttons (?) to give more information about directories for filter function on Visualization tab\n\nVersion 1.61\n-calculate angles tab added\n\nVersion 1.6\n-create coords button in coordinate picker is compatible with more input star files\n-calls coordinate_picker3 which has typo fix\n\nVersion 1.54\n-minor bug fixes in coordinate picker\n-get dir button in coordinate picker automatically adds / to end of path\n\nVersion 1.53\n-small bug fixes in coordinate picker.\n\nVersion 1.51\n-current file auto-updates after closing ChimeraX in coordinate picker.\n-add tool to save notes about subtomogtrams in coordinate picker.\n\nVersion 1.5\n-additional instruction added to Coordinate Picker.\n-status update of ChimeraX is provided after opening a file to prevent multiple clicks.\n-added option for output directory for the cmm coordinate files created by ChimeraX\n-added input option for the cmm coordinate files for the Creates .coords feature which makes .coordsshift files compatible with RELION3.\n-created change log tab.\n\nVersion 1.45\n-get dir button added. This allows you to update the mrc directory and Star file path fields to the current directory.\n-changed directory conventions for mrc directory and Star file path. You now need to enter the complete directories into this field (the get dir button follows this convention).\n-added get file name button which prints the current file name based on the index. The mrc directory combined with the file name is the path to the file that is opened in Chimera. You can check to make sure your path makes sense using this feature.\n-the default click in ChimeraX chooses the surface instead of the plane.'
+						size_hint_x: .15
+					BoxLayout:
+						size_hint_y: .9
+						orientation: 'vertical'
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label: 
+							color: (0,0,0,1)
+							font_size: 35
+							text: 'Stackbrowser'
+							pos_hint: {'center_x': .15}
+							bold: True
+						Label: 
+							text: 'Star file path'
+							size_hint_y: .7
+						TextInput:
+							text: 'test.star'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: 'Align file name (output)'
+							size_hint_y: .7
+						TextInput: 
+							text: 'Align.mat'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: ' '
+							size_hint_y: .1
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Make Align File'
+							on_release: root.align()
+							size_hint: .5, 1.2
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							text: 'Align file for stackbrowser'
+							size_hint_y: .7
+						TextInput:
+							text: 'Align.mat'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: aligninput
+						Label:
+							text: ' '
+							size_hint_y: .1
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Open Stackbrowser'
+							on_release: root.stack()
+							size_hint: .5, 1.2
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							text: ' '
+							size_hint_y: .1
+					Label:
+						size_hint_x: .15
