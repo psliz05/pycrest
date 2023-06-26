@@ -1031,7 +1031,7 @@ class Tabs(TabbedPanel):
 			masktype = self.ids.spinner.text
 
 			if masktype == 'Sphere':
-				sphere = tom.spheremask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2), round(box/2)])
+				sphere = tom.spheremask(np.ones([box, box, box], np.float32), rad, [box, box, box], 1, [round(box/2), round(box/2), round(box/2)])
 				sphere = sphere.astype('float32')
 				newMask = os.path.join(direct, maskmrc)
 				print('Now writing ' + newMask)
@@ -1040,8 +1040,8 @@ class Tabs(TabbedPanel):
 			if masktype == 'Cylinder':
 				curve = 9649
 				cylinder = tom.cylindermask(np.ones([box, box, box], np.float32), rad, 1, [round(box/2), round(box/2)])
-				sph_top = (tom.spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+vertshift-round(height/2)-curve])-1) * -1
-				sph_bot = (tom.spheremask(np.ones([box, box, box], np.float32), curve, 1, [round(box/2),round(box/2),round(box/2)+vertshift+round(height/2)+curve])-1) * -1
+				sph_top = (tom.spheremask(np.ones([box, box, box], np.float32), curve, [box, box, box], 1, [round(box/2),round(box/2),round(box/2)+vertshift-round(height/2)-curve])-1) * -1
+				sph_bot = (tom.spheremask(np.ones([box, box, box], np.float32), curve, [box, box, box], 1, [round(box/2),round(box/2),round(box/2)+vertshift+round(height/2)+curve])-1) * -1
 				mask_final = cylinder * sph_top * sph_bot
 
 				mask_final = mask_final.astype('float32')
@@ -1058,6 +1058,8 @@ class Tabs(TabbedPanel):
 		mask = self.ids.maskpath.text
 		starf = self.ids.mainstar.text
 		direc = self.ids.subtomodir.text
+		if self.ids.subtractionoutput.text[-1] != '/':
+			out = self.ids.subtractionoutput.text + '/'
 		out = self.ids.subtractionoutput.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
@@ -1071,20 +1073,23 @@ class Tabs(TabbedPanel):
 		shiftfil = self.ids.shiftbysd.active
 		randfilt = self.ids.randnoise.active
 		permutebg = self.ids.permutebg.active
+
+		if os.path.exists(out) == False:
+			os.mkdir(out)
 		
 		def cut_part_and_movefunc(maskname, listName, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
 			offSetCenter = [0, 0 ,0]
 			boxsize = [boxsize, boxsize, boxsize]
-			orig_size = [boxsize, boxsize, boxsize]
 			fileNames, angles, shifts, list_length, pickPos = tom.readList(listName, pxsz)
 			fileNames = [direc + name for name in fileNames]
 			maskh1 = mrcfile.read(maskname)
-		#	parfor?
 			posNew = []
 			for i in range(len(fileNames)):
+				mrcName = fileNames[i].split('/')[-1]
+				print("Now re-extracting " + mrcName)
 				outH1, posNew[:i] = tom.processParticle(fileNames[i], angles[:,i].conj().transpose(), shifts[:,i], maskh1, pickPos[:,i].conj().transpose(), offSetCenter, boxsize, filter, grow, normalizeit, sdrange, sdshift,blackdust,whitedust,shiftfil,randfilt,permutebg)
-			#	writeParticle(fileNames(i), outH1, out)
-				mrcfile.write(out, outH1)
+				print("Re-extraction complete for " + mrcName)
+				mrcfile.write(out + mrcName, outH1, True)
 
 		cut_part_and_movefunc(mask, starf, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg)
 		return

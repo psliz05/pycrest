@@ -14,7 +14,6 @@ from scipy.ndimage import label, binary_opening
 from skimage.morphology import remove_small_objects
 import starfile
 import mrcfile
-import emfile
 from pathlib import Path
 import matplotlib.pyplot as plt
 import warnings
@@ -87,7 +86,8 @@ def ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shi
 
 
 #Create mask functions
-def spheremask(vol, radius, sigma=0, center=None):
+def spheremask(vol, radius, boxsize, sigma=0, center=None):
+    vol = vol.reshape((int(boxsize[0]), int(boxsize[1]), int(boxsize[2])))
     if center == None:
         #	maybe no +1
         center = [np.floor(vol.shape[0] / 2) + 1, np.floor(vol.shape[1] / 2) + 1, np.floor(vol.shape[2] / 2) + 1]
@@ -128,10 +128,6 @@ def readList(listName, pxsz):
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
         list_length = len(star_data)
-        # fileNames = [star_data[i]['rlnImageName'] for i in range(list_length)]
-        # PickPos = np.zeros((3, list_length))
-        # shifts = np.zeros((3, list_length))
-        # angles = np.zeros((3, list_length))
         Align = allocAlign(list_length)
         fileNames = []
         PickPos = np.empty(shape=(3, list_length))
@@ -228,7 +224,7 @@ def eulerconvert_xmipp(rot, tilt, psi):
 
 def processParticle(filename,tmpAng,tmpShift,maskh1,PickPos,offSetCenter,boxsize,filter,grow,normalizeit, sdRange, sdShift,blackdust,whitedust,shiftfil,randfilt,permutebg):
     volTmp = mrcfile.read(filename)
-    maskh1Trans = shift(rotate(maskh1, tmpAng), tmpShift.conj().transpose())
+    maskh1Trans = shift(rotate(maskh1, tmpAng, boxsize), tmpShift.conj().transpose())
     maskh1Trans = maskh1Trans > 0.14
     vectTrans = pointrotate(offSetCenter,tmpAng[0],tmpAng[1],tmpAng[2])+tmpShift.conj().transpose()
     posNew=(np.round(vectTrans)+PickPos).conj().transpose()
@@ -240,18 +236,20 @@ def processParticle(filename,tmpAng,tmpShift,maskh1,PickPos,offSetCenter,boxsize
         elif randfilt == True:
             outH1 = randnoise_filt(outH1,maskh1Trans,'', 0, sdRange,blackdust,whitedust)
     if permutebg == True:
-        outH1 = permute_bg(outH1,maskh1Trans,'',grow,5,3)
-        print(outH1)
+        outH1 = permute_bg(outH1, maskh1Trans, boxsize, '', grow, 5, 3)
 
     if normalizeit == True:
         input = outH1
+        inputShape = input.shape
         inmax = np.max(input)
         inmin = np.min(input)
         range = inmax - inmin
         input = ((input-inmin) / range - .5) * 2
-        indd = np.where(maskh1Trans < 0.1)
-        ind_rand = np.random.permutation(len(indd[0]))
+        indd = np.flatnonzero(maskh1Trans < 0.1)
+        ind_rand = np.random.permutation(len(indd))
+        input = input.flatten()
         input[indd] = input[indd[ind_rand]]
+        input = input.reshape(inputShape)
         outH1 = input
 
     return outH1, posNew
@@ -274,36 +272,18 @@ def shift(im, delta):
     im = np.real(np.fft.ifftn(im * np.exp(-2j * np.pi * np.fft.ifftshift(x))))
     return im
 
-def rotate(*args):
-    nargin = len(args)
-    if nargin == 5:
-        taper = args[4]
-        center = args[3]
-        ip = args[2]
-    elif nargin == 4:
-        if not isinstance(args[3], int):
-            taper = args[3]
-            center = np.ceil(np.array(args[0].shape) / 2)
-        else:
-            taper = 'no'
-            center = args[3]
-        ip = args[2]
-    elif nargin == 3:
-        ip = args[2]
-        center = np.ceil(np.array(args[0].shape) / 2)
-        taper = 'no'
-    elif nargin == 2:
-        center = np.ceil(np.array(args[0].shape) / 2)
-        ip = 'l'
-        taper = 'no'
-    else:
-        print('Wrong number of arguments')
-        return -1
+def rotate(input, angles, boxsize):
     
-    in_array = args[0]
+    center = np.ceil(np.array(input.shape) / 2)
+    ip = 'l'
+    taper = 'no'
+    in_array = input
     in_array = in_array.astype(np.float32)
-    euler_angles = np.array(args[1])
+    euler_angles = np.array(angles)
     euler_angles = euler_angles.astype(np.float32)
+    sx = int(boxsize[0])
+    sy = int(boxsize[1])
+    sz = int(boxsize[2])
     px = float(center[0])
     py = float(center[1])
     pz = float(center[2])
@@ -315,7 +295,7 @@ def rotate(*args):
         pointer_ang = np.ctypeslib.ndpointer(shape = euler_angles.shape, dtype = np.float32)
         rot_function.rot3d.argtypes = (pointer_in, pointer_out, ctypes.c_long, ctypes.c_long, ctypes.c_long, pointer_ang, ctypes.c_wchar, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int)
         rot_function.rot3d.restype = None
-        rot_function.rot3d(in_array, out, 256, 256, 256, euler_angles, ip, px, py, pz, 1)
+        rot_function.rot3d(in_array, out, sx, sy, sz, euler_angles, ip, px, py, pz, 1)
         out = out.astype(np.float64)
     
     return out
@@ -574,51 +554,27 @@ def maskWithFil(input, mask, std2fil, std2shift, blackdust, whitedust):
     return input
 
 def randnoise_filt(input, mask, outputname, grow_rate, sdrange, blackdust, whitedust):
-
+    inputShape = input.shape
     if grow_rate == 0:
-        outmask = np.where(mask < 0.1)
-        outsmall = np.where(input[outmask] < -sdrange)
-        outlarge = np.where(input[outmask] > sdrange)
+        outmask = np.flatnonzero(mask < 0.1)
+        input = input.flatten()
+        outsmall = np.flatnonzero(input[outmask] < -sdrange)
+        outlarge = np.flatnonzero(input[outmask] > sdrange)
 
         if whitedust == True:
-            for i in range(len(outlarge[0])):
-                input[outmask[0][outlarge[0][i]]] = np.random.normal(0, 1)
+            for i in range(len(outlarge)):
+                input[outmask[outlarge[i]]] = np.random.normal(0, 1)
 
         if blackdust == True:
-            for i in range(len(outsmall[0])):
-                input[outmask[0][outsmall[0][i]]] = np.random.normal(0, 1)
+            for i in range(len(outsmall)):
+                input[outmask[outsmall[i]]] = np.random.normal(0, 1)
 
-    '''else:
-        mask_tmp = mask
-        smooth_ch = np.arange(100/num_of_steps, 100, 100/num_of_steps)
-        std_ch = np.arange(4/num_of_steps, 4, 4/num_of_steps)
-        filt_ch = np.arange(2, -2/num_of_steps, -2/num_of_steps)
-
-        for i in range(num_of_steps):
-            mask_old = mask_tmp
-            mask_tmp = tom_grow_mask(mask_tmp, grow_rate, max_error, filt_cer)
-            mask_diff = mask_tmp - mask_old
-            indd = np.where(mask_diff > 0.1)
-            ind_rand = np.random.permutation(len(indd[0]))
-            ind_rand2 = np.random.permutation(len(indd[0]))
-            cut_len = round(len(ind_rand) * (smooth_ch[i] / 100))
-            tmp_vox = input[indd[0][ind_rand[:cut_len]]]
-            tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
-
-            if filt_ch[i] == 0:
-                in_f = input
-            else:
-                in_f = tom_filter(input, filt_ch[i])
-
-            tmp_vox = in_f[indd[0][ind_rand[:cut_len]]]
-            tmp_vox = clean_stat(tmp_vox, std_ch[i])
-            input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
-    '''
-
+    input = input.reshape(inputShape)
     return input
 
-def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_cer=10, max_error=10):
+def permute_bg(input, mask, boxs, outputname='', grow_rate=0, num_of_steps=10, filt_cer=10, max_error = 10):
+
+    center = [round(boxs[0]/2) + 1, round(boxs[1]/2) + 1, round(boxs[2]/2) + 1]
 
     if grow_rate == 0:
         indd = np.where(mask < 0.1)
@@ -633,7 +589,7 @@ def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_ce
 
         for i in range(num_of_steps):
             mask_old = mask_tmp
-            mask_tmp = tom_grow_mask(mask_tmp, grow_rate, max_error, filt_cer)
+            mask_tmp = tom_grow_mask(mask_tmp, grow_rate, boxs, max_error, filt_cer)
             mask_old = mask_old.astype(int)
             mask_tmp = mask_tmp.astype(int)
             mask_diff = mask_tmp - mask_old
@@ -644,7 +600,6 @@ def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_ce
             cut_len = int(np.round(len(ind_rand) * (smooth_ch[i] / 100)))
         #   tmp_vox = input[indd[0][ind_rand[:cut_len]]]
             tmp_vox = []
-            inputshape = input.shape
             input = input.flatten()
             for ii in range(cut_len):
                 index = indd[ind_rand[ii]]
@@ -653,35 +608,26 @@ def permute_bg(input, mask, outputname='', grow_rate=0, num_of_steps=10, filt_ce
             tmp_vox = np.array(tmp_vox)
             tmp_vox = clean_stat(tmp_vox, std_ch[i])
             
-            #input[indd[0][ind_rand2[:cut_len]]] = tmp_vox
             input[indd[ind_rand2[:cut_len]]] = tmp_vox
-            # for ii in range(cut_len):
-            #     index = indd[ind_rand2[ii]]
-            #     input[index].append(tmp_vox)
 
             if filt_ch[i] == 0:
                 in_f = input
             else:
-                input.reshape(inputshape)
-                in_f = tom_filter(input, filt_ch[i])
+                in_f = tom_filter(input, filt_ch[i], boxs, center)
 
+            in_f = in_f.flatten()
             tmp_vox = in_f[indd[ind_rand[:cut_len]]]
             tmp_vox = clean_stat(tmp_vox, std_ch[i])
             input[indd[ind_rand2[:cut_len]]] = tmp_vox
 
-#    indd = np.array(np.where(mask_tmp < 0.1))
-    indd = np.array(np.where(mask_tmp < 0.1, mask_tmp, 0))
-    indd.reshape((256,256,256))
-    ind_rand = np.random.permutation(indd)
-    #input[indd] = input[indd[ind_rand]]
-    for i in range(indd.shape[0]):
-        for j in range(indd.shape[1]):
-            for k in range(indd.shape[2]):
-                input[indd[i, j, k]] = input[indd[i, j, k]][ind_rand[i, j, k]]
+    indd = np.array(np.flatnonzero(mask_tmp < 0.1))
+    ind_rand = np.random.permutation(len(indd))
+    input[indd] = input[indd[ind_rand]]
 
+    input = input.reshape((int(boxs[0]), int(boxs[1]), int(boxs[2])))
     return input
 
-def tom_grow_mask(mask, factor, max_error=2, filter_cer=None):
+def tom_grow_mask(mask, factor, boxsize, max_error=2, filter_cer=None):
 
     thr_inc = 0.1
     thr_tmp = 0.4
@@ -691,7 +637,7 @@ def tom_grow_mask(mask, factor, max_error=2, filter_cer=None):
 
     max_itr = 1000
 
-    mask_filt = tom_filter(mask, filter_cer)
+    mask_filt = tom_filter(mask, filter_cer, boxsize)
 
     for ii in range(1, 31):
         thr_inc /= ii
@@ -721,16 +667,16 @@ def clean_stat(vox, nstd):
     return out
 
 
-def tom_filter(im, radius, flag='circ'):
+def tom_filter(im, radius, boxsize, center=None, flag='circ'):
     if flag.lower() == 'circ':
         mask = np.ones_like(im)
-        mask = spheremask(mask, radius)
+        mask = spheremask(mask, radius, boxsize, 0, center)
 
     npix = np.sum(mask)
     mask = mask.astype(np.float32)
     im = im.astype(np.float32)
+    im = im.reshape(mask.shape)
     im = np.real(np.fft.fftshift(np.fft.ifftn(np.fft.fftn(mask) * np.fft.fftn(im)) / npix))
-    # im = np.real(np.fft.fftshift(np.fft.ifftn((np.fft.fftn(mask) * np.fft.fftn(im))) / npix))
     
     return im
 
