@@ -1,11 +1,5 @@
 #matlab tom functions converted into python
 
-#import C-file
-import ctypes
-from ctypes import *
-so_file = "/Users/patricksliz/Documents/GitHub/pycrest/rot3d.so"
-rot_function = CDLL(so_file)
-
 #import python packages
 import os
 import numpy as np
@@ -14,7 +8,14 @@ from skimage.morphology import remove_small_objects
 import starfile
 import mrcfile
 import matplotlib.pyplot as plt
+import pandas as pd
 import warnings
+
+#import C-file
+import ctypes
+from ctypes import *
+so_file = os.getcwd() + "/rot3d.so"
+rot_function = CDLL(so_file)
 
 #Wiener filter functions
 def deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton):
@@ -125,6 +126,15 @@ def readList(listName, pxsz):
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
         list_length = len(star_data)
+        # df = pd.DataFrame.from_dict(star_data)
+        # df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+        # def replaceName(s):
+        #     s = s.str.split("/")
+        #     for path in s:
+        #         path[-3] = path[-3] + "_reextract/"
+        #         path[-2] = path[-1]
+        #         path.pop()
+        #write new starfile using the above df
         Align = allocAlign(list_length)
         fileNames = []
         PickPos = np.empty(shape=(3, list_length))
