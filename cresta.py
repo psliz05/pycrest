@@ -1094,7 +1094,10 @@ class Tabs(TabbedPanel):
 				mrcfile.write(out + mrcName, outH1, True)
 				b = time.perf_counter()
 				t1 = str(timedelta(seconds = b-a)).split(":")
-				print(f"Re-extraction complete for {mrcName} in {t1[2]} seconds" )
+				if int(t1[1]) > 0:
+					print(f"Re-extraction complete for {mrcName} in {t1[1]} minutes and {t1[2]} seconds" )
+				else:
+					print(f"Re-extraction complete for {mrcName} in {t1[2]} seconds" )
 			bb = time.perf_counter()
 			t2 = str(timedelta(seconds = bb-aa)).split(":")
 			print(f'Total re-extraction time: {t2[1]} minutes and {t2[2]} seconds')

@@ -579,8 +579,9 @@ def permute_bg(input, mask, boxs, outputname='', grow_rate=0, num_of_steps=10, f
     center = [round(boxs[0]/2) + 1, round(boxs[1]/2) + 1, round(boxs[2]/2) + 1]
 
     if grow_rate == 0:
-        indd = np.where(mask < 0.1)
-        ind_rand = np.random.permutation(len(indd[0]))
+        indd = np.flatnonzero(mask < 0.1)
+        ind_rand = np.random.permutation(len(indd))
+        input = input.flatten()
         input[indd] = input[indd[ind_rand]]
 
     else:
@@ -618,9 +619,9 @@ def permute_bg(input, mask, boxs, outputname='', grow_rate=0, num_of_steps=10, f
             tmp_vox = clean_stat(tmp_vox, std_ch[i])
             input[indd[ind_rand2[:cut_len]]] = tmp_vox
 
-    indd = np.array(np.flatnonzero(mask_tmp < 0.1))
-    ind_rand = np.random.permutation(len(indd))
-    input[indd] = input[indd[ind_rand]]
+        indd = np.array(np.flatnonzero(mask_tmp < 0.1))
+        ind_rand = np.random.permutation(len(indd))
+        input[indd] = input[indd[ind_rand]]
 
     input = input.reshape((int(boxs[0]), int(boxs[1]), int(boxs[2])))
     return input
