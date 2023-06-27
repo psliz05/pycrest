@@ -126,15 +126,21 @@ def readList(listName, pxsz):
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
         list_length = len(star_data)
-        # df = pd.DataFrame.from_dict(star_data)
-        # df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
-        # def replaceName(s):
-        #     s = s.str.split("/")
-        #     for path in s:
-        #         path[-3] = path[-3] + "_reextract/"
-        #         path[-2] = path[-1]
-        #         path.pop()
-        #write new starfile using the above df
+
+        new_star = starfile.read(listName)
+        def replaceName(s):
+            s = s.split("/")
+            s[-3] = s[-3] + "_reextract"
+            s[-2] = s[-1]
+            s.pop()
+            s = '/'.join(s)
+            return s
+        df = pd.DataFrame.from_dict(new_star["particles"])
+        df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+        new_star["particles"] = df
+        starfile.write(new_star, _ + "reextract.star", overwrite=True)
+        new_star_name = _ + "reextract.star"
+
         Align = allocAlign(list_length)
         fileNames = []
         PickPos = np.empty(shape=(3, list_length))
@@ -156,7 +162,7 @@ def readList(listName, pxsz):
             Align[i]["Shift"]["Z"] = shifts[2, i]
     else:
         raise ValueError("Unsupported file extension.")
-    return fileNames, angles, shifts, list_length, PickPos
+    return fileNames, angles, shifts, list_length, PickPos, new_star_name
 
 def allocAlign(num_of_entries):
     Align = []

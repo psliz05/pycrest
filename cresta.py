@@ -1081,7 +1081,7 @@ class Tabs(TabbedPanel):
 		def cut_part_and_movefunc(maskname, listName, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
 			offSetCenter = [0, 0 ,0]
 			boxsize = [boxsize, boxsize, boxsize]
-			fileNames, angles, shifts, list_length, pickPos = tom.readList(listName, pxsz)
+			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz)
 			fileNames = [direc + name for name in fileNames]
 			maskh1 = mrcfile.read(maskname)
 			posNew = []
@@ -1101,6 +1101,7 @@ class Tabs(TabbedPanel):
 			bb = time.perf_counter()
 			t2 = str(timedelta(seconds = bb-aa)).split(":")
 			print(f'Total re-extraction time: {t2[1]} minutes and {t2[2]} seconds')
+			print('New starfile created: ' + new_star_name + '\n')
 
 		cut_part_and_movefunc(mask, starf, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg)
 		return
