@@ -1058,10 +1058,14 @@ class Tabs(TabbedPanel):
 	def reextract(self):
 		mask = self.ids.maskpath.text
 		starf = self.ids.mainstar.text
-		direc = self.ids.subtomodir.text
+		if self.ids.subtomodir.text[-1] != '/':
+			direc = self.ids.subtomodir.text + '/'
+		else:
+			direc = self.ids.subtomodir.text
 		if self.ids.subtractionoutput.text[-1] != '/':
 			out = self.ids.subtractionoutput.text + '/'
-		out = self.ids.subtractionoutput.text
+		else:
+			out = self.ids.subtractionoutput.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		filter = self.ids.filterbackground.active

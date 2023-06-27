@@ -147,6 +147,8 @@
 							on_press: root.starsave()
 							size_hint: .3, .12
 							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .06
 					BoxLayout:
 						orientation: 'vertical'
 						size_hint_y: .6
@@ -201,6 +203,8 @@
 							on_press: root.mrcsave()
 							size_hint: .3, .12
 							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .06
 					BoxLayout:
 						orientation: 'vertical'
 						size_hint_y: .35
@@ -811,7 +815,7 @@
 					pos_hint: {'center_x': .5, 'center_y': .6}
 					text: 'Select which output data you would like returned using checkbox and column input.\nThe star file entered on this tab is unique from the star file on the Master Key tab.'
 				Label:
-					text: 'Re-extraction'
+					text: 'Parsing'
 					color: (0,0,0,1)
 					font_size: 35
 					pos_hint: {'center_x': .15}
@@ -1215,6 +1219,8 @@
 						BoxLayout:
 							orientation: 'vertical'
 							Label:
+								size_hint_y: .2
+							Label:
 								text: 'Vertical Translation (px)'
 								size_hint: .5, .3
 								pos_hint: {'center_x': .5, 'center_y': .5}
@@ -1253,49 +1259,6 @@
 								size_hint_y: .3
 					Label:
 						size_hint_y: .05
-					# BoxLayout:
-					# 	orientation: 'horizontal'
-					# 	canvas:
-					# 		Color:
-					# 			rgba: .5, .5, .5, 0.4
-					# 		Rectangle:
-					# 			pos: self.pos
-					# 			size: self.size
-					# 	spacing: 15
-					# 	size_hint: .9, .5
-					# 	pos_hint: {'center_x': .5}
-					# 	BoxLayout:
-					# 		orientation: 'vertical'
-					# 		Label:
-					# 			text: 'Display mrc in tom xyz'
-					# 			color: (0,0,0,1)
-					# 			font_size: 35
-					# 			pos_hint: {'center_x': .26}
-					# 			bold: True
-					# 		Label:
-					# 			text: 'mrc path'
-					# 		TextInput:
-					# 			text: 'mask.mrc'
-					# 			size_hint_x: .6
-					# 			pos_hint: {'center_x': .5, 'center_y': .5}
-					# 			multiline: False
-					# 			id: tomxyz
-					# 		Label:
-					# 			size_hint_y: .5
-					# 	BoxLayout:
-					# 		orientation: 'vertical'
-					# 		Label:
-					# 			text: ' '
-					# 			size_hint_y: .1
-					# 		Button:
-					# 			background_color: 0.2, 0.6, 0.2, .55
-					# 			text: 'Display Volume'
-					# 			on_release: root.volume()
-					# 			size_hint: .5, .4
-					# 			pos_hint: {'center_x': .5, 'center_y': .5}
-					# 		Label:
-					# 			text: ' '
-					# 			size_hint_y: .1
 				BoxLayout:
 					orientation: 'horizontal'
 					size_hint_y: 1.4
@@ -1318,22 +1281,15 @@
 						Label:
 							text: 'Mask path'
 						TextInput:
-							text: 'mask.mrc'
+							text: '/Users/.../.../mask.mrc'
 							size_hint_x: .9
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
 							id: maskpath
 						Label:
-							text: 'Star file path'
-						TextInput:
-							text: 'test.star'
-							size_hint_x: .9
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
 							text: 'Subtomogram directory'
 						TextInput:
-							text: 'Extract/extract_test/201810XX_MPI/'
+							text: '/Users/.../.../Test_Data/'
 							size_hint_x: .9
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
@@ -1341,11 +1297,16 @@
 						Label:
 							text: 'Output directory'
 						TextInput:
-							text: 'Extract/extract_test/201810XX_MPI_reextract/'
+							text: '/Users/.../.../[subtomogram folder]_reextract/'
 							size_hint_x: .9
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
 							id: subtractionoutput
+						Label:
+							text: 'Re-extraction uses star file path from Master Key'
+							color: (.6,0,.6,1)
+							font_size: 28
+							size_hint_y: .55
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Re-extract'
@@ -1354,7 +1315,7 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							text: ' '
-							size_hint_y: .1
+							size_hint_y: .3
 					BoxLayout:
 						canvas:
 							Color:
