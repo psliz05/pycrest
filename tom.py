@@ -9,7 +9,6 @@ import starfile
 import mrcfile
 import matplotlib.pyplot as plt
 import pandas as pd
-import warnings
 
 #import C-file
 import ctypes
