@@ -1,22 +1,21 @@
 #matlab tom functions converted into python
 
-import ctypes
-from ctypes import *
-so_file = "/Users/patricksliz/Documents/GitHub/pycrest/rot3d.so"
-rot_function = CDLL(so_file)
+#import python packages
 import os
-from subprocess import call
-import pandas as pd
 import numpy as np
-import math
-from scipy.fftpack import fftn, ifftn, ifftshift, fftshift
-from scipy.ndimage import label, binary_opening
+from scipy.fft import fftn, fftshift, ifftn, ifftshift
 from skimage.morphology import remove_small_objects
 import starfile
 import mrcfile
-from pathlib import Path
 import matplotlib.pyplot as plt
+import pandas as pd
 import warnings
+
+#import C-file
+import ctypes
+from ctypes import *
+so_file = os.getcwd() + "/rot3d.so"
+rot_function = CDLL(so_file)
 
 #Wiener filter functions
 def deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton):
@@ -57,11 +56,11 @@ def deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, 
     z = z / max(1, np.abs(s3))
     r = np.sqrt(x**2 + y**2 + z**2)
     r = np.minimum(1, r)
-    r = np.fft.ifftshift(r)
+    r = ifftshift(r)
     x = np.arange(0, 1 + 1/2047, 1 / 2047)
 
     ramp = np.interp(r, x, wiener)
-    deconv = np.real(np.fft.ifftn(np.fft.fftn(vol.astype(np.float32)) * ramp))
+    deconv = np.real(ifftn(fftn(vol.astype(np.float32)) * ramp))
     return deconv
 
 def ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shift, bfactor):
@@ -89,7 +88,6 @@ def ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shi
 def spheremask(vol, radius, boxsize, sigma=0, center=None):
     vol = vol.reshape((int(boxsize[0]), int(boxsize[1]), int(boxsize[2])))
     if center == None:
-        #	maybe no +1
         center = [np.floor(vol.shape[0] / 2) + 1, np.floor(vol.shape[1] / 2) + 1, np.floor(vol.shape[2] / 2) + 1]
     x, y, z = np.mgrid[0:vol.shape[0], 0:vol.shape[1], 0:vol.shape[2]]
     x = np.sqrt((x + 1 - center[0])**2 + (y + 1 - center[1])**2 + (z + 1 - center[2])**2)
@@ -128,6 +126,21 @@ def readList(listName, pxsz):
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
         list_length = len(star_data)
+
+        new_star = starfile.read(listName)
+        def replaceName(s):
+            s = s.split("/")
+            s[-3] = s[-3] + "_reextract"
+            s[-2] = s[-1]
+            s.pop()
+            s = '/'.join(s)
+            return s
+        df = pd.DataFrame.from_dict(new_star["particles"])
+        df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+        new_star["particles"] = df
+        starfile.write(new_star, _ + "reextract.star", overwrite=True)
+        new_star_name = _ + "reextract.star"
+
         Align = allocAlign(list_length)
         fileNames = []
         PickPos = np.empty(shape=(3, list_length))
@@ -149,8 +162,7 @@ def readList(listName, pxsz):
             Align[i]["Shift"]["Z"] = shifts[2, i]
     else:
         raise ValueError("Unsupported file extension.")
-    
-    return fileNames, angles, shifts, list_length, PickPos
+    return fileNames, angles, shifts, list_length, PickPos, new_star_name
 
 def allocAlign(num_of_entries):
     Align = []
@@ -268,8 +280,8 @@ def shift(im, delta):
     delta /= [dimx, dimy, dimz]
     x = delta[0] * x + delta[1] * y + delta[2] * z
     
-    im = np.fft.fftn(im)
-    im = np.real(np.fft.ifftn(im * np.exp(-2j * np.pi * np.fft.ifftshift(x))))
+    im = fftn(im)
+    im = np.real(ifftn(im * np.exp(-2j * np.pi * ifftshift(x))))
     return im
 
 def rotate(input, angles, boxsize):
@@ -532,25 +544,21 @@ def pointrotate(r, phi, psi, the):
     return r
 
 def maskWithFil(input, mask, std2fil, std2shift, blackdust, whitedust):
-
-    indd = np.where(mask < 0.1)
+    inputShape = input.shape
+    input = input.flatten()
+    indd = np.flatnonzero(mask < 0.1)
     ind_mean = np.mean(input[indd])
     ind_std = np.std(input[indd])
 
     if whitedust == True:
-        for idx in np.nditer(indd):
-            if input[idx] > (ind_mean + std2fil * ind_std):
-                input[idx] -= std2shift * ind_std
-        # indd2 = np.where(input[indd] > (ind_mean + std2fil * ind_std))
-        # input[indd[indd2]] -= std2shift * ind_std
+        indd2 = np.flatnonzero(input[indd] > (ind_mean + std2fil * ind_std))
+        input[indd[indd2]] -= std2shift * ind_std
 
     if blackdust == True:
-        for idx in np.nditer(indd):
-            if input[idx] > (ind_mean + std2fil * ind_std):
-                input[idx] += std2shift * ind_std
-        # indd2 = np.where(input[indd] < (ind_mean - std2fil * ind_std))
-        # input[indd[0][indd2]] += std2shift * ind_std
+        indd2 = np.flatnonzero(input[indd] < (ind_mean - std2fil * ind_std))
+        input[indd[indd2]] += std2shift * ind_std
 
+    input = input.reshape(inputShape)
     return input
 
 def randnoise_filt(input, mask, outputname, grow_rate, sdrange, blackdust, whitedust):
@@ -577,8 +585,9 @@ def permute_bg(input, mask, boxs, outputname='', grow_rate=0, num_of_steps=10, f
     center = [round(boxs[0]/2) + 1, round(boxs[1]/2) + 1, round(boxs[2]/2) + 1]
 
     if grow_rate == 0:
-        indd = np.where(mask < 0.1)
-        ind_rand = np.random.permutation(len(indd[0]))
+        indd = np.flatnonzero(mask < 0.1)
+        ind_rand = np.random.permutation(len(indd))
+        input = input.flatten()
         input[indd] = input[indd[ind_rand]]
 
     else:
@@ -598,12 +607,8 @@ def permute_bg(input, mask, boxs, outputname='', grow_rate=0, num_of_steps=10, f
             ind_rand = np.random.permutation(len(indd))
             ind_rand2 = np.random.permutation(len(indd))
             cut_len = int(np.round(len(ind_rand) * (smooth_ch[i] / 100)))
-        #   tmp_vox = input[indd[0][ind_rand[:cut_len]]]
-            tmp_vox = []
             input = input.flatten()
-            for ii in range(cut_len):
-                index = indd[ind_rand[ii]]
-                tmp_vox.append(input[index])
+            tmp_vox = input[indd[ind_rand[:cut_len]]]
 
             tmp_vox = np.array(tmp_vox)
             tmp_vox = clean_stat(tmp_vox, std_ch[i])
@@ -620,9 +625,9 @@ def permute_bg(input, mask, boxs, outputname='', grow_rate=0, num_of_steps=10, f
             tmp_vox = clean_stat(tmp_vox, std_ch[i])
             input[indd[ind_rand2[:cut_len]]] = tmp_vox
 
-    indd = np.array(np.flatnonzero(mask_tmp < 0.1))
-    ind_rand = np.random.permutation(len(indd))
-    input[indd] = input[indd[ind_rand]]
+        indd = np.array(np.flatnonzero(mask_tmp < 0.1))
+        ind_rand = np.random.permutation(len(indd))
+        input[indd] = input[indd[ind_rand]]
 
     input = input.reshape((int(boxs[0]), int(boxs[1]), int(boxs[2])))
     return input
@@ -638,7 +643,6 @@ def tom_grow_mask(mask, factor, boxsize, max_error=2, filter_cer=None):
     max_itr = 1000
 
     mask_filt = tom_filter(mask, filter_cer, boxsize)
-
     for ii in range(1, 31):
         thr_inc /= ii
         thr_start = thr_tmp
@@ -676,16 +680,6 @@ def tom_filter(im, radius, boxsize, center=None, flag='circ'):
     mask = mask.astype(np.float32)
     im = im.astype(np.float32)
     im = im.reshape(mask.shape)
-    im = np.real(np.fft.fftshift(np.fft.ifftn(np.fft.fftn(mask) * np.fft.fftn(im)) / npix))
+    im = np.real(fftshift(ifftn(fftn(mask) * fftn(im)) / npix))
     
     return im
-
-def writeParticle(filename, outH1, output):
-    nameLeft = filename.replace(output.findWhat, output.rplaceWith[0])
-    pFoldLeft = os.path.dirname(nameLeft)
-    warnings.filterwarnings("ignore")  # Turn off warnings
-    os.makedirs(pFoldLeft, exist_ok=True)  # Create directory (ignore if it already exists)
-    warnings.filterwarnings("default") 
-    if nameLeft == filename:
-        raise ValueError("Check output find what: " + filename + " == " + nameLeft)
-    mrcfile.write(nameLeft, outH1)

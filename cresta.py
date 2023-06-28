@@ -21,6 +21,7 @@ import math
 import glob
 import matplotlib.pyplot as plt
 import weakref
+from datetime import timedelta
 
 #import tom.py
 import tom
@@ -1057,10 +1058,14 @@ class Tabs(TabbedPanel):
 	def reextract(self):
 		mask = self.ids.maskpath.text
 		starf = self.ids.mainstar.text
-		direc = self.ids.subtomodir.text
+		if self.ids.subtomodir.text[-1] != '/':
+			direc = self.ids.subtomodir.text + '/'
+		else:
+			direc = self.ids.subtomodir.text
 		if self.ids.subtractionoutput.text[-1] != '/':
 			out = self.ids.subtractionoutput.text + '/'
-		out = self.ids.subtractionoutput.text
+		else:
+			out = self.ids.subtractionoutput.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		filter = self.ids.filterbackground.active
@@ -1080,16 +1085,27 @@ class Tabs(TabbedPanel):
 		def cut_part_and_movefunc(maskname, listName, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
 			offSetCenter = [0, 0 ,0]
 			boxsize = [boxsize, boxsize, boxsize]
-			fileNames, angles, shifts, list_length, pickPos = tom.readList(listName, pxsz)
+			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz)
 			fileNames = [direc + name for name in fileNames]
 			maskh1 = mrcfile.read(maskname)
 			posNew = []
+			aa = time.perf_counter()
 			for i in range(len(fileNames)):
 				mrcName = fileNames[i].split('/')[-1]
 				print("Now re-extracting " + mrcName)
+				a = time.perf_counter()
 				outH1, posNew[:i] = tom.processParticle(fileNames[i], angles[:,i].conj().transpose(), shifts[:,i], maskh1, pickPos[:,i].conj().transpose(), offSetCenter, boxsize, filter, grow, normalizeit, sdrange, sdshift,blackdust,whitedust,shiftfil,randfilt,permutebg)
-				print("Re-extraction complete for " + mrcName)
 				mrcfile.write(out + mrcName, outH1, True)
+				b = time.perf_counter()
+				t1 = str(timedelta(seconds = b-a)).split(":")
+				if int(t1[1]) > 0:
+					print(f"Re-extraction complete for {mrcName} in {t1[1]} minutes and {t1[2]} seconds" )
+				else:
+					print(f"Re-extraction complete for {mrcName} in {t1[2]} seconds" )
+			bb = time.perf_counter()
+			t2 = str(timedelta(seconds = bb-aa)).split(":")
+			print(f'Total re-extraction time: {t2[1]} minutes and {t2[2]} seconds')
+			print('New starfile created: ' + new_star_name + '\n')
 
 		cut_part_and_movefunc(mask, starf, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg)
 		return
