@@ -56,7 +56,9 @@ Install matplotlib:
 pip3 install matplotlib
 ------------------------
 then 'cd' to the pycrest directory
-use 'source bin/activate' in pycrest directory
+cc -fPIC -shared -o rot3d.so rot3d.c (enter this in the command line)
+
+enter 'source bin/activate' in pycrest directory
 enter 'python3 cresta.py' to open
 ------------------------
 change ChimeraX path to the latest version:
