@@ -576,7 +576,11 @@ class Tabs(TabbedPanel):
 					#	Move each cmm file into the proper tomogram folder
 					if filename.endswith(".cmm"):
 						if filename[0:3] == bucket[0:3]:
-							shutil.move((cmmdir + filename), Tomo)
+							try:
+								shutil.move((cmmdir + filename), Tomo)
+							except:
+								print("Filename " + filename + " already exists, not copied into " + Tomo)
+								continue
 							with open(Tomo + '/' + filename) as ftomo:
 								for line in ftomo:
 								#	finding selected coordinates and shifting based on box size
@@ -626,8 +630,8 @@ class Tabs(TabbedPanel):
 													finalx = str(round(ogx) - int(x_cor))
 													finaly = str(round(ogy) - int(y_cor))
 													finalz = str(round(ogz) - int(z_cor))
-													if re.search('_filt', line):
-														bucket = bucket.replace('_filt', '')
+													if re.search('_wiener', line):
+														bucket = bucket.replace('_wiener', '')
 												#	creating files
 													file_opt = open(Tomo + '/' + bucket + '.coordsnew', 'a')
 													file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
@@ -636,7 +640,7 @@ class Tabs(TabbedPanel):
 													file_opt.writelines(nameroots + '\n')
 													file_opt.close()
 													file_opt = open(Tomo + '/' + bucket + '.shift', 'a')
-													file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + 'filename' + '\n')
+													file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + nameroots + '\n')
 													file_opt.close()
 		os.remove(tomoname)
 		return

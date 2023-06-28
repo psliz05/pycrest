@@ -45,11 +45,10 @@ Install scikit-image:
 
 pip3 install scikit-image
 ------------------------
-Install mrcfile, starfile, and emfile:
+Install mrcfile and starfile:
 
 pip3 install mrcfile
 pip3 install starfile
-pip3 install emfile
 ------------------------
 Install matplotlib:
 
