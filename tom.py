@@ -129,9 +129,7 @@ def readList(listName, pxsz):
         new_star = starfile.read(listName)
         def replaceName(s):
             s = s.split("/")
-            s[-3] = s[-3] + "_reextract"
-            s[-2] = s[-1]
-            s.pop()
+            s.insert(-1, "reextract")
             s = '/'.join(s)
             return s
         df = pd.DataFrame.from_dict(new_star["particles"])

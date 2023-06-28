@@ -144,7 +144,6 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('SecondBin:' + '\t' + self.ids.binnf.text + '\n')
 			file_opt.writelines('MaskPath:' + '\t' + self.ids.maskpath.text + '\n')
 			file_opt.writelines('Subtomogramdirectory:' + '\t' + self.ids.subtomodir.text + '\n')
-			file_opt.writelines('OutputDirectory:' + '\t' + self.ids.subtractionoutput.text + '\n')
 			file_opt.writelines('SDThresh:' + '\t' + self.ids.sdrange.text + '\n')
 			file_opt.writelines('SDShift:' + '\t' + self.ids.sdshift.text + '\n')
 			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
@@ -216,8 +215,6 @@ class Tabs(TabbedPanel):
 						self.ids.maskpath.text = yank	
 					if re.search('Subtomogramdirectory', line):
 						self.ids.subtomodir.text = yank	
-					if re.search('OutputDirectory', line):
-						self.ids.subtractionoutput.text = yank	
 					if re.search('SDThresh', line):
 						self.ids.sdrange.text = yank
 					if re.search('SDShift', line):
@@ -1066,10 +1063,6 @@ class Tabs(TabbedPanel):
 			direc = self.ids.subtomodir.text + '/'
 		else:
 			direc = self.ids.subtomodir.text
-		if self.ids.subtractionoutput.text[-1] != '/':
-			out = self.ids.subtractionoutput.text + '/'
-		else:
-			out = self.ids.subtractionoutput.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		filter = self.ids.filterbackground.active
@@ -1082,11 +1075,8 @@ class Tabs(TabbedPanel):
 		shiftfil = self.ids.shiftbysd.active
 		randfilt = self.ids.randnoise.active
 		permutebg = self.ids.permutebg.active
-
-		if os.path.exists(out) == False:
-			os.mkdir(out)
 		
-		def cut_part_and_movefunc(maskname, listName, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
+		def cut_part_and_movefunc(maskname, listName, direc, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
 			offSetCenter = [0, 0 ,0]
 			boxsize = [boxsize, boxsize, boxsize]
 			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz)
@@ -1096,10 +1086,14 @@ class Tabs(TabbedPanel):
 			aa = time.perf_counter()
 			for i in range(len(fileNames)):
 				mrcName = fileNames[i].split('/')[-1]
+				mrcDirec = "/".join(fileNames[i].split('/')[:-1])
+				reextractDir = mrcDirec + '/reextract/'
 				print("Now re-extracting " + mrcName)
 				a = time.perf_counter()
 				outH1, posNew[:i] = tom.processParticle(fileNames[i], angles[:,i].conj().transpose(), shifts[:,i], maskh1, pickPos[:,i].conj().transpose(), offSetCenter, boxsize, filter, grow, normalizeit, sdrange, sdshift,blackdust,whitedust,shiftfil,randfilt,permutebg)
-				mrcfile.write(out + mrcName, outH1, True)
+				if os.path.exists(reextractDir) == False:
+					os.mkdir(reextractDir)
+				mrcfile.write(reextractDir + mrcName, outH1, True)
 				b = time.perf_counter()
 				t1 = str(timedelta(seconds = b-a)).split(":")
 				if int(t1[1]) > 0:
@@ -1111,7 +1105,7 @@ class Tabs(TabbedPanel):
 			print(f'Total re-extraction time: {t2[1]} minutes and {t2[2]} seconds')
 			print('New starfile created: ' + new_star_name + '\n')
 
-		cut_part_and_movefunc(mask, starf, direc, out, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg)
+		cut_part_and_movefunc(mask, starf, direc, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg)
 		return
 
 	def calculate_ccc(self):
