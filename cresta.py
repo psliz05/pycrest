@@ -82,6 +82,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = self.ids.mainstar.text.replace(self.ids.maincwd.text, '')
 			else:
 				self.ids.mainstar.text = self.ids.mainstar.text
+		self.ids.subtomodir.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.starstatus.text = 'path saved'
 		self.ids.starstatus.color = (0,.6,0,1)
 
@@ -147,6 +148,7 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('SDThresh:' + '\t' + self.ids.sdrange.text + '\n')
 			file_opt.writelines('SDShift:' + '\t' + self.ids.sdshift.text + '\n')
 			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
+			file_opt.writelines('Subtomodirect:' + '\t' + self.ids.subtomodirect.text + '\n')
 			file_opt.close()
 			self.ids.pullpath.text = save
 		except IndexError:
@@ -221,6 +223,8 @@ class Tabs(TabbedPanel):
 						self.ids.sdshift.text = yank	
 					if re.search('MaskBlur', line):
 						self.ids.blurrate.text = yank	
+					if re.search('Subtomodirect', line):
+						self.ids.subtomodirect.text = yank
 		except FileNotFoundError:
 			print('Enter a file path')
 		except IsADirectoryError:
@@ -335,23 +339,6 @@ class Tabs(TabbedPanel):
 
 		except FileNotFoundError:
 			print("This directory does not exist")
-
-	def rotate(self):
-		print("rotated")
-
-	def zoomcut(self):
-		print("zoomed")
-
-	def align(self):
-		print("aligned")
-
-	'''def stack(self):
-		alignin = self.ids.aligninput.text
-		import matlab.engine
-		eng = matlab.engine.start_matlab()
-		eng.tom_av3_stackbrowser_2(nargout=0)
-		# os.system("/Users/psliz05/kivy_venv/tom_av3_stackbrowser_2.fig")
-		return'''
 
 	def pick_coord(self):
 		try:
@@ -1079,7 +1066,7 @@ class Tabs(TabbedPanel):
 		def cut_part_and_movefunc(maskname, listName, direc, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
 			offSetCenter = [0, 0 ,0]
 			boxsize = [boxsize, boxsize, boxsize]
-			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz)
+			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'reextract')
 			fileNames = [direc + name for name in fileNames]
 			maskh1 = mrcfile.read(maskname)
 			posNew = []
@@ -1112,9 +1099,84 @@ class Tabs(TabbedPanel):
 		return
 
 	def filter_ccc(self):
-
-
 		return
+
+	def rotate(self):
+		starf = self.ids.mainstar.text
+		dir = self.ids.subtomodirect.text
+		boxsize = float(self.ids.px1.text)
+		pxsz = float(self.ids.A1.text)
+		shifton = self.ids.applyTranslations.active
+		xaxis = self.ids.xaxis.active
+		yaxis = self.ids.yaxis.active
+		zaxis = self.ids.zaxis.active
+		anglerotate = float(self.ids.anglerotation.text)
+		flip = self.ids.randflip.active
+
+		if xaxis == True or yaxis == True or zaxis == True:
+			ownAngs = [0,0,0]
+			if xaxis == True:
+				ownAngs[0] = anglerotate
+			if yaxis == True:
+				ownAngs[1] = anglerotate
+			if zaxis == True:
+				ownAngs[2] = anglerotate
+			ownAngs = np.array(ownAngs)
+		else:
+			ownAngs = []
+
+		def rotate_subtomos(listName, dir, pxsz, boxsize, shifton, ownAngs):
+			boxsize = [boxsize, boxsize, boxsize]
+			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rot')
+			fileNames = [dir + name for name in fileNames]
+			for i in range(len(fileNames)):
+				mrcName = fileNames[i].split('/')[-1]
+				mrcDirec = "/".join(fileNames[i].split('/')[:-1])
+				rotDir = mrcDirec + '/rot/'
+				if len(ownAngs) != 3:
+					outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+				else:
+					outH1 = tom.processParticler(fileNames[i], ownAngs.conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+				outH1 = outH1.astype(np.float32)
+				if os.path.exists(rotDir) == False:
+					os.mkdir(rotDir)
+				mrcfile.write(rotDir + mrcName, outH1, True)
+
+		rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
+		return
+	
+
+		# eulerAng = np.array([0, 0, 0])
+		# index = None
+		# if xaxis:
+		# 	index = 0
+		# if yaxis:
+		# 	index = 1
+		# if zaxis:
+		# 	index = 2
+		# if index != None:
+		# 	eulerAng[index] = anglerotate
+
+
+		# def rotate_subtomos(listName, dir, pxsz, boxsize, shifton, euler):
+		# 	boxsize = [boxsize, boxsize, boxsize]
+		# 	fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rot')
+		# 	fileNames = [dir + name for name in fileNames]
+		# 	for i in range(len(fileNames)):
+		# 		mrcName = fileNames[i].split('/')[-1]
+		# 		mrcDirec = "/".join(fileNames[i].split('/')[:-1])
+		# 		rotDir = mrcDirec + '/rot/'
+		# 		if len(np.nonzero(euler)) != 0:
+		# 			outH1 = tom.processParticler(fileNames[i], euler, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+		# 		else:
+		# 			outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+		# 		outH1 = outH1.astype(np.float32)
+		# 		if os.path.exists(rotDir) == False:
+		# 			os.mkdir(rotDir)
+		# 		mrcfile.write(rotDir + mrcName, outH1, True)
+
+		# rotate_subtomos(starf, dir, pxsz, boxsize, shifton, eulerAng)
+		# return
 
 	pass
 

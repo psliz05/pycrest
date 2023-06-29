@@ -1139,7 +1139,7 @@
 					size_hint_y: .3
 
 	TabbedPanelItem:
-		text: '3D Signal Sub.'
+		text: 'Masking'
 		BoxLayout:
 			spacing: 10
 			canvas:
@@ -1573,7 +1573,6 @@
 					size: self.size
 			GridLayout:
 				rows: 2
-				spacing: 15
 				canvas:
 					Color:
 						rgba: 1, 1, 1, .6
@@ -1581,74 +1580,13 @@
 						pos: self.pos
 						size: self.size
 				BoxLayout:
-					orientation: 'horizontal'
-					BoxLayout:
-						canvas:
-							Color:
-								rgba: .5, .5, .5, 0.4
-							Rectangle:
-								pos: self.pos
-								size: self.size
-						orientation: 'vertical'
-						Label:
-							text: 'Box Zoom'
-							color: (0,0,0,1)
-							font_size: 35
-							size_hint_y: .7
-							pos_hint: {'center_x': .12}
-							bold: True
-						BoxLayout:
-							orientation: 'horizontal'
-							size_hint: .5, .8
-							pos_hint: {'center_x': .5}
-							Label: 
-								text: 'zoom box size (px)'
-								pos_hint: {'center_x': .2}
-							TextInput:
-								size_hint_x: .4
-								pos_hint: {'center_x': .8}
-								text: '90'
-								multiline: False
-						Label:
-							text: 'Star file path'
-							size_hint_y: .6
-						TextInput:
-							text: 'test.star'
-							size_hint: .9, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
-							text: 'Subtomogram directory'
-							size_hint_y: .6
-						TextInput: 
-							text: 'Extract/extract_test/201810XX_MPI/'
-							size_hint: .9, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
-							text: 'Output directory'
-							size_hint_y: .6
-						TextInput:
-							text: 'Extract/extract_test/201810XX_MPI_zoom/'
-							size_hint: .9, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
-							text: ' '
-							size_hint_y: .1
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Zoom and Cut'
-							on_release: root.zoomcut()
-							size_hint_x: .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
-							text: ' '
-							size_hint_y: .1
+					orientation: 'vertical'
 					Label:
-						size_hint_x: .05
+						size_hint_y: .1
 					BoxLayout:
 						orientation: 'vertical'
+						size_hint_x: .8
+						pos_hint: {'center_x': .5}
 						canvas:
 							Color:
 								rgba: .5, .5, .5, 0.4
@@ -1659,7 +1597,7 @@
 							text: 'Rotate Subtomograms'
 							color: (0,0,0,1)
 							font_size: 35
-							pos_hint: {'center_x': .24}
+							pos_hint: {'center_x': .2}
 							bold: True
 							size_hint_y: .8
 						Label:
@@ -1678,6 +1616,7 @@
 							size_hint: .9, .7
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
+							id: subtomodirect
 						Label:
 							text: 'Output directory'
 							size_hint_y: .8
@@ -1688,14 +1627,13 @@
 							multiline: False
 						BoxLayout:
 							orientation: 'horizontal'
-							size_hint: .5, .8
-							pos_hint: {'center_x': .4}
+							size_hint: .3, .8
+							pos_hint: {'center_x': .45}
 							CheckBox:
 								state: 'down'
-								pos_hint: {'center_x': .3}
+								id: applyTranslations
 							Label:
 								text: 'Apply translations'
-								pos_hint: {'center_x': .8}
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Rotate'
@@ -1707,69 +1645,82 @@
 							size_hint_y: .1
 
 				BoxLayout:
-					orientation: 'horizontal'
-					Label:
-						size_hint_x: .15
+					orientation: 'vertical'
 					BoxLayout:
-						size_hint_y: .9
 						orientation: 'vertical'
+						size_hint_x: .8
+						pos_hint: {'center_x': .5}
 						canvas:
 							Color:
 								rgba: .5, .5, .5, 0.4
 							Rectangle:
 								pos: self.pos
 								size: self.size
-						Label: 
+						Label:
+							text: 'Optional Parameters'
 							color: (0,0,0,1)
 							font_size: 35
-							text: 'Stackbrowser'
-							pos_hint: {'center_x': .15}
+							pos_hint: {'center_x': .2}
 							bold: True
+							size_hint_y: .8
+						Label:
+							text: 'Axis of Rotation'
+							size_hint_y: .8
+						BoxLayout:
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							size_hint: .7, .7
+							orientation: 'horizontal'
+							BoxLayout:
+								size_hint_x: .5
+								pos_hint: {'center_x': .5}
+								orientation: 'horizontal'
+								CheckBox:
+									group: 'g4'
+									id: xaxis
+								Label: 
+									text: 'X-Axis'
+							BoxLayout:
+								size_hint_x: .5
+								pos_hint: {'center_x': .5}
+								orientation: 'horizontal'
+								CheckBox:
+									group: 'g4'
+									id: yaxis
+								Label: 
+									text: 'Y-Axis'
+							BoxLayout:
+								size_hint_x: .5
+								pos_hint: {'center_x': .5}
+								orientation: 'horizontal'
+								CheckBox:
+									group: 'g4'
+									id: zaxis
+								Label: 
+									text: 'Z-Axis'
+						Label:
+							text: 'Angle of Rotation'
+							size_hint_y: .8
+						TextInput:
+							text: '90'
+							size_hint: .15, .7
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: anglerotation
+						Label:
+							size_hint_y: .1
+						Label:
+							text: 'Random Flip (180 degrees)'
+							size_hint_y: .8
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .2, .8
+							pos_hint: {'center_x': .45}
+							CheckBox:
+								id: randflip
+							Label:
+								text: 'Apply flip'
 						Label: 
-							text: 'Star file path'
-							size_hint_y: .7
-						TextInput:
-							text: 'test.star'
-							size_hint_x: .9
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
-							text: 'Align file name (output)'
-							size_hint_y: .7
-						TextInput: 
-							text: 'Align.mat'
-							size_hint_x: .9
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-						Label:
 							text: ' '
-							size_hint_y: .1
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Make Align File'
-							on_release: root.align()
-							size_hint: .5, 1.2
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
-							text: 'Align file for stackbrowser'
-							size_hint_y: .7
-						TextInput:
-							text: 'Align.mat'
-							size_hint_x: .9
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-							id: aligninput
-						Label:
-							text: ' '
-							size_hint_y: .1
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Open Stackbrowser'
-							on_release: root.stack()
-							size_hint: .5, 1.2
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
-							text: ' '
-							size_hint_y: .1
+							size_hint_y: .3
 					Label:
-						size_hint_x: .15
+						size_hint_y: .1

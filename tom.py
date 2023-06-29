@@ -120,7 +120,7 @@ def cylindermask(vol, radius, sigma, center):
 
 
 #3D Signal Subtraction Functions
-def readList(listName, pxsz):
+def readList(listName, pxsz, extstar):
     _, ext = os.path.splitext(listName)
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
@@ -129,14 +129,14 @@ def readList(listName, pxsz):
         new_star = starfile.read(listName)
         def replaceName(s):
             s = s.split("/")
-            s.insert(-1, "reextract")
+            s.insert(-1, extstar)
             s = '/'.join(s)
             return s
         df = pd.DataFrame.from_dict(new_star["particles"])
         df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
         new_star["particles"] = df
-        starfile.write(new_star, _ + "reextract.star", overwrite=True)
-        new_star_name = _ + "reextract.star"
+        starfile.write(new_star, _ + extstar + ".star", overwrite=True)
+        new_star_name = _ + extstar + ".star"
 
         Align = allocAlign(list_length)
         fileNames = []
@@ -513,7 +513,7 @@ def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
     
     # Cut it
     if num_of_dim > 1:
-        out = in_data[pos[0]:bound[0], pos[1]:bound[1], pos[2]:bound[2]]
+        out = in_data[pos[0]-1:bound[0], pos[1]-1:bound[1], pos[2]-1:bound[2]]
     else:
         out = in_data[pos[0]:bound[0]]
     
@@ -680,3 +680,17 @@ def tom_filter(im, radius, boxsize, center=None, flag='circ'):
     im = np.real(fftshift(ifftn(fftn(mask) * fftn(im)) / npix))
     
     return im
+
+#Rotate subtomogram functions
+def processParticler(filename, tmpAng, boxsize, shifts, shifton):
+    volTmp = mrcfile.read(filename)
+    storey = tmpAng[1]
+    tmpAng[1] = tmpAng[0]
+    tmpAng[0] = storey
+    if shifton == True:
+        outH1 = rotate(shift(volTmp, shifts), tmpAng, boxsize)
+    else:
+        outH1 = rotate(volTmp, tmpAng, boxsize)
+    
+    outH1 = cut_out(outH1, [0, 0, 0], boxsize)
+    return outH1
