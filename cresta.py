@@ -1110,11 +1110,13 @@ class Tabs(TabbedPanel):
 		if xaxis == True or yaxis == True or zaxis == True:
 			ownAngs = [0,0,0]
 			if xaxis == True:
-				ownAngs[0] = anglerotate
-			if yaxis == True:
-				ownAngs[1] = anglerotate
-			if zaxis == True:
 				ownAngs[2] = anglerotate
+			if yaxis == True:
+				ownAngs[0] = 270
+				ownAngs[1] = 90
+				ownAngs[2] = anglerotate
+			if zaxis == True:
+				ownAngs[0] = anglerotate
 			ownAngs = np.array(ownAngs)
 		else:
 			ownAngs = []
@@ -1130,7 +1132,7 @@ class Tabs(TabbedPanel):
 				if len(ownAngs) != 3:
 					outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
 				else:
-					outH1 = tom.processParticler(fileNames[i], ownAngs.conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+					outH1 = tom.processParticler(fileNames[i], ownAngs * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
 				outH1 = outH1.astype(np.float32)
 				if os.path.exists(rotDir) == False:
 					os.mkdir(rotDir)
