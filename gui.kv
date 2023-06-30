@@ -1657,64 +1657,88 @@
 							pos_hint: {'center_x': .2}
 							bold: True
 							size_hint_y: .8
-						Label:
-							text: 'Axis of Rotation'
-							size_hint_y: .8
 						BoxLayout:
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							size_hint: .7, .7
-							orientation: 'horizontal'
+							orientation: 'vertical'
+							pos_hint: {'center_x': .5}
+							canvas:
+								Color:
+									rgba: .5, .5, .5, 0.7
+								Rectangle:
+									pos: self.pos
+									size: self.size
+							Label:
+								text: 'Axis of Rotation'
+								size_hint_y: .8
 							BoxLayout:
-								size_hint_x: .5
-								pos_hint: {'center_x': .5}
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								size_hint: .6, .7
 								orientation: 'horizontal'
-								CheckBox:
-									group: 'g4'
-									id: xaxis
-								Label: 
-									text: 'X-Axis'
-							BoxLayout:
-								size_hint_x: .5
-								pos_hint: {'center_x': .5}
-								orientation: 'horizontal'
-								CheckBox:
-									group: 'g4'
-									id: yaxis
-								Label: 
-									text: 'Y-Axis'
-							BoxLayout:
-								size_hint_x: .5
-								pos_hint: {'center_x': .5}
-								orientation: 'horizontal'
-								CheckBox:
-									group: 'g4'
-									id: zaxis
-								Label: 
-									text: 'Z-Axis'
-						Label:
-							text: 'Angle of Rotation'
-							size_hint_y: .8
-						TextInput:
-							text: '90'
-							size_hint: .15, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-							id: anglerotation
+								BoxLayout:
+									size_hint_x: .5
+									pos_hint: {'center_x': .5}
+									orientation: 'horizontal'
+									CheckBox:
+										group: 'g4'
+										id: xaxis
+									Label: 
+										text: 'X-Axis'
+								BoxLayout:
+									size_hint_x: .5
+									pos_hint: {'center_x': .5}
+									orientation: 'horizontal'
+									CheckBox:
+										group: 'g4'
+										id: yaxis
+									Label: 
+										text: 'Y-Axis'
+								BoxLayout:
+									size_hint_x: .5
+									pos_hint: {'center_x': .5}
+									orientation: 'horizontal'
+									CheckBox:
+										group: 'g4'
+										id: zaxis
+									Label: 
+										text: 'Z-Axis'
 						Label:
 							size_hint_y: .1
-						Label:
-							text: 'Random Flip (180 degrees)'
-							size_hint_y: .8
 						BoxLayout:
 							orientation: 'horizontal'
-							size_hint: .2, .8
-							pos_hint: {'center_x': .45}
-							CheckBox:
-								id: randflip
-							Label:
-								text: 'Apply flip'
+							size_hint: .85, 1.6
+							BoxLayout:
+								size_hint_x: .55
+								orientation: 'horizontal'
+								Label:
+									size_hint_x: .4
+								CheckBox:
+									group: 'g5'
+									id: manualrotate
+								Label:
+									size_hint_x: .4
+								Label: 
+									text: 'Manual Rotation Angle'
+								Label:
+									size_hint_x: .8
+								TextInput:
+									text: '90'
+									size_hint: .5, .25
+									pos_hint: {'center_x': .9, 'center_y': .5}
+									multiline: False
+									id: anglerotation
+							BoxLayout:
+								size_hint_x: .45
+								orientation: 'horizontal'
+								CheckBox:
+									group: 'g5'
+									id: randflip
+								Label: 
+									text: 'Random 180 degree flip'
 						Label: 
-							text: ' '
-							size_hint_y: .3
+							size_hint_y: .8
+							text: ''
+							font_size: 25
+							pos_hint: {'center_y': .5}
+							color: (.6,0,0,1)
+							id: noaxis
 					Label:
 						size_hint_y: .1

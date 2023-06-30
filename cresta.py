@@ -22,6 +22,7 @@ import glob
 import matplotlib.pyplot as plt
 import weakref
 from datetime import timedelta
+import random
 
 #import tom.py
 import tom
@@ -1097,83 +1098,68 @@ class Tabs(TabbedPanel):
 		return
 
 	def rotate(self):
+		self.ids.noaxis.text = " "
 		starf = self.ids.mainstar.text
-		dir = self.ids.subtomodirect.text
+		if self.ids.subtomodirect.text[-1] != '/':
+			dir = self.ids.subtomodirect.text + '/'
+		else:
+			dir = self.ids.subtomodirect.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		shifton = self.ids.applyTranslations.active
 		xaxis = self.ids.xaxis.active
 		yaxis = self.ids.yaxis.active
 		zaxis = self.ids.zaxis.active
-		anglerotate = float(self.ids.anglerotation.text)
-		flip = self.ids.randflip.active
+		rotatebox = self.ids.manualrotate.active
+		flipbox = self.ids.randflip.active
 
-		if xaxis == True or yaxis == True or zaxis == True:
-			ownAngs = [0,0,0]
-			if xaxis == True:
-				ownAngs[2] = anglerotate
-			if yaxis == True:
-				ownAngs[0] = 270
-				ownAngs[1] = 90
-				ownAngs[2] = anglerotate
-			if zaxis == True:
-				ownAngs[0] = anglerotate
-			ownAngs = np.array(ownAngs)
-		else:
-			ownAngs = []
+		if rotatebox == True:
+			anglerotate = float(self.ids.anglerotation.text)
+		elif flipbox == True:
+			anglerotate = 180.0
+			shifton == False
+
+		ownAngs = []
+		if rotatebox or flipbox:
+			if xaxis or yaxis or zaxis:
+				ownAngs = [0,0,0]
+				if xaxis == True:
+					ownAngs[2] = anglerotate
+				if yaxis == True:
+					ownAngs[0] = 270
+					ownAngs[1] = 90
+					ownAngs[2] = anglerotate
+				if zaxis == True:
+					ownAngs[0] = anglerotate
+				ownAngs = np.array(ownAngs)
+			else:
+				self.ids.noaxis.text = "Axis of rotation not specified"
+				return
 
 		def rotate_subtomos(listName, dir, pxsz, boxsize, shifton, ownAngs):
 			boxsize = [boxsize, boxsize, boxsize]
 			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rottrans')
 			fileNames = [dir + name for name in fileNames]
+			if flipbox:
+				randIdx = random.sample(range(len(fileNames)), round(len(fileNames)/2))
+			else:
+				randIdx = range(len(fileNames))
 			for i in range(len(fileNames)):
-				mrcName = fileNames[i].split('/')[-1]
-				mrcDirec = "/".join(fileNames[i].split('/')[:-1])
-				rotDir = mrcDirec + '/rottrans/'
-				if len(ownAngs) != 3:
-					outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
-				else:
-					outH1 = tom.processParticler(fileNames[i], ownAngs * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
-				outH1 = outH1.astype(np.float32)
-				if os.path.exists(rotDir) == False:
-					os.mkdir(rotDir)
-				mrcfile.write(rotDir + mrcName, outH1, True)
+				if i in randIdx:
+					mrcName = fileNames[i].split('/')[-1]
+					mrcDirec = "/".join(fileNames[i].split('/')[:-1])
+					rotDir = mrcDirec + '/rottrans/'
+					if len(ownAngs) != 3:
+						outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+					else:
+						outH1 = tom.processParticler(fileNames[i], ownAngs * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+					outH1 = outH1.astype(np.float32)
+					if os.path.exists(rotDir) == False:
+						os.mkdir(rotDir)
+					mrcfile.write(rotDir + mrcName, outH1, True)
 
 		rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
 		return
-	
-
-		# eulerAng = np.array([0, 0, 0])
-		# index = None
-		# if xaxis:
-		# 	index = 0
-		# if yaxis:
-		# 	index = 1
-		# if zaxis:
-		# 	index = 2
-		# if index != None:
-		# 	eulerAng[index] = anglerotate
-
-
-		# def rotate_subtomos(listName, dir, pxsz, boxsize, shifton, euler):
-		# 	boxsize = [boxsize, boxsize, boxsize]
-		# 	fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rot')
-		# 	fileNames = [dir + name for name in fileNames]
-		# 	for i in range(len(fileNames)):
-		# 		mrcName = fileNames[i].split('/')[-1]
-		# 		mrcDirec = "/".join(fileNames[i].split('/')[:-1])
-		# 		rotDir = mrcDirec + '/rot/'
-		# 		if len(np.nonzero(euler)) != 0:
-		# 			outH1 = tom.processParticler(fileNames[i], euler, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
-		# 		else:
-		# 			outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
-		# 		outH1 = outH1.astype(np.float32)
-		# 		if os.path.exists(rotDir) == False:
-		# 			os.mkdir(rotDir)
-		# 		mrcfile.write(rotDir + mrcName, outH1, True)
-
-		# rotate_subtomos(starf, dir, pxsz, boxsize, shifton, eulerAng)
-		# return
 
 	pass
 
