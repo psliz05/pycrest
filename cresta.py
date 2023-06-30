@@ -279,17 +279,16 @@ class Tabs(TabbedPanel):
 
 			if wienerbutton == False and gaussianbutton == False:
 				print("At least one option needs to be selected.")
+
+			filterout = direct + 'filtered/'
+			if os.path.exists(filterout) == False:
+				os.mkdir(filterout)
 		#	wiener
 			if wienerbutton == True:
 				import mrcfile
 				import numpy as np
 				from scipy.interpolate import interp1d
 				from scipy.fftpack import fftn, ifftn
-
-				# remove current filtered .mrc files
-				filtered_files = [f for f in os.listdir(direct) if f.endswith("_wiener.mrc")]
-				for f in filtered_files:
-					os.remove(os.path.join(direct, f))
 
 				# apply filter to all .mrc files in the folder
 				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
@@ -305,9 +304,9 @@ class Tabs(TabbedPanel):
 
 					# write filtered .mrc file
 					baseFileName, extension = os.path.splitext(f)
-					newFileName = os.path.join(direct, baseFileName + '_wiener.mrc')
+					newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 					print('Now writing ' + newFileName)
-					mrcfile.new(newFileName, subtomo_filt)
+					mrcfile.new(newFileName, subtomo_filt, overwrite = True)
 
 				plt.show(block=False)
 
@@ -315,11 +314,6 @@ class Tabs(TabbedPanel):
 			if gaussianbutton == True:
 				from scipy.ndimage import gaussian_filter
 				import mrcfile
-
-				# remove current filtered .mrc files
-				filtered_files = [f for f in os.listdir(direct) if f.endswith("_gauss.mrc")]
-				for f in filtered_files:
-					os.remove(os.path.join(direct, f))
 
 				# apply filter to all .mrc files in the folder
 				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
@@ -333,9 +327,9 @@ class Tabs(TabbedPanel):
 
 					# write filtered .mrc file
 					baseFileName, extension = os.path.splitext(f)
-					newFileName = os.path.join(direct, baseFileName + '_gauss.mrc')
+					newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 					print('Now writing ' + newFileName)
-					mrcfile.new(newFileName, subtomo_filt)
+					mrcfile.new(newFileName, subtomo_filt, overwrite = True)
 
 		except FileNotFoundError:
 			print("This directory does not exist")
@@ -1066,7 +1060,7 @@ class Tabs(TabbedPanel):
 		def cut_part_and_movefunc(maskname, listName, direc, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg):
 			offSetCenter = [0, 0 ,0]
 			boxsize = [boxsize, boxsize, boxsize]
-			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'reextract')
+			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'masked')
 			fileNames = [direc + name for name in fileNames]
 			maskh1 = mrcfile.read(maskname)
 			posNew = []
@@ -1074,7 +1068,7 @@ class Tabs(TabbedPanel):
 			for i in range(len(fileNames)):
 				mrcName = fileNames[i].split('/')[-1]
 				mrcDirec = "/".join(fileNames[i].split('/')[:-1])
-				reextractDir = mrcDirec + '/reextract/'
+				reextractDir = mrcDirec + '/masked/'
 				print("Now re-extracting " + mrcName)
 				a = time.perf_counter()
 				outH1, posNew[:i] = tom.processParticle(fileNames[i], angles[:,i].conj().transpose(), shifts[:,i], maskh1, pickPos[:,i].conj().transpose(), offSetCenter, boxsize, filter, grow, normalizeit, sdrange, sdshift,blackdust,whitedust,shiftfil,randfilt,permutebg)
