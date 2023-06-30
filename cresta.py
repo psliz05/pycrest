@@ -83,6 +83,7 @@ class Tabs(TabbedPanel):
 			else:
 				self.ids.mainstar.text = self.ids.mainstar.text
 		self.ids.subtomodir.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
+		self.ids.subtomodirect.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.starstatus.text = 'path saved'
 		self.ids.starstatus.color = (0,.6,0,1)
 
@@ -1123,12 +1124,12 @@ class Tabs(TabbedPanel):
 
 		def rotate_subtomos(listName, dir, pxsz, boxsize, shifton, ownAngs):
 			boxsize = [boxsize, boxsize, boxsize]
-			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rot')
+			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rottrans')
 			fileNames = [dir + name for name in fileNames]
 			for i in range(len(fileNames)):
 				mrcName = fileNames[i].split('/')[-1]
 				mrcDirec = "/".join(fileNames[i].split('/')[:-1])
-				rotDir = mrcDirec + '/rot/'
+				rotDir = mrcDirec + '/rottrans/'
 				if len(ownAngs) != 3:
 					outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
 				else:

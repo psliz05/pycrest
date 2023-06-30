@@ -1300,7 +1300,7 @@
 							font_size: 28
 							size_hint_y: .55
 						Label:
-							text: 'Re-extraction uses star file path from Master Key'
+							text: 'Re-extraction requires star file path from Master Key'
 							color: (.6,0,.6,1)
 							font_size: 28
 							size_hint_y: .55
@@ -1601,30 +1601,24 @@
 							bold: True
 							size_hint_y: .8
 						Label:
-							text: 'Star file path'
-							size_hint_y: .8
-						TextInput:
-							text: 'test.star'
-							size_hint: .9, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
+							text: 'Results stored in "rottrans" folder in each subtomogram directory'
+							color: (.6,0,.6,1)
+							font_size: 28
+							size_hint_y: .55
+						Label:
+							text: 'Rotation requires star file path from Master Key'
+							color: (.6,0,.6,1)
+							font_size: 28
+							size_hint_y: .55
 						Label:
 							text: 'Subtomogram directory'
 							size_hint_y: .8
 						TextInput:
-							text: 'Extract/extract_test/201810XX_MPI/'
+							text: '/Users/.../.../Test_Data/'
 							size_hint: .9, .7
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
 							id: subtomodirect
-						Label:
-							text: 'Output directory'
-							size_hint_y: .8
-						TextInput:
-							text: 'Extract/extract_test/201810XX_MPI_rot/'
-							size_hint: .9, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
 						BoxLayout:
 							orientation: 'horizontal'
 							size_hint: .3, .8

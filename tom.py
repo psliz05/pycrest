@@ -684,11 +684,9 @@ def tom_filter(im, radius, boxsize, center=None, flag='circ'):
 #Rotate subtomogram functions
 def processParticler(filename, tmpAng, boxsize, shifts, shifton):
     volTmp = mrcfile.read(filename)
-
     storey = tmpAng[1]
     tmpAng[1] = tmpAng[0]
     tmpAng[0] = storey
-
     if shifton == True:
         outH1 = rotate(shift(volTmp, shifts), tmpAng, boxsize)
     else:
