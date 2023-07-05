@@ -1096,9 +1096,69 @@ class Tabs(TabbedPanel):
 
 	def filter_ccc(self):
 		return
+	
+	def randFlip(self):
+		starf = self.ids.randflip.text
+		xflip = self.ids.xflip.active
+		yflip = self.ids.yflip.active
+		zflip = self.ids.zflip.active
+		if xflip == True:
+			axis = 0
+		if yflip == True:
+			axis = 1
+		if zflip == True:
+			axis = 2
+		randPercent = float(self.ids.percentflip.text)
+		_, ext = os.path.splitext(starf)
+		if ext == '.star':
+			star_data = starfile.read(starf)["particles"]
+			new_star = starfile.read(starf)
+			def replaceName(s):
+				s = s.split("/")
+				s.insert(-1, "randFlip")
+				s = '/'.join(s)
+				return s
+			df = pd.DataFrame.from_dict(new_star["particles"])
+			#df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+			numFiles = len(star_data['rlnImageName'])
+			randIdx = random.sample(range(numFiles), round(numFiles*randPercent/100))
+			if axis == 0:
+				df.loc[randIdx, "rlnAngleRot"] += 180
+			if axis == 1:
+				df.loc[randIdx, "rlnAngleTilt"] += 180
+			if axis == 2:
+				df.loc[randIdx, "rlnAnglePsi"] += 180
+			flipped = np.zeros((numFiles,), dtype=int)
+			for i in range(numFiles):
+				if i in randIdx:
+					flipped[i] = 1
+			df["Flipped"] = flipped
+			new_star["particles"] = df
+			starfile.write(new_star, _ + "randFlip" + ".star", overwrite=True)
 
+		else:
+			raise ValueError("Unsupported file extension.")
+		return
+
+	def rotate_subtomos(self, listName, dir, pxsz, boxsize, shifton, ownAngs):
+		boxsize = [boxsize, boxsize, boxsize]
+		fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rottrans')
+		fileNames = [dir + name for name in fileNames]
+		for i in range(len(fileNames)):
+			mrcName = fileNames[i].split('/')[-1]
+			mrcDirec = "/".join(fileNames[i].split('/')[:-1])
+			rotDir = mrcDirec + '/rottrans/'
+			if len(ownAngs) != 3:
+				outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+			else:
+				outH1 = tom.processParticler(fileNames[i], ownAngs * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
+			outH1 = outH1.astype(np.float32)
+			if os.path.exists(rotDir) == False:
+				os.mkdir(rotDir)
+			mrcfile.write(rotDir + mrcName, outH1, True)
+		return
+	
 	def rotate(self):
-		self.ids.noaxis.text = " "
 		starf = self.ids.mainstar.text
 		if self.ids.subtomodirect.text[-1] != '/':
 			dir = self.ids.subtomodirect.text + '/'
@@ -1107,59 +1167,45 @@ class Tabs(TabbedPanel):
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		shifton = self.ids.applyTranslations.active
+		ownAngs = []
+
+		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
+		return
+	
+	def manualrotate(self):
+		self.ids.noaxis.text = " "
+		starf = self.ids.mainstar.text
+		if self.ids.subtomodirect.text[-1] != '/':
+			dir = self.ids.subtomodirect.text + '/'
+		else:
+			dir = self.ids.subtomodirect.text
+		boxsize = float(self.ids.px1.text)
+		pxsz = float(self.ids.A1.text)
+		shifton = False
 		xaxis = self.ids.xaxis.active
 		yaxis = self.ids.yaxis.active
 		zaxis = self.ids.zaxis.active
-		rotatebox = self.ids.manualrotate.active
-		flipbox = self.ids.randflip.active
-
-		if rotatebox == True:
-			anglerotate = float(self.ids.anglerotation.text)
-		elif flipbox == True:
-			anglerotate = 180.0
-			shifton == False
+		anglerotate = float(self.ids.anglerotation.text)
 
 		ownAngs = []
-		if rotatebox or flipbox:
-			if xaxis or yaxis or zaxis:
-				ownAngs = [0,0,0]
-				if xaxis == True:
-					ownAngs[2] = anglerotate
-				if yaxis == True:
-					ownAngs[0] = 270
-					ownAngs[1] = 90
-					ownAngs[2] = anglerotate
-				if zaxis == True:
-					ownAngs[0] = anglerotate
-				ownAngs = np.array(ownAngs)
-			else:
-				self.ids.noaxis.text = "Axis of rotation not specified"
-				return
+		if xaxis or yaxis or zaxis:
+			ownAngs = [0,0,0]
+			if xaxis == True:
+				ownAngs[2] = anglerotate
+			if yaxis == True:
+				ownAngs[0] = 270
+				ownAngs[1] = 90
+				ownAngs[2] = anglerotate
+			if zaxis == True:
+				ownAngs[0] = anglerotate
+			ownAngs = np.array(ownAngs)
+		else:
+			self.ids.noaxis.text = "Axis of rotation not specified"
+			return
+		
+		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
+		
 
-		def rotate_subtomos(listName, dir, pxsz, boxsize, shifton, ownAngs):
-			boxsize = [boxsize, boxsize, boxsize]
-			fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rottrans')
-			fileNames = [dir + name for name in fileNames]
-			if flipbox:
-				randIdx = random.sample(range(len(fileNames)), round(len(fileNames)/2))
-			else:
-				randIdx = range(len(fileNames))
-			for i in range(len(fileNames)):
-				if i in randIdx:
-					mrcName = fileNames[i].split('/')[-1]
-					mrcDirec = "/".join(fileNames[i].split('/')[:-1])
-					rotDir = mrcDirec + '/rottrans/'
-					if len(ownAngs) != 3:
-						outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
-					else:
-						outH1 = tom.processParticler(fileNames[i], ownAngs * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
-					outH1 = outH1.astype(np.float32)
-					if os.path.exists(rotDir) == False:
-						os.mkdir(rotDir)
-					mrcfile.write(rotDir + mrcName, outH1, True)
-
-		rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
-		return
 
 	pass
 

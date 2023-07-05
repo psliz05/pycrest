@@ -1448,47 +1448,153 @@
 				Label:
 					size_hint_y: .07
 				BoxLayout:
-					size_hint: .75, .5
-					orientation: 'vertical'
-					pos_hint: {'center_x': .5}
-					canvas:
-						Color:
-							rgba: .5, .5, .5, 0.4
-						Rectangle:
-							pos: self.pos
-							size: self.size
-					spacing: 15
+					orientation: 'horizontal'
 					Label:
-						text: 'Calculate CCC - Two Volumes'
-						color: (0,0,0,1)
-						font_size: 35
-						pos_hint: {'center_x': .32}
-						bold: True
-					Label: 
-						text: 'Volume 1'
-					TextInput:
-						text: '.mrc'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
+						size_hint_x: .05
+					BoxLayout:
+						orientation: 'vertical'
+						pos_hint: {'center_x': .5}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Random 180 Degree Flip'
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .3}
+							bold: True
+						Label:
+							text: '180 degree flips on randomly selected subtomograms'
+							color: (.6,0,.6,1)
+							font_size: 28
+							size_hint_y: .35
+						TextInput:
+							text: '.star'
+							size_hint: .9, .55
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							id: randflip
+							multiline: False
+						Label:
+							size_hint_y: .1
+						BoxLayout:
+							orientation: 'horizontal'
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint_x: .9
+								Label:
+									text: '% of Subtomos Flipped:'
+									pos_hint: {'center_x': .5}
+								TextInput:
+									text: '50'
+									multine: False
+									id: percentflip
+									pos_hint: {'center_x': .5}
+									size_hint_x: .2
+							BoxLayout:
+								orientation: 'vertical'
+								pos_hint: {'center_x': .5}
+								canvas:
+									Color:
+										rgba: .5, .5, .5, 0.7
+									Rectangle:
+										pos: self.pos
+										size: self.size
+								Label:
+									text: 'Axis of Rotation'
+									size_hint_y: .8
+								BoxLayout:
+									pos_hint: {'center_x': .5, 'center_y': .5}
+									size_hint: .6, .7
+									orientation: 'horizontal'
+									BoxLayout:
+										size_hint_x: .5
+										pos_hint: {'center_x': .5}
+										orientation: 'horizontal'
+										CheckBox:
+											group: 'g5'
+											id: xflip
+										Label: 
+											text: 'X'
+									BoxLayout:
+										size_hint_x: .5
+										pos_hint: {'center_x': .5}
+										orientation: 'horizontal'
+										CheckBox:
+											group: 'g5'
+											id: yflip
+										Label: 
+											text: 'Y'
+									BoxLayout:
+										size_hint_x: .5
+										pos_hint: {'center_x': .5}
+										orientation: 'horizontal'
+										CheckBox:
+											group: 'g5'
+											id: zflip
+										Label: 
+											text: 'Z'
+						Label:
+							size_hint_y: .1
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Random Flip'
+							on_release: root.randFlip()
+							size_hint: .5, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .1
+
 					Label:
-						text: 'Volume 2'
-					TextInput:
-						text: '.mrc'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-					Button:
-						background_color: 0.2, 0.6, 0.2, .55
-						text: 'Calculate CCC'
-						on_release: root.calculate_ccc()
-						size_hint_x: .5
-						pos_hint: {'center_x': .5, 'center_y': .5}
+						size_hint_x: .05
+
+					BoxLayout:
+						orientation: 'vertical'
+						pos_hint: {'center_x': .5}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						spacing: 15
+						Label:
+							text: 'Calculate CCC - Two Volumes'
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .34}
+							bold: True
+						Label: 
+							text: 'Volume 1'
+						TextInput:
+							text: '.mrc'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Label:
+							text: 'Volume 2'
+						TextInput:
+							text: '.mrc'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Calculate CCC'
+							on_release: root.calculate_ccc()
+							size_hint_x: .5
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							text: ' '
+							size_hint_y: .04
 					Label:
-						text: ' '
-						size_hint_y: .04
+						size_hint_x: .05
+
 				Label:
 					size_hint_y: .07
+
 				BoxLayout:
 					orientation: 'vertical'
 					size_hint_x: .75
@@ -1503,7 +1609,7 @@
 						text: 'Volume & Star File'
 						color: (0,0,0,1)
 						font_size: 35
-						pos_hint: {'center_x': .2}
+						pos_hint: {'center_x': .15}
 						bold: True
 					Label:
 						text: 'Volume 1'
@@ -1571,8 +1677,21 @@
 				Rectangle:
 					pos: self.pos
 					size: self.size
+			BoxLayout:
+				orientation: 'vertical'
+				size_hint_y: .15
+				Label:
+					text: 'Subtomogram directory'
+					size_hint_y: .5
+				TextInput:
+					text: '/Users/.../.../Test_Data/'
+					size_hint: .65, .4
+					pos_hint: {'center_x': .5, 'center_y': .5}
+					multiline: False
+					id: subtomodirect
 			GridLayout:
 				rows: 2
+				spacing: 20
 				canvas:
 					Color:
 						rgba: 1, 1, 1, .6
@@ -1594,31 +1713,26 @@
 								pos: self.pos
 								size: self.size
 						Label:
-							text: 'Rotate Subtomograms'
+							text: 'Rotate Subtomograms using Star File'
 							color: (0,0,0,1)
 							font_size: 35
-							pos_hint: {'center_x': .2}
+							pos_hint: {'center_x': .25}
 							bold: True
 							size_hint_y: .8
-						Label:
-							text: 'Results stored in "rottrans" folder in each subtomogram directory'
-							color: (.6,0,.6,1)
-							font_size: 28
-							size_hint_y: .55
-						Label:
-							text: 'Rotation requires star file path from Master Key'
-							color: (.6,0,.6,1)
-							font_size: 28
-							size_hint_y: .55
-						Label:
-							text: 'Subtomogram directory'
-							size_hint_y: .8
-						TextInput:
-							text: '/Users/.../.../Test_Data/'
-							size_hint: .9, .7
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-							id: subtomodirect
+						BoxLayout:
+							orientation: 'vertical'
+							size_hint_y: 1.5
+							canvas:
+								Color:
+									rgba: .5, .5, .5, 0.7
+								Rectangle:
+									pos: self.pos
+									size: self.size
+							Label:
+								text: 'Apply rotations and translations (optional) to the subtomograms\nas specified in the star file path from the Master Key.\nRotated/translated subtomograms are stored in the “rottrans” folder in each subtomogram directory.\nThis method is useful to visually inspect the rotated subtomograms.'
+								color: (1,1,1,1)
+								font_size: 28
+								halign: 'center'
 						BoxLayout:
 							orientation: 'horizontal'
 							size_hint: .3, .8
@@ -1632,7 +1746,7 @@
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Rotate'
 							on_release: root.rotate()
-							size_hint: .4, .8
+							size_hint: .3, .8
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label: 
 							text: ' '
@@ -1651,10 +1765,10 @@
 								pos: self.pos
 								size: self.size
 						Label:
-							text: 'Optional Parameters'
+							text: 'Rotate Subtomograms Manually'
 							color: (0,0,0,1)
 							font_size: 35
-							pos_hint: {'center_x': .2}
+							pos_hint: {'center_x': .22}
 							bold: True
 							size_hint_y: .8
 						BoxLayout:
@@ -1701,40 +1815,35 @@
 									Label: 
 										text: 'Z-Axis'
 						Label:
-							size_hint_y: .1
+							size_hint_y: .2
 						BoxLayout:
-							orientation: 'horizontal'
-							size_hint: .85, 1.6
-							BoxLayout:
-								size_hint_x: .55
-								orientation: 'horizontal'
-								Label:
-									size_hint_x: .4
-								CheckBox:
-									group: 'g5'
-									id: manualrotate
-								Label:
-									size_hint_x: .4
-								Label: 
-									text: 'Manual Rotation Angle'
-								Label:
-									size_hint_x: .8
-								TextInput:
-									text: '90'
-									size_hint: .5, .25
-									pos_hint: {'center_x': .9, 'center_y': .5}
-									multiline: False
-									id: anglerotation
-							BoxLayout:
-								size_hint_x: .45
-								orientation: 'horizontal'
-								CheckBox:
-									group: 'g5'
-									id: randflip
-								Label: 
-									text: 'Random 180 degree flip'
+							size_hint_x: .55
+							orientation: 'vertical'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							Label:
+								size_hint_y: .1
+							Label: 
+								text: 'Manual Rotation Angle'
+								size_hint_y: .3
+							Label:
+								size_hint_y: .1
+							TextInput:
+								text: '90'
+								size_hint: .15, .5
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								multiline: False
+								id: anglerotation
+							Label:
+								size_hint_y: .2
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Manually Rotate'
+							on_release: root.manualrotate()
+							size_hint: .3, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
+
 						Label: 
-							size_hint_y: .8
+							size_hint_y: .2
 							text: ''
 							font_size: 25
 							pos_hint: {'center_y': .5}
