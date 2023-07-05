@@ -1092,6 +1092,14 @@ class Tabs(TabbedPanel):
 		return
 
 	def calculate_ccc(self):
+		cccVol1 = self.ids.cccvolone.text
+		cccVol2 = self.ids.cccvoltwo.text
+		inVol1 = mrcfile.read(cccVol1)
+		inVol2 = mrcfile.read(cccVol2)
+		inVol1 = inVol1[54:85, 54:85, 54:85]
+		inVol2 = inVol2[54:85, 54:85, 54:85]
+		ccc = tom.ccc(inVol1, inVol2)
+		print(ccc)
 		return
 
 	def filter_ccc(self):

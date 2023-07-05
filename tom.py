@@ -694,3 +694,14 @@ def processParticler(filename, tmpAng, boxsize, shifts, shifton):
     
     outH1 = cut_out(outH1, [0, 0, 0], boxsize)
     return outH1
+
+#CCC Calculations
+def ccc(a, b):
+    a = a - np.mean(a, keepdims=True)
+    b = b - np.mean(b, keepdims=True)
+
+    if np.sqrt(np.sum(a * a) * np.sum(b * b)) == 0:
+        ccc = np.sum(a * b)
+    else:
+        ccc = np.sum(a * b) / np.sqrt(np.sum(a * a) * np.sum(b * b))
+    return ccc
