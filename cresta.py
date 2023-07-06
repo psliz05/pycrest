@@ -152,6 +152,12 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('SDShift:' + '\t' + self.ids.sdshift.text + '\n')
 			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
 			file_opt.writelines('Subtomodirect:' + '\t' + self.ids.subtomodirect.text + '\n')
+			file_opt.writelines('Randflip:' + '\t' + self.ids.randflip.text + '\n')
+			file_opt.writelines('CCCVolone:' + '\t' + self.ids.cccvolone.text + '\n')
+			file_opt.writelines('CCCVoltwo:' + '\t' + self.ids.cccvoltwo.text + '\n')
+			file_opt.writelines('Volvol:' + '\t' + self.ids.volvol.text + '\n')
+			file_opt.writelines('Volstar:' + '\t' + self.ids.volstar.text + '\n')
+			file_opt.writelines('Volwedge:' + '\t' + self.ids.volwedge.text + '\n')
 			file_opt.close()
 			self.ids.pullpath.text = save
 		except IndexError:
@@ -228,6 +234,18 @@ class Tabs(TabbedPanel):
 						self.ids.blurrate.text = yank	
 					if re.search('Subtomodirect', line):
 						self.ids.subtomodirect.text = yank
+					if re.search('Randflip', line):
+						self.ids.randflip.text = yank
+					if re.search('CCCVolone', line):
+						self.ids.cccvolone.text = yank
+					if re.search('CCCVoltwo', line):
+						self.ids.cccvoltwo.text = yank
+					if re.search('Volvol', line):
+						self.ids.volvol.text = yank
+					if re.search('Volstar', line):
+						self.ids.volstar.text = yank
+					if re.search('Volwedge', line):
+						self.ids.volwedge.text = yank
 		except FileNotFoundError:
 			print('Enter a file path')
 		except IsADirectoryError:
@@ -1009,7 +1027,6 @@ class Tabs(TabbedPanel):
 			import mrcfile
 			direct = self.ids.mainmrc.text
 			box = int(self.ids.px1.text)
-		#	pxsz = float(self.ids.A1.text)
 			rad = float(self.ids.radius.text)
 			height = float(self.ids.height.text)
 			vertshift = float(self.ids.vertical.text)
@@ -1205,6 +1222,10 @@ class Tabs(TabbedPanel):
 		zaxis = self.ids.zaxis.active
 		anglerotate = float(self.ids.anglerotation.text)
 
+		# X-axis  corresponds to  phi=0     psi=0   theta=alpha
+        # Y-axis  corresponds to  phi=270   psi=90  theta=alpha
+        # Z-axis  corresponds to  phi=alpha psi=0   theta=0
+
 		ownAngs = []
 		if xaxis or yaxis or zaxis:
 			ownAngs = [0,0,0]
@@ -1222,8 +1243,6 @@ class Tabs(TabbedPanel):
 			return
 		
 		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
-		
-
 
 	pass
 

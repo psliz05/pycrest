@@ -240,6 +240,7 @@ def processParticle(filename,tmpAng,tmpShift,maskh1,PickPos,offSetCenter,boxsize
     vectTrans = pointrotate(offSetCenter,tmpAng[0],tmpAng[1],tmpAng[2])+tmpShift.conj().transpose()
     posNew=(np.round(vectTrans)+PickPos).conj().transpose()
 
+    # cut and filter
     outH1 = volTmp
     if filter == True:
         if shiftfil == True:
@@ -270,6 +271,7 @@ def shift(im, delta):
     if delta.ndim > 1:
         delta = delta.flatten()
 
+    # MeshGrid with the sampling points of the image
     x, y, z = np.mgrid[-np.floor(dimx/2):-np.floor(dimx/2)+dimx,
                        -np.floor(dimy/2):-np.floor(dimy/2)+dimy,
                        -np.floor(dimz/2):-np.floor(dimz/2)+dimz]
@@ -284,7 +286,9 @@ def shift(im, delta):
     return im
 
 def rotate(input, angles, boxsize):
-    
+    # This is a 3d Euler rotation around (zxz)-axes
+    # with Euler angles (psi,theta,phi)
+
     center = np.ceil(np.array(input.shape) / 2)
     ip = 'l'
     taper = 'no'
@@ -306,6 +310,7 @@ def rotate(input, angles, boxsize):
         pointer_ang = np.ctypeslib.ndpointer(shape = euler_angles.shape, dtype = np.float32)
         rot_function.rot3d.argtypes = (pointer_in, pointer_out, ctypes.c_long, ctypes.c_long, ctypes.c_long, pointer_ang, ctypes.c_wchar, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int)
         rot_function.rot3d.restype = None
+        # call C-Function to do the calculations
         rot_function.rot3d(in_array, out, sx, sy, sz, euler_angles, ip, px, py, pz, 1)
         out = out.astype(np.float64)
     
@@ -742,11 +747,12 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     inputstar = starfile.read(starf)['particles']
     invol1 = mrcfile.read(cccvol1in)
     wedge = mrcfile.read(mswedge)
+    direct = "/".join(starf.split("/")[:-1]) + '/'
 
     # looping through each mrc, apply rots and shift, calculating ccc
     cccval = np.zeros(len(inputstar))
     for i in range(len(inputstar)):
-        invol2 = mrcfile.read('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/' + (inputstar['rlnImageName'][i]))
+        invol2 = mrcfile.read(direct + (inputstar['rlnImageName'][i]))
         mwcorrvol2 = invol2 * wedge
 
         # pull in shifts and rotations from star file
