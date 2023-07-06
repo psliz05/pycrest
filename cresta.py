@@ -85,6 +85,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = self.ids.mainstar.text
 		self.ids.subtomodir.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.subtomodirect.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
+		self.ids.randflip.text = self.ids.mainstar.text
 		self.ids.starstatus.text = 'path saved'
 		self.ids.starstatus.color = (0,.6,0,1)
 
@@ -1103,31 +1104,40 @@ class Tabs(TabbedPanel):
 		return
 
 	def filter_ccc(self):
+		volume = self.ids.volvol.text
+		star = self.ids.volstar.text
+		wedge = self.ids.volwedge.text
+		cccthresh = float(self.ids.cccthresh.text)
+		boxsize = float(self.ids.px1.text)
+		boxsize = [boxsize, boxsize, boxsize]
+		zoom = float(self.ids.zoomrange.text)
+		tom.ccc_loop(star, volume, cccthresh, boxsize, zoom, wedge)
 		return
 	
 	def randFlip(self):
+		self.ids.randaxis.text = ""
 		starf = self.ids.randflip.text
 		xflip = self.ids.xflip.active
 		yflip = self.ids.yflip.active
 		zflip = self.ids.zflip.active
-		if xflip == True:
-			axis = 0
-		if yflip == True:
-			axis = 1
-		if zflip == True:
-			axis = 2
+		if xflip or yflip or zflip:
+			if xflip == True:
+				axis = 0
+			if yflip == True:
+				axis = 1
+			if zflip == True:
+				axis = 2
+		else:
+			self.ids.randaxis.text = "Axis of rotation not specified"
+			return
+		
 		randPercent = float(self.ids.percentflip.text)
 		_, ext = os.path.splitext(starf)
 		if ext == '.star':
 			star_data = starfile.read(starf)["particles"]
 			new_star = starfile.read(starf)
-			def replaceName(s):
-				s = s.split("/")
-				s.insert(-1, "randFlip")
-				s = '/'.join(s)
-				return s
+			
 			df = pd.DataFrame.from_dict(new_star["particles"])
-			#df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 			numFiles = len(star_data['rlnImageName'])
 			randIdx = random.sample(range(numFiles), round(numFiles*randPercent/100))
 			if axis == 0:

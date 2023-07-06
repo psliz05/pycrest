@@ -1545,7 +1545,11 @@
 							size_hint: .5, .6
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
-							size_hint_y: .1
+							size_hint_y: .2
+							text: ''
+							id: randaxis
+							color: (.6,0,0,1)
+							fontsize: 25
 
 					Label:
 						size_hint_x: .05
@@ -1620,6 +1624,7 @@
 						size_hint_x: .9
 						pos_hint: {'center_x': .5, 'center_y': .5}
 						multiline: False
+						id: volvol
 					Label:
 						text: 'Star file'
 					TextInput:
@@ -1627,6 +1632,7 @@
 						size_hint_x: .9
 						pos_hint: {'center_x': .5, 'center_y': .5}
 						multiline: False
+						id: volstar
 					Label:
 						text: 'Missing wedge file'
 					TextInput:
@@ -1634,6 +1640,7 @@
 						size_hint_x: .9
 						pos_hint: {'center_x': .5, 'center_y': .5}
 						multiline: False
+						id: volwedge
 					BoxLayout:
 						orientation: 'horizontal'
 						Label:
@@ -1645,6 +1652,7 @@
 								size_hint: .3, .7
 								pos_hint: {'center_x': .5}
 								multiline: False
+								id: cccthresh
 					BoxLayout:
 						orientation: 'horizontal'
 						Label:
@@ -1656,6 +1664,7 @@
 								size_hint: .3, .7
 								pos_hint: {'center_x': .5}
 								multiline: False
+								id: zoomrange
 					Button:
 						background_color: 0.2, 0.6, 0.2, .55
 						text: 'Filter by CCC'
@@ -1773,6 +1782,12 @@
 							pos_hint: {'center_x': .22}
 							bold: True
 							size_hint_y: .8
+						Label:
+							text: 'Apply specified rotation to subtomograms in the Subtomogram Directory (above)'
+							color: (0,0,0,1)
+							font_size: 27
+							pos_hint: {'center_x': .43, 'center_y': .9}
+							size_hint_y: .3
 						BoxLayout:
 							orientation: 'vertical'
 							pos_hint: {'center_x': .5}

@@ -9,6 +9,8 @@ import starfile
 import mrcfile
 import matplotlib.pyplot as plt
 import pandas as pd
+import shutil
+import subprocess
 
 #import C-file
 import ctypes
@@ -705,3 +707,70 @@ def ccc(a, b):
     else:
         ccc = np.sum(a * b) / np.sqrt(np.sum(a * a) * np.sum(b * b))
     return ccc
+
+def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
+    # mask creation
+    mask = np.ones_like(wedge_b)
+    mask = spheremask(mask, 30, boxsize)
+
+    # apply wedge and mask to create wedge_all
+    wedge_all = wedge_a * wedge_b * mask
+
+    # calculate the number of voxels
+    n_all = np.count_nonzero(wedge_all)
+
+    # normalization for arrays a and b
+    n = np.size(a)
+    mn_a = np.sum(a) / n
+    stdv_a = np.sqrt(np.sum(a * a) / n - mn_a ** 2)
+    if stdv_a != 0:
+        a = (a - mn_a) / stdv_a
+
+    mn_b = np.sum(b) / n
+    stdv_b = np.sqrt(np.sum(b * b) / n - mn_b ** 2)
+    if stdv_b != 0:
+        b = (b - mn_b) / stdv_b
+
+    # compute correlation using FFT
+    ccf = np.real(ifftshift(ifftn(fftn(b) * np.conj(fftn(a))))) / n_all
+
+    return ccf
+
+
+def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
+    outputstar = starf.replace('.star', '_ccc.star')
+    inputstar = starfile.read(starf)['particles']
+    invol1 = mrcfile.read(cccvol1in)
+    wedge = mrcfile.read(mswedge)
+
+    # looping through each mrc, apply rots and shift, calculating ccc
+    cccval = np.zeros(len(inputstar))
+    for i in range(len(inputstar)):
+        invol2 = mrcfile.read('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/' + (inputstar['rlnImageName'][i]))
+        mwcorrvol2 = invol2 * wedge
+
+        # pull in shifts and rotations from star file
+        shiftOut = np.array([inputstar['rlnOriginXAngst'][i], inputstar['rlnOriginYAngst'][i],inputstar['rlnOriginZAngst'][i]]) / -2.62
+        rotateOut = np.array([inputstar['rlnAnglePsi'][i],inputstar['rlnAngleTilt'][i], inputstar['rlnAngleRot'][i]]) * -1
+        fixedRotations = eulerconvert_xmipp(rotateOut[0], rotateOut[1], rotateOut[2])
+        rotVol = rotate(mwcorrvol2,fixedRotations,boxsize)
+        shiftVol = shift(rotVol, shiftOut.conj().transpose())
+
+        # apply rotations and shifts to missing wedge
+        rotMw = rotate(wedge, fixedRotations, boxsize)
+        shiftMw = shift(rotMw, shiftOut.conj().transpose())
+        mwfixedinvol1 = invol1 * shiftMw
+
+        # calculate ccf and sum values
+        ccf = corr_wedge(invol1,shiftVol, shiftMw, shiftMw, boxsize)
+        left = round(boxsize[0]/2-zoomrange)
+        right = round(boxsize[0]/2+zoomrange)
+        cccval[i] = np.sum(ccf[left:right,left:right,left:right])
+
+    removeList = np.flatnonzero(cccval < threshold)
+    # create output REL3 star file with removeList values removed from star file
+    shutil.copy(starf, outputstar)
+    for x in range(len(removeList)):
+        subprocess.run(['sed', '-i', '', '/' + inputstar['rlnImageName'][removeList[x]].replace('/', '\\/') + '/d', outputstar])
+
+    return
