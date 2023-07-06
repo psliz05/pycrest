@@ -1467,18 +1467,13 @@
 							pos_hint: {'center_x': .3}
 							bold: True
 						Label:
-							text: '180 degree flips on randomly selected subtomograms'
-							color: (.6,0,.6,1)
+							text: 'Applies a 180 degree flip around the specified axis\nto a random subset of subtomograms in master key star file.\nA new star file with an additional column is produced:\n1 if the particular subtomogram has been flipped,\nor 0 if kept in the original orientation.'
+							color: (0,0,0,.7)
 							font_size: 28
-							size_hint_y: .35
-						TextInput:
-							text: '.star'
-							size_hint: .9, .55
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							id: randflip
-							multiline: False
+							size_hint_y: .9
+							halign: 'center'
 						Label:
-							size_hint_y: .1
+							size_hint_y: .25
 						BoxLayout:
 							orientation: 'horizontal'
 							BoxLayout:

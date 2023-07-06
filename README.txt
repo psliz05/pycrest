@@ -62,6 +62,6 @@ enter 'python3 cresta.py' to open
 ------------------------
 change ChimeraX path to the latest version:
 
-/opt/sbgrid/i386-mac/chimerax/1.5/ChimeraX.app/Contents/bin
+/opt/sbgrid/i386-mac/chimerax/1.6.1/ChimeraX.app/Contents/bin
 ---------------------------------------------------------------------------
-Use Test_Data and Results folders to confirm that everything works.
+Use Test_Data and TestExamples folders to confirm that everything works.

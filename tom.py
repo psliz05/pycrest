@@ -743,7 +743,7 @@ def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
 
 
 def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
-    outputstar = starf.replace('.star', '_ccc.star')
+    outputstar = starf.replace('.star', 'ccc.star')
     inputstar = starfile.read(starf)['particles']
     invol1 = mrcfile.read(cccvol1in)
     wedge = mrcfile.read(mswedge)

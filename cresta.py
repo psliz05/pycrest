@@ -85,7 +85,6 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = self.ids.mainstar.text
 		self.ids.subtomodir.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.subtomodirect.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
-		self.ids.randflip.text = self.ids.mainstar.text
 		self.ids.starstatus.text = 'path saved'
 		self.ids.starstatus.color = (0,.6,0,1)
 
@@ -152,7 +151,6 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('SDShift:' + '\t' + self.ids.sdshift.text + '\n')
 			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
 			file_opt.writelines('Subtomodirect:' + '\t' + self.ids.subtomodirect.text + '\n')
-			file_opt.writelines('Randflip:' + '\t' + self.ids.randflip.text + '\n')
 			file_opt.writelines('CCCVolone:' + '\t' + self.ids.cccvolone.text + '\n')
 			file_opt.writelines('CCCVoltwo:' + '\t' + self.ids.cccvoltwo.text + '\n')
 			file_opt.writelines('Volvol:' + '\t' + self.ids.volvol.text + '\n')
@@ -234,8 +232,6 @@ class Tabs(TabbedPanel):
 						self.ids.blurrate.text = yank	
 					if re.search('Subtomodirect', line):
 						self.ids.subtomodirect.text = yank
-					if re.search('Randflip', line):
-						self.ids.randflip.text = yank
 					if re.search('CCCVolone', line):
 						self.ids.cccvolone.text = yank
 					if re.search('CCCVoltwo', line):
@@ -387,6 +383,7 @@ class Tabs(TabbedPanel):
 			if curindex < 1 or curindex > fnlength:
 				print('The index is outside of the file limits.')
 				self.ids.filenameget.text = ""
+				return
 			else:
 				if self.ids.chimera_out.text[0] != '/':
 					self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
@@ -1133,7 +1130,7 @@ class Tabs(TabbedPanel):
 	
 	def randFlip(self):
 		self.ids.randaxis.text = ""
-		starf = self.ids.randflip.text
+		starf = self.ids.mainstar.text
 		xflip = self.ids.xflip.active
 		yflip = self.ids.yflip.active
 		zflip = self.ids.zflip.active
