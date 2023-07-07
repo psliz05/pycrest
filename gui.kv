@@ -1,4 +1,58 @@
 #:kivy 2.1.0
+#:import Factory kivy.factory.Factory
+<RandomInfo@Popup>
+	size_hint: .75, .5
+	title: 'Random 180 Degree Flip Star File'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Applies a 180 degree flip around the specified axis\nto a random subset of subtomograms in master key star file.\n\nA new star file with an additional column is produced:\n1 if the particular subtomogram has been flipped,\nor 0 if kept in the original orientation.\n\nAs an example, if a contacting vesicle pair is oriented such that\nthe axis between the centers of the vesicles points in the z direction,\na flip around the x or the y axis will change the orientation\nof the vesicle pair by 180 degrees."
+		Button:
+			size_hint: .5, .22
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
+<CCCInfo@Popup>
+	size_hint: .75, .3
+	title: 'Calculate CCC - Two Volumes'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Calculates the cross-correlation coefficient between the specified volumes,\n and using the specified missing wedge file.\n\nThe cross-correlation coefficient is displayed in the log file."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
+<VolumeStar@Popup>
+	size_hint: .75, .4
+	title: 'Volume & Star File'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Calculates cross-correlation coefficients between\nthe subtomograms specified in the star file (from Master Key)\nwith the specified volume1 and using the specified missing wedge file.\n\nThe cross-correlation coefficients are displayed in the log file.\n\nIt also produces two new star files containing the subtomograms\nwith cross-correlation coefficients >0 and <=0, respectively."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
+<RotateStarInfo@Popup>
+	size_hint: .75, .4
+	title: 'Rotate Subtomograms using Star File'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Apply rotations and translations (optional) to the subtomograms\nas specified in the star file path from the Master Key.\n\nRotated/translated subtomograms are stored in\nthe “rottrans” folder in each subtomogram directory.\n\nThis method is useful to visually inspect the rotated subtomograms."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
+
 
 <Tabs>:
 	size_hint: 1, 1
@@ -1461,17 +1515,17 @@
 								pos: self.pos
 								size: self.size
 						Label:
-							text: 'Random 180 Degree Flip'
+							text: 'Random 180 Degree Flip Star File'
 							color: (0,0,0,1)
 							font_size: 35
-							pos_hint: {'center_x': .3}
+							pos_hint: {'center_x': .37}
 							bold: True
-						Label:
-							text: 'Applies a 180 degree flip around the specified axis\nto a random subset of subtomograms in master key star file.\nA new star file with an additional column is produced:\n1 if the particular subtomogram has been flipped,\nor 0 if kept in the original orientation.'
-							color: (0,0,0,.7)
-							font_size: 28
-							size_hint_y: .9
-							halign: 'center'
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.RandomInfo().open()
+							size_hint: .45, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							size_hint_y: .25
 						BoxLayout:
@@ -1565,6 +1619,13 @@
 							font_size: 35
 							pos_hint: {'center_x': .34}
 							bold: True
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.CCCInfo().open()
+							size_hint: .27, .8
+							pos_hint: {'center_x': .5, 'center_y': .5}	
+						
 						Label: 
 							text: 'Volume 1'
 						TextInput:
@@ -1598,7 +1659,7 @@
 
 				BoxLayout:
 					orientation: 'vertical'
-					size_hint_x: .75
+					size_hint: .75, 1.2
 					pos_hint: {'center_x': .5}
 					canvas:
 						Color:
@@ -1612,6 +1673,12 @@
 						font_size: 35
 						pos_hint: {'center_x': .15}
 						bold: True
+					Button:
+						text: 'information'
+						background_color: 0, 1.2, 2, .5
+						on_release: Factory.VolumeStar().open()
+						size_hint_x: .3
+						pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						text: 'Volume 1'
 					TextInput:
@@ -1620,14 +1687,6 @@
 						pos_hint: {'center_x': .5, 'center_y': .5}
 						multiline: False
 						id: volvol
-					Label:
-						text: 'Star file'
-					TextInput:
-						text: '.star'
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
-						id: volstar
 					Label:
 						text: 'Missing wedge file'
 					TextInput:
@@ -1664,7 +1723,7 @@
 						background_color: 0.2, 0.6, 0.2, .55
 						text: 'Filter by CCC'
 						on_release: root.filter_ccc()
-						size_hint_x: .5
+						size_hint_x: .35
 						pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						text: ' '
@@ -1725,20 +1784,12 @@
 							pos_hint: {'center_x': .25}
 							bold: True
 							size_hint_y: .8
-						BoxLayout:
-							orientation: 'vertical'
-							size_hint_y: 1.5
-							canvas:
-								Color:
-									rgba: .5, .5, .5, 0.7
-								Rectangle:
-									pos: self.pos
-									size: self.size
-							Label:
-								text: 'Apply rotations and translations (optional) to the subtomograms\nas specified in the star file path from the Master Key.\nRotated/translated subtomograms are stored in the “rottrans” folder in each subtomogram directory.\nThis method is useful to visually inspect the rotated subtomograms.'
-								color: (1,1,1,1)
-								font_size: 28
-								halign: 'center'
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.RotateStarInfo().open()
+							size_hint: .25, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}	
 						BoxLayout:
 							orientation: 'horizontal'
 							size_hint: .3, .8

@@ -154,7 +154,6 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('CCCVolone:' + '\t' + self.ids.cccvolone.text + '\n')
 			file_opt.writelines('CCCVoltwo:' + '\t' + self.ids.cccvoltwo.text + '\n')
 			file_opt.writelines('Volvol:' + '\t' + self.ids.volvol.text + '\n')
-			file_opt.writelines('Volstar:' + '\t' + self.ids.volstar.text + '\n')
 			file_opt.writelines('Volwedge:' + '\t' + self.ids.volwedge.text + '\n')
 			file_opt.close()
 			self.ids.pullpath.text = save
@@ -238,8 +237,6 @@ class Tabs(TabbedPanel):
 						self.ids.cccvoltwo.text = yank
 					if re.search('Volvol', line):
 						self.ids.volvol.text = yank
-					if re.search('Volstar', line):
-						self.ids.volstar.text = yank
 					if re.search('Volwedge', line):
 						self.ids.volwedge.text = yank
 		except FileNotFoundError:
@@ -1119,7 +1116,7 @@ class Tabs(TabbedPanel):
 
 	def filter_ccc(self):
 		volume = self.ids.volvol.text
-		star = self.ids.volstar.text
+		star = self.ids.mainstar.text
 		wedge = self.ids.volwedge.text
 		cccthresh = float(self.ids.cccthresh.text)
 		boxsize = float(self.ids.px1.text)
