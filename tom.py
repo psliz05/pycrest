@@ -757,7 +757,8 @@ def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
 
 
 def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
-    outputstar = starf.replace('.star', 'ccc.star')
+    outputstar = starf.replace('.star', 'ccc_below.star')
+    outputstar1 = starf.replace('.star', 'ccc_above.star')
     inputstar = starfile.read(starf)['particles']
     invol1 = mrcfile.read(cccvol1in)
     wedge = mrcfile.read(mswedge)
@@ -788,9 +789,12 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
         cccval[i] = np.sum(ccf[left:right,left:right,left:right])
 
     removeList = np.flatnonzero(cccval < threshold)
+    removeList1 = np.flatnonzero(cccval >= threshold)
     # create output REL3 star file with removeList values removed from star file
     shutil.copy(starf, outputstar)
+    shutil.copy(starf, outputstar1)
     for x in range(len(removeList)):
         subprocess.run(['sed', '-i', '', '/' + inputstar['rlnImageName'][removeList[x]].replace('/', '\\/') + '/d', outputstar])
-
+    for x in range(len(removeList1)):
+        subprocess.run(['sed', '-i', '', '/' + inputstar['rlnImageName'][removeList1[x]].replace('/', '\\/') + '/d', outputstar1])
     return
