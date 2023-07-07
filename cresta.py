@@ -1171,7 +1171,7 @@ class Tabs(TabbedPanel):
 
 	def rotate_subtomos(self, listName, dir, pxsz, boxsize, shifton, ownAngs):
 		boxsize = [boxsize, boxsize, boxsize]
-		fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rottrans')
+		fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rottrans', ownAngs)
 		fileNames = [dir + name for name in fileNames]
 		for i in range(len(fileNames)):
 			mrcName = fileNames[i].split('/')[-1]

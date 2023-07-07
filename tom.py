@@ -122,7 +122,7 @@ def cylindermask(vol, radius, sigma, center):
 
 
 #3D Signal Subtraction Functions
-def readList(listName, pxsz, extstar):
+def readList(listName, pxsz, extstar, angles=None):
     _, ext = os.path.splitext(listName)
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
@@ -136,6 +136,20 @@ def readList(listName, pxsz, extstar):
             return s
         df = pd.DataFrame.from_dict(new_star["particles"])
         df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+
+        #modifies starfile according to rotation type
+        if len(angles) == 0: #star
+            zeros = np.zeros(df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ].shape)
+            df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ] = zeros
+        
+        if len(angles) == 3: #manual
+            if angles[0] == 0 and angles[1] == 0: # X-axis  corresponds to  phi=0   psi=0   theta=alpha
+                df.loc[:, "rlnAngleRot"] += angles[2]
+            if angles[0] == 270 and angles[1] == 90: # Y-axis  corresponds to  phi=270   psi=90  theta=alpha
+                df.loc[:, "rlnAngleTilt"] += angles[2]  
+            if angles[1] == 0 and angles[2] == 0: # Z-axis  corresponds to  phi=alpha   psi=0   theta=0
+                df.loc[:, "rlnAnglePsi"] += angles[0]
+            
         new_star["particles"] = df
         starfile.write(new_star, _ + extstar + ".star", overwrite=True)
         new_star_name = _ + extstar + ".star"
