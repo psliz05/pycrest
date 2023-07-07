@@ -87,19 +87,21 @@
 					id: A1
 					text: '2.62'
 					multiline: False
-			TextInput:
+			BoxLayout:
+				orientation: 'vertical'
+				size_hint: .9, .15
+				pos_hint: {'center_x': .5, 'center_y': .6}
 				canvas:
 					Color:
 						rgba: 1, 1, 1, .6
 					Rectangle:
 						pos: self.pos
 						size: self.size
-				multiline: True
-				readonly: True
-				size_hint_y: .15
-				size_hint_x: .9
-				pos_hint: {'center_x': .5, 'center_y': .6}
-				text: 'First, enter your current working directory or press Get CWD to fill it in. Then, if your file is located under your CWD, check the CWD box and enter the remaining file path. If the file is located elsewhere, uncheck the CWD box and type the full path. Last, hit the save button for each path.'
+				Label:
+					halign: 'center'
+					pos_hint: {'center_x': .5, 'center_y': .5}
+					color: (0,0,0,1)
+					text: 'First, enter your current working directory. Then, if your file is located under your CWD,\ncheck the CWD box and enter the remaining file path. If the file is located elsewhere,\nuncheck the CWD box and type the full path. Last, hit the save button for each path.'
 			BoxLayout:
 				orientation: 'horizontal'
 				spacing: 15
@@ -121,7 +123,7 @@
 							orientation: 'horizontal'
 							spacing: 20
 							size_hint: .6, .2
-							pos_hint: {'center_x': .57, 'center_y': .5}
+							pos_hint: {'center_x': .5, 'center_y': .5}
 							Label:
 								text: 'Current working directory:'
 								color: (0,0,0,1)
@@ -129,14 +131,6 @@
 								bold: True
 								size_hint: 1.4, .8
 								pos_hint: {'center_x': .5}
-							AnchorLayout:
-								anchor_x: 'left'
-								Button:
-									text: 'get cwd'
-									on_press: root.cwd()
-									pos_hint: {'center_x': .7, 'center_y': .5}
-									size_hint: .55, .95
-									background_color: 0, 1.2, 2, .5
 						BoxLayout:
 							size_hint: .7, .5
 							pos_hint: {'center_x': .5, 'center_y': .5}

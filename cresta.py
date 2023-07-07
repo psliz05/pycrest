@@ -54,6 +54,8 @@ Builder.load_file(os.getcwd() + '/gui.kv')
 class Cresta(App):
 
 	def build(self):
+		self.icon = 'bin/crestalogo.png'
+		self.title = 'CrESTA'
 		return Tabs()
 
 #giving buttons functionality
@@ -62,9 +64,6 @@ class Tabs(TabbedPanel):
 	label = Label(text="Sigma")
 	label2 = Label(text=" ", size_hint_y=.8)
 	sigma = TextInput(text="5", multiline=False, size_hint_x=.12, size_hint_y=1.9, pos_hint={'center_x': .5, 'center_y': .5})
-
-	def cwd(self):
-		self.ids.maincwd.text = os.getcwd()
 
 	def cwdempty(self):
 		if self.ids.maincwd.text == '':
