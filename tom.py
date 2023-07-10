@@ -757,8 +757,8 @@ def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
 
 
 def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
-    outputstar = starf.replace('.star', 'ccc_below.star')
-    outputstar1 = starf.replace('.star', 'ccc_above.star')
+    outputstar = starf.replace('.star', 'ccc_above.star')
+    outputstar1 = starf.replace('.star', 'ccc_below.star')
     inputstar = starfile.read(starf)['particles']
     invol1 = mrcfile.read(cccvol1in)
     wedge = mrcfile.read(mswedge)
@@ -775,11 +775,13 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
         rotateOut = np.array([inputstar['rlnAnglePsi'][i],inputstar['rlnAngleTilt'][i], inputstar['rlnAngleRot'][i]]) * -1
         fixedRotations = eulerconvert_xmipp(rotateOut[0], rotateOut[1], rotateOut[2])
         rotVol = rotate(mwcorrvol2,fixedRotations,boxsize)
-        shiftVol = shift(rotVol, shiftOut.conj().transpose())
+        # shiftVol = shift(rotVol, shiftOut.conj().transpose())
+        shiftVol = rotVol
 
         # apply rotations and shifts to missing wedge
         rotMw = rotate(wedge, fixedRotations, boxsize)
-        shiftMw = shift(rotMw, shiftOut.conj().transpose())
+        # shiftMw = shift(rotMw, shiftOut.conj().transpose())
+        shiftMw = rotMw
         mwfixedinvol1 = invol1 * shiftMw
 
         # calculate ccf and sum values
@@ -788,8 +790,8 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
         right = round(boxsize[0]/2+zoomrange)
         cccval[i] = np.sum(ccf[left:right,left:right,left:right])
 
-    removeList = np.flatnonzero(cccval < threshold)
-    removeList1 = np.flatnonzero(cccval >= threshold)
+    removeList = np.flatnonzero(cccval > threshold)
+    removeList1 = np.flatnonzero(cccval <= threshold)
     # create output REL3 star file with removeList values removed from star file
     shutil.copy(starf, outputstar)
     shutil.copy(starf, outputstar1)
