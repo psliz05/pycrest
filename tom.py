@@ -763,6 +763,8 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     invol1 = mrcfile.read(cccvol1in)
     wedge = mrcfile.read(mswedge)
     direct = "/".join(starf.split("/")[:-1]) + '/'
+    file_path = "calculate_ccc.txt" 
+    ccc_file = open(file_path, "w")
 
     # looping through each mrc, apply rots and shift, calculating ccc
     cccval = np.zeros(len(inputstar))
@@ -783,10 +785,12 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
         mwfixedinvol1 = invol1 * shiftMw
 
         # calculate ccf and sum values
-        ccf = corr_wedge(invol1,shiftVol, shiftMw, shiftMw, boxsize)
+        ccf = corr_wedge(invol1, shiftVol, shiftMw, shiftMw, boxsize)
         left = round(boxsize[0]/2-zoomrange)
         right = round(boxsize[0]/2+zoomrange)
         cccval[i] = np.sum(ccf[left:right,left:right,left:right])
+        #save cccval in text file (calculate_ccc.txt)
+        ccc_file.write(f"{inputstar['rlnImageName'][i]}:  {cccval[i]}\n")
 
     removeList = np.flatnonzero(cccval < threshold)
     removeList1 = np.flatnonzero(cccval >= threshold)
