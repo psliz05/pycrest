@@ -432,9 +432,11 @@
 					pos: self.pos
 					size: self.size
 			orientation: 'vertical'
+			Label:
+				size_hint_y: .05
 			BoxLayout:
-				orientation: 'horizontal'
-				size_hint_y: .1
+				orientation: 'vertical'
+				size_hint_y: .15
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				Label: 
 					text: 'Filter mrc'
@@ -446,17 +448,15 @@
 					text: 'information'
 					background_color: 0, 1.2, 2, .5
 					on_release: Factory.FilterInfo().open()
-					size_hint: .4, .6
+					size_hint: .15, .5
 					pos_hint: {'center_x': .5, 'center_y': .5}
-				Label:
-					text: ' '
 			BoxLayout:
 				orientation: 'horizontal'
 				size_hint: .475, .2
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				BoxLayout:
 					orientation: 'horizontal'
-					size_hint: .5, .1
+					size_hint: .5, .2
 					pos_hint: {'center_x': .5, 'center_y': .5}
 					CheckBox:
 						group: 'g6'

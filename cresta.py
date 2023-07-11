@@ -314,8 +314,10 @@ class Tabs(TabbedPanel):
 			envelope = float(self.ids.envelope.text)
 			bfactor = float(self.ids.bfactor.text)
 			phasebutton = self.ids.phaseflip.active
-			starf = None #Insert path here 
-			starButtion = None #boolean value
+			starf = self.ids.mainstar.text
+			subtomodir = self.ids.mainsubtomo.text
+			mrcButton = self.ids.mrcfilter.active
+			starButton = self.ids.starfilter.active
 
 			if wienerbutton == False and gaussianbutton == False:
 				print("At least one option needs to be selected.")
@@ -324,78 +326,122 @@ class Tabs(TabbedPanel):
 			if os.path.exists(filterout) == False:
 				os.mkdir(filterout)
 			
-			imageFileNames = starfile.read(starf)["Particles"]["rlnImageName"]
+			imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
 		#	wiener
 			if wienerbutton == True:
-				if starButtion:
+				if starButton:
 					for fileName in imageFileNames:
-						print('Now filtering ' + imageFileNames)
+						print('Now filtering ' + fileName)
+						fullFilePath = subtomodir + fileName
 
 						# read .mrc file and apply filter
-						mrc = mrcfile.read(fileName)
+						mrc = mrcfile.read(fullFilePath)
 						
 						subtomo_filt = tom.deconv_tomo(mrc, angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
 						subtomo_filt = subtomo_filt.astype('float32')
 
 						# write filtered .mrc file
-						baseFileName = fileName.split("/")[-1].split(".")[0]
+						baseFileName = fullFilePath.split("/")[-1].split(".")[0]
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
 
+					#constructs star file
+					star_data = starfile.read(starf)
+					df = pd.DataFrame.from_dict(star_data["particles"])
 
-				# apply filter to all .mrc files in the folder
-				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-				for f in myFiles:
-					fullFileName = os.path.join(direct, f)
-					print('Now filtering ' + fullFileName)
-
-					# read .mrc file and apply filter
-					mrc = mrcfile.read(fullFileName)
+					def replaceName(s):
+						s = s.split("/")
+						s.insert(-1, 'filtered')
+						s = '/'.join(s)
+						return s
 					
-					subtomo_filt = tom.deconv_tomo(mrc, angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
-					subtomo_filt = subtomo_filt.astype('float32')
+					def addWiener(s):
+						s = s.split("/")
+						s[-1] = s[-1].split(".")[0] + "_wiener.mrc"
+						s = '/'.join(s)
+						return s
+			
+					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addWiener(x))
+					star_data["particles"] = df
+					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + 'filtered' + ".star", overwrite=True)
 
-					# write filtered .mrc file
-					baseFileName, extension = os.path.splitext(f)
-					newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
-					print('Now writing ' + newFileName)
-					mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+				elif mrcButton:
+					# apply filter to all .mrc files in the folder
+					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
+					for f in myFiles:
+						fullFileName = os.path.join(direct, f)
+						print('Now filtering ' + fullFileName)
+
+						# read .mrc file and apply filter
+						mrc = mrcfile.read(fullFileName)
+						
+						subtomo_filt = tom.deconv_tomo(mrc, angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
+						subtomo_filt = subtomo_filt.astype('float32')
+
+						# write filtered .mrc file
+						baseFileName, extension = os.path.splitext(f)
+						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
+						print('Now writing ' + newFileName)
+						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
 
 				plt.show(block=False)
 
 		#	gaussian
 			if gaussianbutton == True:
 				from scipy.ndimage import gaussian_filter
-				# apply filter to all .mrc files in the folder
-				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-				for f in myFiles:
-					fullFileName = os.path.join(direct, f)
-					print('Now filtering ' + fullFileName)
+				if starButton:
+					for fileName in imageFileNames:
+						print('Now filtering ' + fileName)
+						fullFilePath = subtomodir + fileName
 
-					# read .mrc file and apply filter
-					mrc = mrcfile.read(fullFileName)
-					subtomo_filt = gaussian_filter(mrc, sigma=sigval)
+						# read .mrc file and apply filter
+						mrc = mrcfile.read(fullFilePath)
+						subtomo_filt = gaussian_filter(mrc, sigma=sigval)
 
-					# write filtered .mrc file
-					baseFileName, extension = os.path.splitext(f)
-					newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
-					print('Now writing ' + newFileName)
-					mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						# write filtered .mrc file
+						baseFileName = fullFilePath.split("/")[-1].split(".")[0]
+						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
+						print('Now writing ' + newFileName)
+						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+
+					#constructs star file
+					star_data = starfile.read(starf)
+					df = pd.DataFrame.from_dict(star_data["particles"])
+
+					def replaceName(s):
+						s = s.split("/")
+						s.insert(-1, 'filtered')
+						s = '/'.join(s)
+						return s
+					
+					def addGaussian(s):
+						s = s.split("/")
+						s[-1] = s[-1].split(".")[0] + "_gauss.mrc"
+						s = '/'.join(s)
+						return s
 			
-			#constructs star file
-			star_data = starfile.read(starf)
-			df = pd.DataFrame.from_dict(star_data["particles"])
+					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addGaussian(x))
+					star_data["particles"] = df
+					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + 'filtered' + ".star", overwrite=True)
+				elif mrcButton:
+					# apply filter to all .mrc files in the folder
+					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
+					for f in myFiles:
+						fullFileName = os.path.join(direct, f)
+						print('Now filtering ' + fullFileName)
 
-			def replaceName(s):
-				s = s.split("/")
-				s.insert(-1, 'filtered')
-				s = '/'.join(s)
-				return s
-	
-			df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
-			star_data["particles"] = df
-			starfile.write(star_data, + 'filtered' + ".star", overwrite=True)
+						# read .mrc file and apply filter
+						mrc = mrcfile.read(fullFileName)
+						subtomo_filt = gaussian_filter(mrc, sigma=sigval)
+
+						# write filtered .mrc file
+						baseFileName, extension = os.path.splitext(f)
+						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
+						print('Now writing ' + newFileName)
+						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
 
 		except FileNotFoundError:
 			print("This directory does not exist")
