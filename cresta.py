@@ -23,6 +23,8 @@ import matplotlib.pyplot as plt
 import weakref
 from datetime import timedelta
 import random
+import mrcfile
+import starfile
 
 #import tom.py
 import tom
@@ -289,6 +291,8 @@ class Tabs(TabbedPanel):
 			envelope = float(self.ids.envelope.text)
 			bfactor = float(self.ids.bfactor.text)
 			phasebutton = self.ids.phaseflip.active
+			starf = None #Insert path here 
+			starButtion = None #boolean value
 
 			if wienerbutton == False and gaussianbutton == False:
 				print("At least one option needs to be selected.")
@@ -296,12 +300,26 @@ class Tabs(TabbedPanel):
 			filterout = direct + 'filtered/'
 			if os.path.exists(filterout) == False:
 				os.mkdir(filterout)
+			
+			imageFileNames = starfile.read(starf)["Particles"]["rlnImageName"]
 		#	wiener
 			if wienerbutton == True:
-				import mrcfile
-				import numpy as np
-				from scipy.interpolate import interp1d
-				from scipy.fftpack import fftn, ifftn
+				if starButtion:
+					for fileName in imageFileNames:
+						print('Now filtering ' + imageFileNames)
+
+						# read .mrc file and apply filter
+						mrc = mrcfile.read(fileName)
+						
+						subtomo_filt = tom.deconv_tomo(mrc, angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
+						subtomo_filt = subtomo_filt.astype('float32')
+
+						# write filtered .mrc file
+						baseFileName = fileName.split("/")[-1].split(".")[0]
+						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
+						print('Now writing ' + newFileName)
+						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+
 
 				# apply filter to all .mrc files in the folder
 				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
@@ -326,8 +344,6 @@ class Tabs(TabbedPanel):
 		#	gaussian
 			if gaussianbutton == True:
 				from scipy.ndimage import gaussian_filter
-				import mrcfile
-
 				# apply filter to all .mrc files in the folder
 				myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
 				for f in myFiles:
@@ -343,6 +359,20 @@ class Tabs(TabbedPanel):
 					newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 					print('Now writing ' + newFileName)
 					mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+			
+			#constructs star file
+			star_data = starfile.read(starf)
+			df = pd.DataFrame.from_dict(star_data["particles"])
+
+			def replaceName(s):
+				s = s.split("/")
+				s.insert(-1, 'filtered')
+				s = '/'.join(s)
+				return s
+	
+			df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+			star_data["particles"] = df
+			starfile.write(star_data, + 'filtered' + ".star", overwrite=True)
 
 		except FileNotFoundError:
 			print("This directory does not exist")
