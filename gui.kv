@@ -65,7 +65,19 @@
 			pos_hint: {'center_x': .5}
 			text: 'Close'
 			on_release: root.dismiss()
-
+<RotateManualInfo@Popup>
+	size_hint: .75, .4
+	title: 'Rotate Subtomograms Manually'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Apply specified rotation to subtomograms in a\nstar file (specified on master key). Subtomogram directory must also\nbe specified on the master key.\n\nTranslation values are taken from the star file, while rotations are not.\n\nResults are stored in 'rottrans' folder in each subtomogram directory."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
 
 <Tabs>:
 	size_hint: 1, 1
@@ -1830,18 +1842,6 @@
 				Rectangle:
 					pos: self.pos
 					size: self.size
-			BoxLayout:
-				orientation: 'vertical'
-				size_hint_y: .15
-				Label:
-					text: 'Subtomogram directory'
-					size_hint_y: .5
-				TextInput:
-					text: '/Users/.../.../Test_Data/'
-					size_hint: .65, .4
-					pos_hint: {'center_x': .5, 'center_y': .5}
-					multiline: False
-					id: subtomodirect
 			GridLayout:
 				rows: 2
 				spacing: 20
@@ -1917,12 +1917,14 @@
 							pos_hint: {'center_x': .22}
 							bold: True
 							size_hint_y: .8
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.RotateManualInfo().open()
+							size_hint: .22, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
-							text: 'Apply specified rotation to subtomograms in the Subtomogram Directory (above)'
-							color: (0,0,0,1)
-							font_size: 27
-							pos_hint: {'center_x': .43, 'center_y': .9}
-							size_hint_y: .3
+							size_hint_y: .1
 						BoxLayout:
 							orientation: 'vertical'
 							pos_hint: {'center_x': .5}

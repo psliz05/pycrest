@@ -771,7 +771,7 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     wedge = mrcfile.read(mswedge)
     direct = "/".join(starf.split("/")[:-1]) + '/'
     file_path = "calculate_ccc.txt" 
-    ccc_file = open(file_path, "w")
+    ccc_file = open(direct + file_path, "w")
 
     # looping through each mrc, apply rots and shift, calculating ccc
     cccval = np.zeros(len(inputstar))

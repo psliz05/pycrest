@@ -1287,10 +1287,10 @@ class Tabs(TabbedPanel):
 	
 	def rotate(self):
 		starf = self.ids.mainstar.text
-		if self.ids.subtomodirect.text[-1] != '/':
-			dir = self.ids.subtomodirect.text + '/'
+		if self.ids.mainsubtomo.text[-1] != '/':
+			dir = self.ids.mainsubtomo.text + '/'
 		else:
-			dir = self.ids.subtomodirect.text
+			dir = self.ids.mainsubtomo.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		shifton = self.ids.applyTranslations.active
@@ -1302,10 +1302,10 @@ class Tabs(TabbedPanel):
 	def manualrotate(self):
 		self.ids.noaxis.text = " "
 		starf = self.ids.mainstar.text
-		if self.ids.subtomodirect.text[-1] != '/':
-			dir = self.ids.subtomodirect.text + '/'
+		if self.ids.mainsubtomo.text[-1] != '/':
+			dir = self.ids.mainsubtomo.text + '/'
 		else:
-			dir = self.ids.subtomodirect.text
+			dir = self.ids.mainsubtomo.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		shifton = False
