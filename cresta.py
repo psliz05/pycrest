@@ -84,6 +84,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = self.ids.mainstar.text.replace(self.ids.maincwd.text, '')
 			else:
 				self.ids.mainstar.text = self.ids.mainstar.text
+		self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.subtomodir.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.subtomodirect.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.starstatus.text = 'path saved'
@@ -92,6 +93,28 @@ class Tabs(TabbedPanel):
 	def triggerstar(self):
 		self.ids.starstatus.text = 'path not saved'
 		self.ids.starstatus.color = (.6,0,0,1)
+
+	def subtomosave(self):
+		if self.ids.mainsubtomo.text[0] !=  '/':
+			self.ids.mainsubtomo.text = '/' + self.ids.mainsubtomo.text
+		if self.ids.mainsubtomo.text[-1] !=  '/':
+			self.ids.mainsubtomo.text = self.ids.mainsubtomo.text + '/'
+		if self.ids.subtomocheck.active == True:
+			if self.ids.maincwd.text in self.ids.mainsubtomo.text:
+				self.ids.mainsubtomo.text = self.ids.mainsubtomo.text
+			else:
+				self.ids.mainsubtomo.text = self.ids.maincwd.text + self.ids.mainsubtomo.text
+		else:
+			if self.ids.maincwd.text in self.ids.mainsubtomo.text:
+				self.ids.mainsubtomo.text = self.ids.mainsubtomo.text.replace(self.ids.maincwd.text, '')
+			else:
+				self.ids.mainsubtomo.text = self.ids.mainsubtomo.text
+		self.ids.subtomostatus.text = 'path saved'
+		self.ids.subtomostatus.color = (0,.6,0,1)
+
+	def triggersubtomo(self):
+		self.ids.subtomostatus.text = 'path not saved'
+		self.ids.subtomostatus.color = (.6,0,0,1)
 
 	def mrcsave(self):
 		if self.ids.mainmrc.text[0] !=  '/':

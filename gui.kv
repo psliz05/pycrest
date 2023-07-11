@@ -33,7 +33,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Calculates cross-correlation coefficients between\nthe subtomograms specified in the star file (from Master Key)\nwith the specified volume1 and using the specified missing wedge file.\n\nThe cross-correlation coefficients are displayed in the log file.\n\nIt also produces two new star files containing the subtomograms\nwith cross-correlation coefficients >0 and <=0, respectively."
+			text: "Calculates cross-correlation coefficients between\nthe subtomograms specified in the star file (from Master Key)\nwith the specified volume1 and using the specified missing wedge file.\n\nThe cross-correlation coefficients are displayed in the log file.\n\nIt also produces two new star files containing the subtomograms\nwith cross-correlation coefficients > and <= the threshold, respectively."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -73,7 +73,7 @@
 			GridLayout:
 				cols:2
 				rows:2
-				size_hint: .35, .125
+				size_hint: .35, .1
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				Label:
 					text: 'Box size (px)'
@@ -89,7 +89,7 @@
 					multiline: False
 			BoxLayout:
 				orientation: 'vertical'
-				size_hint: .9, .15
+				size_hint: .9, .12
 				pos_hint: {'center_x': .5, 'center_y': .6}
 				canvas:
 					Color:
@@ -194,6 +194,62 @@
 							text: 'Save star path'
 							on_press: root.starsave()
 							size_hint: .3, .12
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .06
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint_y: .6
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Subtomogram directory'
+							color: (0,0,0,1)
+							font_size: 30
+							bold: True
+							size_hint: .6, .1
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .9, .25
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: .2, .5
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								CheckBox:
+									state: 'down'
+									id: subtomocheck
+									on_press: root.triggersubtomo()
+								Label:
+									text: 'cwd'
+							Label:
+								text: '+'
+								size_hint_x: .1
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							TextInput:
+								text: '/Test_Data/'
+								size_hint: 1.5, .55
+								font_size: 25
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								id: mainsubtomo
+								on_text: root.triggersubtomo()
+						Label:
+							size_hint_y: .06
+							font_size: 25
+							color: (.6,0,0,1)
+							text: 'path not saved'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							id: subtomostatus
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Save subtomogram path'
+							on_press: root.subtomosave()
+							size_hint: .45, .12
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							size_hint_y: .06
@@ -1514,16 +1570,20 @@
 							font_size: 35
 							pos_hint: {'center_x': .37}
 							bold: True
+							size_hint_y: .6
+						Label:
+							size_hint_y: .2
 						Button:
 							text: 'information'
 							background_color: 0, 1.2, 2, .5
 							on_release: Factory.RandomInfo().open()
-							size_hint: .45, .6
+							size_hint: .3, .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
-							size_hint_y: .25
+							size_hint_y: .4
 						BoxLayout:
 							orientation: 'horizontal'
+							size_hint_y: 1.2
 							BoxLayout:
 								orientation: 'vertical'
 								size_hint_x: .9
@@ -1580,7 +1640,7 @@
 										Label: 
 											text: 'Z'
 						Label:
-							size_hint_y: .1
+							size_hint_y: .5
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Random Flip'
@@ -1588,7 +1648,7 @@
 							size_hint: .5, .6
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
-							size_hint_y: .2
+							size_hint_y: .35
 							text: ''
 							id: randaxis
 							color: (.6,0,0,1)
@@ -1764,7 +1824,7 @@
 					BoxLayout:
 						orientation: 'vertical'
 						size_hint_x: .8
-						pos_hint: {'center_x': .5}
+						pos_hint: {'center_x': .5, 'center_y': .5}
 						canvas:
 							Color:
 								rgba: .5, .5, .5, 0.4
@@ -1782,7 +1842,7 @@
 							text: 'information'
 							background_color: 0, 1.2, 2, .5
 							on_release: Factory.RotateStarInfo().open()
-							size_hint: .25, .4
+							size_hint: .22, .4
 							pos_hint: {'center_x': .5, 'center_y': .5}	
 						BoxLayout:
 							orientation: 'horizontal'
@@ -1805,6 +1865,7 @@
 
 				BoxLayout:
 					orientation: 'vertical'
+					size_hint_y: 1.4
 					BoxLayout:
 						orientation: 'vertical'
 						size_hint_x: .8
