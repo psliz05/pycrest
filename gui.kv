@@ -1,5 +1,18 @@
 #:kivy 2.1.0
 #:import Factory kivy.factory.Factory
+<FilterInfo@Popup>
+	size_hint: .75, .55
+	title: 'Filtering'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Filtering either by an mrc directory or by a star file.\nPx size (A) must be entered on 'Master Key.'\n\nFor filtering by an mrc directory, enter the full path of the folder\ncontaining the mrc files on 'master key.'\n\nFor filtering by a star file, enter the full star file path and the \nsubtomogram directory path (folder that begins the mrc file paths in star file)\nin the master key.\n\nResults are stored in the 'filtered' folder.\nA new star file is created if filtering is done by star file."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
 <RandomInfo@Popup>
 	size_hint: .75, .5
 	title: 'Random 180 Degree Flip Star File'
@@ -429,16 +442,37 @@
 					font_size: 35
 					size_hint_y: .6
 					bold: True
+				Button:
+					text: 'information'
+					background_color: 0, 1.2, 2, .5
+					on_release: Factory.FilterInfo().open()
+					size_hint: .4, .6
+					pos_hint: {'center_x': .5, 'center_y': .5}
 				Label:
 					text: ' '
-					size_hint_x: .35
-				Label:
-					text: 'Note: mrc directory and Px size (A) must be entered on Master Key tab'
-					color: (.6,0,.6,1)
-					font_size: 25
-					size_hint_y: .6
-				Label:
-					text: ' '
+			BoxLayout:
+				orientation: 'horizontal'
+				size_hint: .475, .2
+				pos_hint: {'center_x': .5, 'center_y': .5}
+				BoxLayout:
+					orientation: 'horizontal'
+					size_hint: .5, .1
+					pos_hint: {'center_x': .5, 'center_y': .5}
+					CheckBox:
+						group: 'g6'
+						id: mrcfilter
+						state: 'down'
+					Label:
+						text: 'Mrc Directory'
+						bold: True
+					Label:
+						size_hint_x: .3
+					CheckBox: 
+						group: 'g6'
+						id: starfilter
+					Label:
+						text: 'Star File'
+						bold: True
 			BoxLayout:
 				canvas:
 					Color:

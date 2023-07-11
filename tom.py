@@ -3,6 +3,8 @@
 #import python packages
 import os
 import numpy as np
+import pyfftw
+import scipy
 from scipy.fft import fftn, fftshift, ifftn, ifftshift
 from skimage.morphology import remove_small_objects
 import starfile
@@ -138,17 +140,18 @@ def readList(listName, pxsz, extstar, angles=None):
         df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 
         #modifies starfile according to rotation type
-        if len(angles) == 0: #star
-            zeros = np.zeros(df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ].shape)
-            df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ] = zeros
-        
-        if len(angles) == 3: #manual
-            if angles[0] == 0 and angles[1] == 0: # X-axis  corresponds to  phi=0   psi=0   theta=alpha
-                df.loc[:, "rlnAngleRot"] += angles[2]
-            if angles[0] == 270 and angles[1] == 90: # Y-axis  corresponds to  phi=270   psi=90  theta=alpha
-                df.loc[:, "rlnAngleTilt"] += angles[2]  
-            if angles[1] == 0 and angles[2] == 0: # Z-axis  corresponds to  phi=alpha   psi=0   theta=0
-                df.loc[:, "rlnAnglePsi"] += angles[0]
+        if angles != None:
+            if len(angles) == 0: #star
+                zeros = np.zeros(df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ].shape)
+                df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ] = zeros
+            
+            if len(angles) == 3: #manual
+                if angles[0] == 0 and angles[1] == 0: # X-axis  corresponds to  phi=0   psi=0   theta=alpha
+                    df.loc[:, "rlnAngleRot"] += angles[2]
+                if angles[0] == 270 and angles[1] == 90: # Y-axis  corresponds to  phi=270   psi=90  theta=alpha
+                    df.loc[:, "rlnAngleTilt"] += angles[2]  
+                if angles[1] == 0 and angles[2] == 0: # Z-axis  corresponds to  phi=alpha   psi=0   theta=0
+                    df.loc[:, "rlnAnglePsi"] += angles[0]
             
         new_star["particles"] = df
         starfile.write(new_star, _ + extstar + ".star", overwrite=True)
@@ -286,18 +289,18 @@ def shift(im, delta):
         delta = delta.flatten()
 
     # MeshGrid with the sampling points of the image
-    x, y, z = np.mgrid[-np.floor(dimx/2):-np.floor(dimx/2)+dimx,
-                       -np.floor(dimy/2):-np.floor(dimy/2)+dimy,
+    x, y, z = np.mgrid[-np.floor(dimx/2):-np.floor(dimx/2)+dimx, 
+                       -np.floor(dimy/2):-np.floor(dimy/2)+dimy, 
                        -np.floor(dimz/2):-np.floor(dimz/2)+dimz]
-    
+
     indx = np.where([dimx, dimy, dimz] == 1)[0]
     delta[indx] = 0
     delta /= [dimx, dimy, dimz]
     x = delta[0] * x + delta[1] * y + delta[2] * z
-    
     im = fftn(im)
     im = np.real(ifftn(im * np.exp(-2j * np.pi * ifftshift(x))))
     return im
+
 
 def rotate(input, angles, boxsize):
     # This is a 3d Euler rotation around (zxz)-axes
@@ -729,32 +732,36 @@ def ccc(a, b):
 
 def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
     # mask creation
-    mask = np.ones_like(wedge_b)
-    mask = spheremask(mask, 30, boxsize)
-
+    mask = spheremask(np.ones_like(wedge_b), 30, boxsize)
     # apply wedge and mask to create wedge_all
     wedge_all = wedge_a * wedge_b * mask
-
-    # calculate the number of voxels
+    # calculate number of voxels
     n_all = np.count_nonzero(wedge_all)
 
-    # normalization for arrays a and b
-    n = np.size(a)
-    mn_a = np.sum(a) / n
-    stdv_a = np.sqrt(np.sum(a * a) / n - mn_a ** 2)
-    if stdv_a != 0:
-        a = (a - mn_a) / stdv_a
+    # normalize array a
+    mn = np.mean(a)
+    stdv = np.std(a)
+    if stdv != 0:
+        a = (a - mn) / stdv
 
-    mn_b = np.sum(b) / n
-    stdv_b = np.sqrt(np.sum(b * b) / n - mn_b ** 2)
-    if stdv_b != 0:
-        b = (b - mn_b) / stdv_b
+    # normalize array b
+    mn = np.mean(b)
+    stdv = np.std(b)
+    if stdv != 0:
+        b = (b - mn) / stdv
 
     # compute correlation using FFT
     ccf = np.real(ifftshift(ifftn(fftn(b) * np.conj(fftn(a))))) / n_all
-
     return ccf
 
+def zeroshift(im):
+    x = np.zeros_like(im)
+    im = pyfftw.builders.fftn(im)
+    im = np.asarray(im())
+    im_fftw = pyfftw.builders.ifftn(im * np.exp(-2j * np.pi * pyfftw.interfaces.scipy_fft.ifftshift(x)))
+    im_np = np.asarray(im_fftw())
+    im_real = np.real(im_np)
+    return im_real
 
 def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     outputstar = starf.replace('.star', 'ccc_above.star')
@@ -776,15 +783,15 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
         shiftOut = np.array([inputstar['rlnOriginXAngst'][i], inputstar['rlnOriginYAngst'][i],inputstar['rlnOriginZAngst'][i]]) / -2.62
         rotateOut = np.array([inputstar['rlnAnglePsi'][i],inputstar['rlnAngleTilt'][i], inputstar['rlnAngleRot'][i]]) * -1
         fixedRotations = eulerconvert_xmipp(rotateOut[0], rotateOut[1], rotateOut[2])
-        rotVol = rotate(mwcorrvol2,fixedRotations,boxsize)
+        rotVol = rotate(mwcorrvol2, fixedRotations, boxsize)
         # shiftVol = shift(rotVol, shiftOut.conj().transpose())
-        shiftVol = rotVol
+        shiftVol = zeroshift(rotVol)
 
         # apply rotations and shifts to missing wedge
         rotMw = rotate(wedge, fixedRotations, boxsize)
         # shiftMw = shift(rotMw, shiftOut.conj().transpose())
-        shiftMw = rotMw
-        mwfixedinvol1 = invol1 * shiftMw
+        shiftMw = zeroshift(rotMw)
+        # mwfixedinvol1 = invol1 * shiftMw
 
         # calculate ccf and sum values
         ccf = corr_wedge(invol1, shiftVol, shiftMw, shiftMw, boxsize)
