@@ -3,7 +3,7 @@
 #import python packages
 import os
 import numpy as np
-import pyfftw
+# import pyfftw
 import scipy
 from scipy.fft import fftn, fftshift, ifftn, ifftshift
 from skimage.morphology import remove_small_objects
