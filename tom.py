@@ -124,7 +124,7 @@ def cylindermask(vol, radius, sigma, center):
 
 
 #3D Signal Subtraction Functions
-def readList(listName, pxsz, extstar, angles=None):
+def readList(listName, pxsz, extstar, angles):
     _, ext = os.path.splitext(listName)
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
@@ -140,7 +140,7 @@ def readList(listName, pxsz, extstar, angles=None):
         df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 
         #modifies starfile according to rotation type
-        if angles != None:
+        if angles != []:
             if len(angles) == 0: #star
                 zeros = np.zeros(df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ].shape)
                 df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ] = zeros
