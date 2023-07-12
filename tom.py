@@ -754,23 +754,14 @@ def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
     ccf = np.real(ifftshift(ifftn(fftn(b) * np.conj(fftn(a))))) / n_all
     return ccf
 
-def zeroshift(im):
-    x = np.zeros_like(im)
-    # im = pyfftw.builders.fftn(im)
-    # im = np.asarray(im())
-    im = fftn(im)
-    # im_fftw = pyfftw.builders.ifftn(im * np.exp(-2j * np.pi * pyfftw.interfaces.scipy_fft.ifftshift(x)))
-    # im_np = np.asarray(im_fftw())
-    im_np = ifftn(im * np.exp(-2j * np.pi * ifftshift(x)))
-    im_real = np.real(im_np)
-    return im_real
-
 def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     outputstar = starf.replace('.star', 'ccc_above.star')
     outputstar1 = starf.replace('.star', 'ccc_below.star')
     inputstar = starfile.read(starf)['particles']
     invol1 = mrcfile.read(cccvol1in)
+    invol1 = np.transpose(invol1, (2,1,0))
     wedge = mrcfile.read(mswedge)
+    wedge = np.transpose(wedge, (2,1,0))
     direct = "/".join(starf.split("/")[:-1]) + '/'
     file_path = "calculate_ccc.txt" 
     ccc_file = open(direct + file_path, "w")
@@ -779,21 +770,19 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     cccval = np.zeros(len(inputstar))
     for i in range(len(inputstar)):
         invol2 = mrcfile.read(direct + (inputstar['rlnImageName'][i]))
+        invol2 = np.transpose(invol2, (2,1,0))
         mwcorrvol2 = invol2 * wedge
 
         # pull in shifts and rotations from star file
         shiftOut = np.array([inputstar['rlnOriginXAngst'][i], inputstar['rlnOriginYAngst'][i],inputstar['rlnOriginZAngst'][i]]) / -2.62
         rotateOut = np.array([inputstar['rlnAnglePsi'][i],inputstar['rlnAngleTilt'][i], inputstar['rlnAngleRot'][i]]) * -1
         fixedRotations = eulerconvert_xmipp(rotateOut[0], rotateOut[1], rotateOut[2])
-        rotVol = rotate(mwcorrvol2, fixedRotations, boxsize)
-        # shiftVol = shift(rotVol, shiftOut.conj().transpose())
-        shiftVol = zeroshift(rotVol)
+        rotVol = rotate(mwcorrvol2, fixedRotations.conj().transpose(), boxsize)
+        shiftVol = shift(rotVol, shiftOut.conj().transpose())
 
         # apply rotations and shifts to missing wedge
-        rotMw = rotate(wedge, fixedRotations, boxsize)
-        # shiftMw = shift(rotMw, shiftOut.conj().transpose())
-        shiftMw = zeroshift(rotMw)
-        # mwfixedinvol1 = invol1 * shiftMw
+        rotMw = rotate(wedge, fixedRotations.conj().transpose(), boxsize)
+        shiftMw = shift(rotMw, shiftOut.conj().transpose())
 
         # calculate ccf and sum values
         ccf = corr_wedge(invol1, shiftVol, shiftMw, shiftMw, boxsize)
