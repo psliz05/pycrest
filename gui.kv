@@ -7,7 +7,20 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Filtering either by an mrc directory or by a star file.\nPx size (A) must be entered on 'Master Key.'\n\nFor filtering by an mrc directory, enter the full path of the folder\ncontaining the mrc files on 'master key.'\n\nFor filtering by a star file, enter the full star file path and the \nsubtomogram directory path (folder that begins the mrc file paths in star file)\nin the master key.\n\nResults are stored in the 'filtered' folder.\nA new star file is created if filtering is done by star file."
+			text: "Filtering either by a subtomogram directory or by a star file.\nPx size (A) must be entered on 'Master Key.'\n\nFor filtering by a subtomogram directory, enter the full path of the folder\ncontaining the mrc files on 'master key.' (mrc directory)\n\nFor filtering by a star file, enter the full star file path and the \nsubtomogram directory path (folder that points to mrc file paths in star file)\nin the master key.\n\nResults are stored in the 'filtered' folder.\nA new star file is created if filtering is done by star file."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
+<MaskingInfo@Popup>
+	size_hint: .75, .4
+	title: '3D Signal Subtraction'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Subtomogram information is taken from star file and subtomogram\ndirectory paths, both specified in the Master Key.\n\nFull path of a mask.mrc file must be entered below.\n\nResults are stored in the 'masked' folder\nin each subtomogram directory."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -451,7 +464,7 @@
 				size_hint_y: .15
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				Label: 
-					text: 'Filter mrc'
+					text: 'Filter Subtomograms'
 					color: (0,0,0,1)
 					font_size: 35
 					size_hint_y: .6
@@ -464,18 +477,18 @@
 					pos_hint: {'center_x': .5, 'center_y': .5}
 			BoxLayout:
 				orientation: 'horizontal'
-				size_hint: .475, .2
+				size_hint: .5, .2
 				pos_hint: {'center_x': .5, 'center_y': .5}
 				BoxLayout:
 					orientation: 'horizontal'
-					size_hint: .5, .2
+					size_hint: .55, .2
 					pos_hint: {'center_x': .5, 'center_y': .5}
 					CheckBox:
 						group: 'g6'
 						id: mrcfilter
 						state: 'down'
 					Label:
-						text: 'Mrc Directory'
+						text: 'Subtomogram Directory'
 						bold: True
 					Label:
 						size_hint_x: .3
@@ -1428,6 +1441,12 @@
 							font_size: 35
 							pos_hint: {'center_x': .2}
 							bold: True
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.MaskingInfo().open()
+							size_hint: .22, .5
+							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							text: 'Mask path'
 						TextInput:
@@ -1437,20 +1456,12 @@
 							multiline: False
 							id: maskpath
 						Label:
-							text: 'Subtomogram directory'
-						TextInput:
-							text: '/Users/.../.../Test_Data/'
-							size_hint_x: .9
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-							id: subtomodir
-						Label:
-							text: 'Results stored in "masked" folder in each subtomogram directory'
+							text: ''
 							color: (.6,0,.6,1)
 							font_size: 28
 							size_hint_y: .55
 						Label:
-							text: 'Re-extraction requires star file path from Master Key'
+							text: ''
 							color: (.6,0,.6,1)
 							font_size: 28
 							size_hint_y: .55

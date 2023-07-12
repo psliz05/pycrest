@@ -85,7 +85,6 @@ class Tabs(TabbedPanel):
 			else:
 				self.ids.mainstar.text = self.ids.mainstar.text
 		self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
-		self.ids.subtomodir.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.starstatus.text = 'path saved'
 		self.ids.starstatus.color = (0,.6,0,1)
 
@@ -169,7 +168,6 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('SecondSuf:' + '\t' + self.ids.suffixf.text + '\n')
 			file_opt.writelines('SecondBin:' + '\t' + self.ids.binnf.text + '\n')
 			file_opt.writelines('MaskPath:' + '\t' + self.ids.maskpath.text + '\n')
-			file_opt.writelines('Subtomogramdirectory:' + '\t' + self.ids.subtomodir.text + '\n')
 			file_opt.writelines('SDThresh:' + '\t' + self.ids.sdrange.text + '\n')
 			file_opt.writelines('SDShift:' + '\t' + self.ids.sdshift.text + '\n')
 			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
@@ -243,8 +241,6 @@ class Tabs(TabbedPanel):
 						self.ids.binnf.text = yank	
 					if re.search('MaskPath', line):
 						self.ids.maskpath.text = yank	
-					if re.search('Subtomogramdirectory', line):
-						self.ids.subtomodir.text = yank	
 					if re.search('SDThresh', line):
 						self.ids.sdrange.text = yank
 					if re.search('SDShift', line):
@@ -1148,10 +1144,10 @@ class Tabs(TabbedPanel):
 	def reextract(self):
 		mask = self.ids.maskpath.text
 		starf = self.ids.mainstar.text
-		if self.ids.subtomodir.text[-1] != '/':
-			direc = self.ids.subtomodir.text + '/'
+		if self.ids.mainsubtomo.text[-1] != '/':
+			direc = self.ids.mainsubtomo.text + '/'
 		else:
-			direc = self.ids.subtomodir.text
+			direc = self.ids.mainsubtomo.text
 		boxsize = float(self.ids.px1.text)
 		pxsz = float(self.ids.A1.text)
 		filter = self.ids.filterbackground.active
