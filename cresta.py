@@ -86,7 +86,6 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = self.ids.mainstar.text
 		self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.subtomodir.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
-		self.ids.subtomodirect.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		self.ids.starstatus.text = 'path saved'
 		self.ids.starstatus.color = (0,.6,0,1)
 
@@ -174,7 +173,6 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('SDThresh:' + '\t' + self.ids.sdrange.text + '\n')
 			file_opt.writelines('SDShift:' + '\t' + self.ids.sdshift.text + '\n')
 			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
-			file_opt.writelines('Subtomodirect:' + '\t' + self.ids.subtomodirect.text + '\n')
 			file_opt.writelines('CCCVolone:' + '\t' + self.ids.cccvolone.text + '\n')
 			file_opt.writelines('CCCVoltwo:' + '\t' + self.ids.cccvoltwo.text + '\n')
 			file_opt.writelines('Volvol:' + '\t' + self.ids.volvol.text + '\n')
@@ -253,8 +251,6 @@ class Tabs(TabbedPanel):
 						self.ids.sdshift.text = yank	
 					if re.search('MaskBlur', line):
 						self.ids.blurrate.text = yank	
-					if re.search('Subtomodirect', line):
-						self.ids.subtomodirect.text = yank
 					if re.search('CCCVolone', line):
 						self.ids.cccvolone.text = yank
 					if re.search('CCCVoltwo', line):

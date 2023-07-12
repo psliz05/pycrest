@@ -756,10 +756,12 @@ def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
 
 def zeroshift(im):
     x = np.zeros_like(im)
-    im = pyfftw.builders.fftn(im)
-    im = np.asarray(im())
-    im_fftw = pyfftw.builders.ifftn(im * np.exp(-2j * np.pi * pyfftw.interfaces.scipy_fft.ifftshift(x)))
-    im_np = np.asarray(im_fftw())
+    # im = pyfftw.builders.fftn(im)
+    # im = np.asarray(im())
+    im = fftn(im)
+    # im_fftw = pyfftw.builders.ifftn(im * np.exp(-2j * np.pi * pyfftw.interfaces.scipy_fft.ifftshift(x)))
+    # im_np = np.asarray(im_fftw())
+    im_np = ifftn(im * np.exp(-2j * np.pi * ifftshift(x)))
     im_real = np.real(im_np)
     return im_real
 
