@@ -48,7 +48,7 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
-Window.size = (800,800)
+Window.size = (900,800)
 
 #importing kivy file
 Builder.load_file(os.getcwd() + '/gui.kv')
@@ -1349,6 +1349,19 @@ class Tabs(TabbedPanel):
 			return
 		
 		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
+
+	def plottedBack(self):
+		starf = self.ids.mainstar.text
+		refPath = self.ids.refPath.text
+		refBasename = self.ids.refBasename.text
+		minParticleNum = float(self.ids.minParticleNum.text)
+		folderPath = "/".join(starf.split("/")[:-1]) + "/"
+		plotOut = folderPath + 'plotted'
+		# if os.path.exists(plotOut) == False:
+			# os.mkdir(plotOut)
+		path = plotOut
+		# tom.plotBack(starf, refPath, refBasename, path, minParticleNum)
+		print('not finished yet')
 
 	pass
 

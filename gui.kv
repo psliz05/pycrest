@@ -91,6 +91,19 @@
 			pos_hint: {'center_x': .5}
 			text: 'Close'
 			on_release: root.dismiss()
+<PlotBackInfo@Popup>
+	size_hint: .75, .45
+	title: 'Plot Back Tomograms'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Generates a number of reconstruction volumes.\n\nStar file must be specified on master key.\nResults stored in 'plotted' folder.\n\nRef Path: path of the folder containing the masks\nof the classes you'd like to put in.\n\nRef Basename: if the mask name is run_it50_class001.mrc, then the basename is 'run_it50'.\n\n"
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
 
 <Tabs>:
 	size_hint: 1, 1
@@ -2024,3 +2037,90 @@
 							id: noaxis
 					Label:
 						size_hint_y: .1
+	TabbedPanelItem:
+		text: 'Plot Back'
+		BoxLayout:
+			spacing: 10
+			orientation: 'vertical'
+			canvas:
+				Color:
+					rgba: 1, 1, 1, .2
+				Rectangle:
+					pos: self.pos
+					size: self.size
+			GridLayout:
+				rows: 2
+				spacing: 20
+				canvas:
+					Color:
+						rgba: 1, 1, 1, .6
+					Rectangle:
+						pos: self.pos
+						size: self.size
+				BoxLayout:
+					orientation: 'vertical'
+					Label:
+						size_hint_y: .05
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint_x: .75
+						pos_hint: {'center_x': .5}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						spacing: 15
+						Label:
+							text: 'Tomogram Plot Back '
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .15}
+							bold: True
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.PlotBackInfo().open()
+							size_hint: .2, .8
+							pos_hint: {'center_x': .5, 'center_y': .5}	
+						
+						Label: 
+							text: 'Ref Path'
+						TextInput:
+							text: '.mrc'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: refPath
+						Label:
+							text: 'Ref Basename'
+						TextInput:
+							text: '.mrc'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: refBasename
+						Label:
+							text: 'Minimum Particle Number'
+							size_hint_y: .8
+						TextInput:
+							text: '1'
+							size_hint_x: .1
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: minParticleNum
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Plot Back'
+							on_release: root.plottedBack()
+							size_hint_x: .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							text: ' '
+							size_hint_y: .04
+					Label:
+						size_hint_y: .05
+				BoxLayout:
+					orientation: 'vertical'
+					pos_hint: {'center_x': .5}
