@@ -173,6 +173,7 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('MaskBlur:' + '\t' + self.ids.blurrate.text + '\n')
 			file_opt.writelines('CCCVolone:' + '\t' + self.ids.cccvolone.text + '\n')
 			file_opt.writelines('CCCVoltwo:' + '\t' + self.ids.cccvoltwo.text + '\n')
+			file_opt.writelines('CCCWedge:' + '\t' + self.ids.cccwedge.text + '\n')
 			file_opt.writelines('Volvol:' + '\t' + self.ids.volvol.text + '\n')
 			file_opt.writelines('Volwedge:' + '\t' + self.ids.volwedge.text + '\n')
 			file_opt.close()
@@ -251,6 +252,8 @@ class Tabs(TabbedPanel):
 						self.ids.cccvolone.text = yank
 					if re.search('CCCVoltwo', line):
 						self.ids.cccvoltwo.text = yank
+					if re.search('CCCWedge', line):
+						self.ids.cccwedge.text = yank
 					if re.search('Volvol', line):
 						self.ids.volvol.text = yank
 					if re.search('Volwedge', line):
@@ -1196,11 +1199,12 @@ class Tabs(TabbedPanel):
 	def calculate_ccc(self):
 		cccVol1 = self.ids.cccvolone.text
 		cccVol2 = self.ids.cccvoltwo.text
-		inVol1 = mrcfile.read(cccVol1)
-		inVol2 = mrcfile.read(cccVol2)
-		inVol1 = inVol1[54:85, 54:85, 54:85]
-		inVol2 = inVol2[54:85, 54:85, 54:85]
-		ccc = tom.ccc(inVol1, inVol2)
+		wedge = self.ids.cccwedge.text
+		star = self.ids.mainstar.text
+		zoom = 40
+		boxsize = float(self.ids.px1.text)
+		boxsize = [boxsize, boxsize, boxsize]
+		ccc = tom.ccc_calc(star, cccVol1, cccVol2, boxsize, zoom, wedge)
 		print(ccc)
 		return
 

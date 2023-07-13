@@ -1,9 +1,8 @@
-#matlab tom functions converted into python
+# Matlab TOM Toolbox functions converted into Python
 
-#import python packages
+# import python packages
 import os
 import numpy as np
-# import pyfftw
 import scipy
 from scipy.fft import fftn, fftshift, ifftn, ifftshift
 from skimage.morphology import remove_small_objects
@@ -14,13 +13,13 @@ import pandas as pd
 import shutil
 import subprocess
 
-#import C-file
+# import C-file
 import ctypes
 from ctypes import *
 so_file = os.getcwd() + "/rot3d.so"
 rot_function = CDLL(so_file)
 
-#Wiener filter functions
+# Wiener filter functions
 def deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton):
     highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
     highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
@@ -87,7 +86,7 @@ def ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shi
     return ctf
 
 
-#Create mask functions
+# Create mask functions
 def spheremask(vol, radius, boxsize, sigma=0, center=None):
     vol = vol.reshape((int(boxsize[0]), int(boxsize[1]), int(boxsize[2])))
     if center == None:
@@ -123,7 +122,7 @@ def cylindermask(vol, radius, sigma, center):
     return vol
 
 
-#3D Signal Subtraction Functions
+# 3D Signal Subtraction Functions
 def readList(listName, pxsz, extstar, angles):
     _, ext = os.path.splitext(listName)
     if ext == '.star':
@@ -705,7 +704,7 @@ def tom_filter(im, radius, boxsize, center=None, flag='circ'):
     
     return im
 
-#Rotate subtomogram functions
+# Rotate subtomogram functions
 def processParticler(filename, tmpAng, boxsize, shifts, shifton):
     volTmp = mrcfile.read(filename)
     storey = tmpAng[1]
@@ -719,7 +718,7 @@ def processParticler(filename, tmpAng, boxsize, shifts, shifton):
     outH1 = cut_out(outH1, [0, 0, 0], boxsize)
     return outH1
 
-#CCC Calculations
+# CCC Calculations
 def ccc(a, b):
     a = a - np.mean(a, keepdims=True)
     b = b - np.mean(b, keepdims=True)
@@ -753,6 +752,47 @@ def corr_wedge(a, b, wedge_a, wedge_b, boxsize):
     # compute correlation using FFT
     ccf = np.real(ifftshift(ifftn(fftn(b) * np.conj(fftn(a))))) / n_all
     return ccf
+
+def ccc_calc(starf, cccvol1in, cccvol2in, boxsize, zoomrange, mswedge):
+    inputstar = starfile.read(starf)['particles']
+    invol1 = mrcfile.read(cccvol1in)
+    invol1 = np.transpose(invol1, (2,1,0))
+    invol2 = mrcfile.read(cccvol2in)
+    invol2 = np.transpose(invol2, (2,1,0))
+    wedge = mrcfile.read(mswedge)
+    wedge = np.transpose(wedge, (2,1,0))
+    direct = "/".join(starf.split("/")[:-1]) + '/'
+    file_path = "calculate_ccc.txt" 
+    ccc_file = open(direct + file_path, "w")
+
+    # match volume 2 to star file line
+    mwcorrvol2 = invol2 * wedge
+    vol2name = "/".join(cccvol2in.split("/")[-2:])
+    i = 0
+    for j in range(len(inputstar)):
+        if "/".join(inputstar['rlnImageName'][j].split("/")[-2:]) == vol2name:
+            i = j
+            break
+
+    # pull in shifts and rotations from star file
+    shiftOut = np.array([inputstar['rlnOriginXAngst'][i], inputstar['rlnOriginYAngst'][i],inputstar['rlnOriginZAngst'][i]]) / -2.62
+    rotateOut = np.array([inputstar['rlnAnglePsi'][i],inputstar['rlnAngleTilt'][i], inputstar['rlnAngleRot'][i]]) * -1
+    fixedRotations = eulerconvert_xmipp(rotateOut[0], rotateOut[1], rotateOut[2])
+    rotVol = rotate(mwcorrvol2, fixedRotations.conj().transpose(), boxsize)
+    shiftVol = shift(rotVol, shiftOut.conj().transpose())
+
+    # apply rotations and shifts to missing wedge
+    rotMw = rotate(wedge, fixedRotations.conj().transpose(), boxsize)
+    shiftMw = shift(rotMw, shiftOut.conj().transpose())
+
+    # calculate ccf and sum values
+    ccf = corr_wedge(invol1, shiftVol, shiftMw, shiftMw, boxsize)
+    left = round(boxsize[0]/2-zoomrange)
+    right = round(boxsize[0]/2+zoomrange)
+    cccval = np.sum(ccf[left:right,left:right,left:right])
+    #save cccval in text file (calculate_ccc.txt)
+    ccc_file.write(f"{inputstar['rlnImageName'][i]}:  {cccval}\n")
+    return cccval
 
 def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     outputstar = starf.replace('.star', 'ccc_above.star')

@@ -40,13 +40,13 @@
 			text: 'Close'
 			on_release: root.dismiss()
 <CCCInfo@Popup>
-	size_hint: .75, .3
+	size_hint: .75, .35
 	title: 'Calculate CCC - Two Volumes'
 	BoxLayout:
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Calculates the cross-correlation coefficient between the specified volumes,\n and using the specified missing wedge file.\n\nThe cross-correlation coefficient is displayed in the log file."
+			text: "Calculates the cross-correlation coefficient between the specified volumes,\n and using the specified missing wedge file.\n\nStar file containing Volume 2 must be entered on master key.\n\nThe cross-correlation coefficient is displayed in the log file\nand printed in the terminal."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -1753,6 +1753,14 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
 							id: cccvoltwo
+						Label:
+							text: 'Missing wedge file'
+						TextInput:
+							text: '.mrc'
+							size_hint_x: .9
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: cccwedge
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Calculate CCC'
