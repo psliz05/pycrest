@@ -91,6 +91,19 @@
 			pos_hint: {'center_x': .5}
 			text: 'Close'
 			on_release: root.dismiss()
+<VisualizeInfo@Popup>
+	size_hint: .75, .4
+	title: 'Display and Select Subtomograms'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "TBD"
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
 <PlotBackInfo@Popup>
 	size_hint: .75, .45
 	title: 'Plot Back Tomograms'
@@ -2049,7 +2062,7 @@
 					Label:
 						size_hint_y: .1
 	TabbedPanelItem:
-		text: 'Plot Back'
+		text: 'Visualize'
 		BoxLayout:
 			spacing: 10
 			orientation: 'vertical'
@@ -2070,6 +2083,47 @@
 						size: self.size
 				BoxLayout:
 					orientation: 'vertical'
+					pos_hint: {'center_x': .5}
+					Label:
+						size_hint_y: .05
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint: .65, .4
+						pos_hint: {'center_x': .5}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						spacing: 15
+						Label:
+							text: 'Display and Select Subtomograms'
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .25}
+							bold: True
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.VisualizeInfo().open()
+							size_hint: .24, .65
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .3	
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Begin'
+							on_release: root.plottedBack()
+							size_hint_x: .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .3
+					Label:
+						size_hint_y: .05
+				BoxLayout:
+					orientation: 'vertical'
+					size_hint_y: 1.5
 					Label:
 						size_hint_y: .05
 					BoxLayout:
@@ -2084,7 +2138,7 @@
 								size: self.size
 						spacing: 15
 						Label:
-							text: 'Tomogram Plot Back '
+							text: 'Tomogram Plot Back'
 							color: (0,0,0,1)
 							font_size: 35
 							pos_hint: {'center_x': .15}
@@ -2131,7 +2185,4 @@
 							text: ' '
 							size_hint_y: .04
 					Label:
-						size_hint_y: .05
-				BoxLayout:
-					orientation: 'vertical'
-					pos_hint: {'center_x': .5}
+						size_hint_y: .1
