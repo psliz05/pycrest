@@ -826,9 +826,11 @@
 								text: 'of'
 								size_hint_x: .2
 								pos_hint: {'center_x': .5, 'center_y': .5}
-							TextInput:
+							Label:
 								text: '0'
 								multiline: False
+								color: (1,1,1,1)
+								bold: True
 								size_hint: .2, .35
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: index2
@@ -845,7 +847,7 @@
 								pos_hint: {'center_x': .5, 'center_y': .5}
 							Button:
 								background_color: 0.2, 0.6, 0.2, .55
-								text: 'Pick coordinates'
+								text: 'Pick Coordinates'
 								on_release: root.pick_coord()
 								size_hint: .7, .7
 								pos_hint: {'center_x': .5, 'center_y': .5}
@@ -862,12 +864,21 @@
 							id: pickcoordtext
 						Label:
 							size_hint_y: .25
-					TextInput:
-						multiline: True
-						readonly: True
-						text: 'Click Pick coordinates to Right click to select coordinates. Navigate to Markers menu and select Move if you need to adjust the location of the coordinate.\n\nWhen finished, save coord file using command save coord.cmm. Then exit Chimera. Press the right arrow to progress; the next subtomogram will automatically open.\n\nWhen you are done with all of your picks, press the Create .coords button to create new coordinate files.'
+					BoxLayout:
+						orientation: 'vertical'
 						size_hint: .9, .85
 						pos_hint: {'center_x': .5, 'center_y': .5}
+						canvas:
+							Color:
+								rgba: 1, 1, 1, .6
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							halign: 'center'
+							color: (0,0,0,1)
+							text: 'Click "Pick Coordinates" to open Chimera.\nRight click to place a coordinate.\nNavigate to "Markers" menu and select "Move"\nif you need to adjust the location\nof the coordinate.\n\nWhen finished, save the coord file using\ncommand "save coord.cmm". Then exit Chimera.\n\nOptionally, enter text and press "Add Note" to save\ninformation regarding each subtomogram.\n\nPress the right arrow to progress;\nthe next subtomogram will automatically open.\n\nWhen you are done with all of your picks,\npress the "Create .coordsnew" button\nto create new coordinate files.'
+							pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						text: ' '
 						size_hint_x: .03
@@ -895,7 +906,7 @@
 						pos_hint: {'center_x': .5, 'center_y': .2}
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Add note'
+							text: 'Add Note'
 							on_release: root.note()
 							size_hint_y: 1.6
 						Label:

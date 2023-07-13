@@ -585,29 +585,18 @@ class Tabs(TabbedPanel):
 		return
 
 	def note(self):
-		from datetime import date
-		cwd = self.ids.maincwd.text
-		today = date.today()
-		w = '/coordpickernote' + str(today)
-		coordnote = cwd + w + '.txt'
-		if os.path.exists(coordnote):
-			w = w + '0'
-			coordnote = cwd + w + '.txt'
-			if os.path.exists(coordnote):
-				w = w + '1'
-				coordnote = cwd + w + '.txt'
+		# create note
+		starf = self.ids.mainstar.text
+		direct = "/".join(starf.split("/")[:-1]) + '/'
+		filename = self.ids.filenameget.text
+		subtom = filename.split('/')[-2]
+		file_path = "coordnote" + subtom + ".txt" 
+		coordFile = open(direct + file_path, "a")
 
-		while os.path.exists(coordnote) == False:
-			file_opt = open(coordnote, 'w')
-			file_opt.writelines('index$filename$note')
-			file_opt.close()
-
-		file_opt = open(coordnote, 'a')
-		file_opt.writelines("\n" + self.ids.index.text + '$' + self.ids.filenameget.text + '$' + self.ids.notecoord.text)
-		file_opt.close()
-		notedata = pd.read_csv(coordnote, delimiter = '$')
-		notedata.to_csv(cwd + w + '.csv', index=None)
-		self.ids.notesave.text = 'Saved to ' + w + '.csv'
+		coordFile.writelines(self.ids.index.text + ' ' + self.ids.filenameget.text + ': ' + self.ids.notecoord.text + '\n')
+		coordFile.close()
+		self.ids.notesave.text = 'Saved'
+		print('Saved to ' + direct + file_path)
 		return
 
 	def create_coords(self):
