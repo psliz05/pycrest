@@ -341,6 +341,9 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						with mrcfile.open(newFileName, 'r+') as mrc:
+							header = mrc.header
+						header.cella = (angpix, angpix, angpix)
 
 					#constructs star file
 					star_data = starfile.read(starf)
