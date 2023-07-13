@@ -316,16 +316,17 @@ class Tabs(TabbedPanel):
 
 			if wienerbutton == False and gaussianbutton == False:
 				print("At least one option needs to be selected.")
-
-			filterout = direct + 'filtered/'
-			if os.path.exists(filterout) == False:
-				os.mkdir(filterout)
-			
 			imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
 		#	wiener
 			if wienerbutton == True:
 				if starButton:
 					for fileName in imageFileNames:
+						# create folder
+						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
+						filterout = subtomodir + folderPath + 'filtered/'
+						if os.path.exists(filterout) == False:
+							os.mkdir(filterout)
+
 						print('Now filtering ' + fileName)
 						fullFilePath = subtomodir + fileName
 
@@ -363,6 +364,10 @@ class Tabs(TabbedPanel):
 					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + 'filtered' + ".star", overwrite=True)
 
 				elif mrcButton:
+					# create folder
+					filterout = direct + 'filtered/'
+					if os.path.exists(filterout) == False:
+						os.mkdir(filterout)
 					# apply filter to all .mrc files in the folder
 					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
 					for f in myFiles:
@@ -388,6 +393,12 @@ class Tabs(TabbedPanel):
 				from scipy.ndimage import gaussian_filter
 				if starButton:
 					for fileName in imageFileNames:
+						# create folder
+						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
+						filterout = subtomodir + folderPath + 'filtered/'
+						if os.path.exists(filterout) == False:
+							os.mkdir(filterout)
+						
 						print('Now filtering ' + fileName)
 						fullFilePath = subtomodir + fileName
 
@@ -422,6 +433,10 @@ class Tabs(TabbedPanel):
 					star_data["particles"] = df
 					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + 'filtered' + ".star", overwrite=True)
 				elif mrcButton:
+					# create folder
+					filterout = direct + 'filtered/'
+					if os.path.exists(filterout) == False:
+						os.mkdir(filterout)
 					# apply filter to all .mrc files in the folder
 					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
 					for f in myFiles:
