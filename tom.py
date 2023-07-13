@@ -795,8 +795,8 @@ def ccc_calc(starf, cccvol1in, cccvol2in, boxsize, zoomrange, mswedge):
     return cccval
 
 def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
-    outputstar = starf.replace('.star', 'ccc_above.star')
-    outputstar1 = starf.replace('.star', 'ccc_below.star')
+    outputstar1 = starf.replace('.star', 'ccc_above.star')
+    outputstar = starf.replace('.star', 'ccc_below.star')
     inputstar = starfile.read(starf)['particles']
     invol1 = mrcfile.read(cccvol1in)
     invol1 = np.transpose(invol1, (2,1,0))
