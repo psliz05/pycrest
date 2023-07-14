@@ -1339,6 +1339,57 @@ class Tabs(TabbedPanel):
 		
 		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
 
+	def visualize(self):
+		starf = self.ids.mainstar.text
+		subtomodir = self.ids.mainsubtomo.text
+		chimeraDir = self.ids.chimera_path.text
+		index = int(self.ids.visind1.text)
+		try:
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+		except FileNotFoundError:
+			print('Star file not found')
+			return
+		self.ids.visind2.text = str(len(imageNames))
+		totalind = int(self.ids.visind2.text)
+		name = imageNames[index - 1]
+		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		fileName = subtomodir + name
+		vis = subtomodir + 'visualize.py'
+		file_opt = open(vis, 'w')
+		file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + subtomodir + "\")" + "\n" + "run(session, \"open " + fileName + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + '0.5' + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")" + "\n" + "run(session, \"ui tool show \'Side View\'\")"))
+		file_opt.close()
+		print(subprocess.getstatusoutput(chimeraDir + '/chimerax ' + vis))
+		os.remove(vis)
+
+	def right_visualize(self):
+		self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
+		self.visualize()
+		
+	def left_visualize(self):
+		self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
+		self.visualize()
+
+	def saveVisual(self):
+		index = int(self.ids.visind1.text) - 1
+		starf = self.ids.mainstar.text
+		subtomodir = self.ids.mainsubtomo.text
+		if not(os.path.exists(subtomodir + "visualize.star")):
+			star_data = starfile.read(starf)
+			df = pd.DataFrame.from_dict(star_data["particles"])
+			df = df.drop(df.index)
+			df = df.drop(0)
+			star_data["particles"] = df
+			starfile.write(star_data, subtomodir + "visualize.star")
+		row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
+		starV = starfile.read(subtomodir + "visualize.star")
+		df = pd.DataFrame.from_dict(starV["particles"])
+		df = pd.concat([df, row])
+		starV["particles"] = df
+		starfile.write(starV, subtomodir + "visualize.star", overwrite=True)
+
+	def noSaveVisual(self):
+		self.right_visualize()
+
 	def plottedBack(self):
 		starf = self.ids.mainstar.text
 		refPath = self.ids.refPath.text
@@ -1346,11 +1397,10 @@ class Tabs(TabbedPanel):
 		minParticleNum = float(self.ids.minParticleNum.text)
 		folderPath = "/".join(starf.split("/")[:-1]) + "/"
 		plotOut = folderPath + 'plotted'
-		# if os.path.exists(plotOut) == False:
-			# os.mkdir(plotOut)
+		if os.path.exists(plotOut) == False:
+			os.mkdir(plotOut)
 		path = plotOut
-		# tom.plotBack(starf, refPath, refBasename, path, minParticleNum)
-		print('not finished yet')
+		tom.plotBack(starf, refPath, refBasename, path, minParticleNum)
 
 	pass
 

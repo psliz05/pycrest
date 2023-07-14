@@ -2103,22 +2103,90 @@
 							font_size: 35
 							pos_hint: {'center_x': .25}
 							bold: True
+							size_hint_y: .55
 						Button:
 							text: 'information'
 							background_color: 0, 1.2, 2, .5
 							on_release: Factory.VisualizeInfo().open()
-							size_hint: .24, .65
+							size_hint: .24, .6
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
-							size_hint_y: .3	
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Begin'
-							on_release: root.plottedBack()
-							size_hint_x: .4
+							size_hint_y: .2
+							id: visualizestep
 							pos_hint: {'center_x': .5, 'center_y': .5}
+							text: 'Press "view" to begin'
+							color: (250, 250, 31, 1)
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .3, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							Label:
+								text: 'Index'
+								size_hint_x: .2
+								pos_hint: {'center_x': .3, 'center_y': .5}
+							Label:
+								text: '1'
+								multiline: False
+								color: (1,1,1,1)
+								bold: True
+								size_hint: .2, .35
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								id: visind1
+							Label:
+								text: 'of'
+								size_hint_x: .2
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							Label:
+								text: '0'
+								multiline: False
+								color: (1,1,1,1)
+								bold: True
+								size_hint: .2, .35
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								id: visind2
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .4, .8
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							spacing: 50
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: '<='
+								on_release: root.left_visualize()
+								size_hint: .15, .7
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: 'View'
+								on_release: root.visualize()
+								size_hint: .7, .7
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: '=>'
+								on_release: root.right_visualize()
+								size_hint: .15, .7
+								pos_hint: {'center_x': .5, 'center_y': .5}
+						BoxLayout:
+							orientation: 'horizontal'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							size_hint: .4, .8
+							Button:
+								background_color: 0, 1.2, 2, .5
+								text: 'save'
+								on_release: root.saveVisual()
+								size_hint: .6, .7
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							Label:
+								size_hint_x: .1
+							Button:
+								background_color: 0, 1.2, 2, .5
+								text: "don't save"
+								on_release: root.noSaveVisual()
+								size_hint: .6, .7
+								pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
-							size_hint_y: .3
+							size_hint_y: .2
 					Label:
 						size_hint_y: .05
 				BoxLayout:
