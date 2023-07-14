@@ -892,7 +892,7 @@
 						Label:
 							halign: 'center'
 							color: (0,0,0,1)
-							text: 'Click "Pick Coordinates" to open Chimera.\nRight click to place a coordinate.\nNavigate to "Markers" menu and select "Move"\nif you need to adjust the location\nof the coordinate.\n\nWhen finished, save the coord file using\ncommand "save coord.cmm". Then exit Chimera.\n\nOptionally, enter text and press "Add Note" to save\ninformation regarding each subtomogram.\n\nPress the right arrow to progress;\nthe next subtomogram will automatically open.\n\nWhen you are done with all of your picks,\npress the "Create .coordsnew" button\nto create new coordinate files.'
+							text: 'Click "Pick Coordinates" to open Chimera.\nRight click to place a coordinate.\nNavigate to "Markers" menu and select "Move"\nif you need to adjust the location\nof the coordinate.\n\nWhen finished, save the coord file using\ncommand "save coord.cmm". Then exit Chimera.\n\nOptionally, enter text and press "Add Note" to save\ninformation after exiting each subtomogram.\n\nPress the right arrow to progress;\nthe next subtomogram will automatically open.\n\nWhen you are done with all of your picks,\npress the "Create .coordsnew" button\nto create new coordinate files.'
 							pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						text: ' '
@@ -901,16 +901,12 @@
 					orientation: 'horizontal'
 					size_hint: .9, .1
 					pos_hint: {'center_x': .5, 'center_y': .5}
-					TextInput:
-						size_hint_x: .9
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						multiline: False
+					Label:
+						size_hint_y: .2
 						id: filenameget
-					Button:
-						background_color: 0, 1.2, 2, .5
-						text: 'get file name'
-						on_release: root.filename()
-						size_hint_x: .15
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						text: ''
+						color: (0, 0, 1, 1)
 				BoxLayout:
 					orientation: 'horizontal'
 					size_hint: .85, .3

@@ -490,39 +490,34 @@ class Tabs(TabbedPanel):
 					stardom.append(stardex)
 			flength = str(fnlength)
 			self.ids.index2.text = flength
-			if curindex < 1 or curindex > fnlength:
-				print('The index is outside of the file limits.')
-				self.ids.filenameget.text = ""
-				return
+			if self.ids.chimera_out.text[0] != '/':
+				self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
+			if self.ids.chimera_out.text[-1] == '/':
+				self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
+			if self.ids.codcheck.active == True:
+				cmmdir = cwd + self.ids.chimera_out.text
 			else:
-				if self.ids.chimera_out.text[0] != '/':
-					self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
-				if self.ids.chimera_out.text[-1] == '/':
-					self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
-				if self.ids.codcheck.active == True:
-					cmmdir = cwd + self.ids.chimera_out.text
-				else:
-					cmmdir = self.ids.chimera_out.text
-				if os.path.isdir(cmmdir) == False:
-					os.mkdir(cmmdir)
-				starind = curindex - 1
-				starfinal = stardom[starind]
-				chim3 = direct + 'chimcoord.py'
-				tmpflnam = direct + starfinal
-			#	Creates the script to run Chimera with proper parameters
-				file_opt = open(chim3, 'w')
-				file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")" + "\n" + "run(session, \"ui tool show \'Side View\'\")"))
-				file_opt.close()
-				print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax ' + chim3))
-				cmmflip = starfinal.replace('.mrc', '.cmm')
-				endfile = os.path.split(cmmflip)
-				endcmm = endfile[1]
-				self.ids.filenameget.text = starfinal
-				if os.path.exists(cmmdir + '/coord.cmm') == True:
-					shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + endcmm))
-					statstat = 1
-				else:
-					statstat = 0
+				cmmdir = self.ids.chimera_out.text
+			if os.path.isdir(cmmdir) == False:
+				os.mkdir(cmmdir)
+			starind = curindex - 1
+			starfinal = stardom[starind]
+			chim3 = direct + 'chimcoord.py'
+			tmpflnam = direct + starfinal
+		#	Creates the script to run Chimera with proper parameters
+			file_opt = open(chim3, 'w')
+			file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")" + "\n" + "run(session, \"ui tool show \'Side View\'\")"))
+			file_opt.close()
+			print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax ' + chim3))
+			cmmflip = starfinal.replace('.mrc', '.cmm')
+			endfile = os.path.split(cmmflip)
+			endcmm = endfile[1]
+			self.ids.filenameget.text = starfinal
+			if os.path.exists(cmmdir + '/coord.cmm') == True:
+				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + endcmm))
+				statstat = 1
+			else:
+				statstat = 0
 
 			if statstat == 1:
 				self.ids.pickcoordtext.text = 'Coords saved.'
@@ -553,43 +548,6 @@ class Tabs(TabbedPanel):
 			return
 		self.ids.index.text = str((int(self.ids.index.text) - 1))
 		self.pick_coord()
-		return
-
-	def filename(self):
-		try:
-			ChimeraX_dir = self.ids.chimera_path.text
-			listName = self.ids.mainstar.text
-			cwd = self.ids.maincwd.text
-			direct = self.ids.mainmrc.text
-			levels = self.ids.surface_level.text
-			pxsz = float(self.ids.A1.text)
-			curindex = int(self.ids.index.text)
-			cmmdir = self.ids.chimera_out.text
-			pat = 'Extract'
-			img = 'ImageName'
-			fnlength = 0
-			stardom = []
-			fileNames = open(listName, 'r')
-			for line in fileNames:
-				if re.search(img, line):
-					for m in line:
-						if m.isdigit():
-							columnstar = int(m) - 1
-				if re.search(pat, line):
-					fnlength += 1 
-					starline = line.split()
-					stardex = starline[columnstar]
-					stardom.append(stardex)
-			flength = str(fnlength)
-			starind = curindex - 1
-			if curindex < 1 or curindex > fnlength:
-				print('The index is outside of the file limits.')
-				self.ids.filenameget.text = ""
-			else:
-				starfinal = stardom[starind]
-				self.ids.filenameget.text = starfinal
-		except FileNotFoundError:
-			print('This directory does not exist')
 		return
 
 	def note(self):
@@ -1348,6 +1306,7 @@ class Tabs(TabbedPanel):
 		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
 
 	def visualize(self):
+		# view current subtomogram
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
 		chimeraDir = self.ids.chimera_path.text
@@ -1359,10 +1318,10 @@ class Tabs(TabbedPanel):
 			status = 'incomplete'
 			return
 		self.ids.visind2.text = str(len(imageNames))
-		totalind = int(self.ids.visind2.text)
 		name = imageNames[index - 1]
 		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
 		fileName = subtomodir + name
+		# run ChimeraX
 		vis = subtomodir + 'visualize.py'
 		file_opt = open(vis, 'w')
 		file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + subtomodir + "\")" + "\n" + "run(session, \"open " + fileName + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + '0.5' + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")" + "\n" + "run(session, \"ui tool show \'Side View\'\")"))
@@ -1373,6 +1332,7 @@ class Tabs(TabbedPanel):
 		return status
 
 	def right_visualize(self):
+		# view next subtomogram
 		if int(self.ids.visind1.text) == int(self.ids.visind2.text):
 			print('Outside of index bounds')
 			return
@@ -1384,6 +1344,7 @@ class Tabs(TabbedPanel):
 			self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
 		
 	def left_visualize(self):
+		# view previous subtomogram
 		if int(self.ids.visind1.text) == 1:
 			print('Outside of index bounds')
 			return
@@ -1398,17 +1359,20 @@ class Tabs(TabbedPanel):
 		index = int(self.ids.visind1.text) - 1
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
+		# create visualize.star file if does not exist
 		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")):
 			star_data = starfile.read(starf)
 			df = pd.DataFrame.from_dict(star_data["particles"])
 			df = df.drop(df.index)
 			star_data["particles"] = df
 			starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
+		# isolate current index image name
 		row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
 		starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
 		df = pd.DataFrame.from_dict(starV["particles"])
 		df = df.dropna(how="all")
 		original = row["rlnImageName"].values[0]
+		# add 'saved' folder to star file path
 		if "saved" in row["rlnImageName"].values[0].split("/"):
 			newRowName = row["rlnImageName"].values[0]
 		else:
@@ -1425,7 +1389,7 @@ class Tabs(TabbedPanel):
 			df = pd.concat([df, row])
 			starV["particles"] = df
 			starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star", overwrite=True)
-
+			# create saved folder and copy in the saved files
 			folderPath = "/".join(newRowName.split("/")[:-1]) + "/"
 			savedout = subtomodir + folderPath + '/'
 			if os.path.exists(savedout) == False:
@@ -1436,6 +1400,7 @@ class Tabs(TabbedPanel):
 		index = int(self.ids.visind1.text) - 1
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
+		# check if star file exists
 		if os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star"):
 			row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
 			starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
@@ -1449,6 +1414,7 @@ class Tabs(TabbedPanel):
 			rowName = row["rlnImageName"].values[0].split("/")
 			rowName.insert(-1, "saved")
 			newRowName = "/".join(rowName)
+		# remove .mrc files if they were previously saved
 		if df[df["rlnImageName"] == newRowName].shape[0] == 1:
 			df = df[df["rlnImageName"] != newRowName]
 			starV["particles"] = df
