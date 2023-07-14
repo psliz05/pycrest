@@ -1448,7 +1448,6 @@ class Tabs(TabbedPanel):
 			starV["particles"] = df
 			starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star", overwrite=True)
 			os.remove(subtomodir + newRowName)
-		self.right_visualize()
 
 	def plottedBack(self):
 		starf = self.ids.mainstar.text

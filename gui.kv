@@ -98,7 +98,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "TBD"
+			text: "Enter Star File, Subtomogram Directory, and ChimeraX\npaths on 'master key'.\n\nPress view to open the first subtomogram.\nAfter viewing, close Chimera, and press either 'save' or 'reject'.\nSaved files will be copied into a 'saved' folder,\nand added to a visualize.star star file.\n\nUse the arrows to move between subtomograms."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -2181,7 +2181,7 @@
 								size_hint_x: .1
 							Button:
 								background_color: 0, 1.2, 2, .5
-								text: "don't save"
+								text: "reject"
 								on_release: root.noSaveVisual()
 								size_hint: .6, .7
 								pos_hint: {'center_x': .5, 'center_y': .5}
