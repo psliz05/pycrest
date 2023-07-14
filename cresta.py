@@ -540,11 +540,17 @@ class Tabs(TabbedPanel):
 		return
 
 	def right_pick(self):
+		if int(self.ids.index.text) == int(self.ids.index2.text):
+			print('Outside of index bounds')
+			return
 		self.ids.index.text = str((int(self.ids.index.text) + 1))
 		self.pick_coord()
 		return
 
 	def left_pick(self):
+		if int(self.ids.index.text) == 1:
+			print('Outside of index bounds')
+			return
 		self.ids.index.text = str((int(self.ids.index.text) - 1))
 		self.pick_coord()
 		return
