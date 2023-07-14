@@ -464,7 +464,7 @@ class Tabs(TabbedPanel):
 			ChimeraX_dir = self.ids.chimera_path.text
 			listName = self.ids.mainstar.text
 			cwd = self.ids.maincwd.text
-			direct = self.ids.mainmrc.text
+			direct = self.ids.mainsubtomo.text
 			levels = self.ids.surface_level.text
 			pxsz = float(self.ids.A1.text)
 			curindex = int(self.ids.index.text)
@@ -1348,6 +1348,7 @@ class Tabs(TabbedPanel):
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 		except FileNotFoundError:
 			print('Star file not found')
+			status = 'incomplete'
 			return
 		self.ids.visind2.text = str(len(imageNames))
 		totalind = int(self.ids.visind2.text)
@@ -1360,34 +1361,86 @@ class Tabs(TabbedPanel):
 		file_opt.close()
 		print(subprocess.getstatusoutput(chimeraDir + '/chimerax ' + vis))
 		os.remove(vis)
+		status = 'complete'
+		return status
 
 	def right_visualize(self):
+		if int(self.ids.visind1.text) == int(self.ids.visind2.text):
+			print('Outside of index bounds')
+			return
 		self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
-		self.visualize()
+		status = self.visualize()
+		if status == 'complete':
+			return
+		else:
+			self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
 		
 	def left_visualize(self):
+		if int(self.ids.visind1.text) == 1:
+			print('Outside of index bounds')
+			return
 		self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
-		self.visualize()
+		status = self.visualize()
+		if status == 'complete':
+			return
+		else:
+			self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
 
 	def saveVisual(self):
 		index = int(self.ids.visind1.text) - 1
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
-		if not(os.path.exists(subtomodir + "visualize.star")):
+		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")):
 			star_data = starfile.read(starf)
 			df = pd.DataFrame.from_dict(star_data["particles"])
 			df = df.drop(df.index)
-			df = df.drop(0)
 			star_data["particles"] = df
-			starfile.write(star_data, subtomodir + "visualize.star")
+			starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
 		row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
-		starV = starfile.read(subtomodir + "visualize.star")
+		starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
 		df = pd.DataFrame.from_dict(starV["particles"])
-		df = pd.concat([df, row])
-		starV["particles"] = df
-		starfile.write(starV, subtomodir + "visualize.star", overwrite=True)
+		df = df.dropna(how="all")
+		rowName = row["rlnImageName"].values[0].split("/")
+		if "saved" in row["rlnImageName"].values[0].split("/"):
+			newRowName = row["rlnImageName"].values[0]
+		else:
+			rowName.insert(-1, "saved")
+			newRowName = "/".join(rowName)
+		if df[df["rlnImageName"] == newRowName].shape[0] == 0:
+			def replaceName(s):
+				s = s.split("/")
+				s.insert(-1, 'saved')
+				s = '/'.join(s)
+				return s
+			row.loc[:, "rlnImageName"] = row.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
+			df = pd.concat([df, row])
+			starV["particles"] = df
+			starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star", overwrite=True)
+			folderPath = "/".join(newRowName.split("/")[:-1]) + "/"
+			savedout = subtomodir + folderPath + '/'
+			if os.path.exists(savedout) == False:
+				os.mkdir(savedout)
+			shutil(subtomodir + "/".join(rowName), savedout)
 
 	def noSaveVisual(self):
+		index = int(self.ids.visind1.text) - 1
+		starf = self.ids.mainstar.text
+		subtomodir = self.ids.mainsubtomo.text
+		if os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star"):
+			row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
+			starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
+			df = pd.DataFrame.from_dict(starV["particles"])
+			df = df.dropna(how="all")
+		rowName = row["rlnImageName"].values[0].split("/")
+		if "saved" in row["rlnImageName"].values[0].split("/"):
+			newRowName = row["rlnImageName"].values[0]
+		else:
+			rowName.insert(-1, "saved")
+			newRowName = "/".join(rowName)
+			if df[df["rlnImageName"] == newRowName].shape[0] == 1:
+				df = df[df["rlnImageName"] != newRowName]
+				starV["particles"] = df
+				starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star", overwrite=True)
 		self.right_visualize()
 
 	def plottedBack(self):
