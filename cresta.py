@@ -465,6 +465,8 @@ class Tabs(TabbedPanel):
 			listName = self.ids.mainstar.text
 			cwd = self.ids.maincwd.text
 			direct = self.ids.mainsubtomo.text
+			if self.ids.mainsubtomo.text[-1] != '/':
+				direct = self.ids.mainsubtomo.text + '/'
 			levels = self.ids.surface_level.text
 			pxsz = float(self.ids.A1.text)
 			curindex = int(self.ids.index.text)
@@ -505,7 +507,7 @@ class Tabs(TabbedPanel):
 					os.mkdir(cmmdir)
 				starind = curindex - 1
 				starfinal = stardom[starind]
-				chim3 = cwd + '/chimcoord.py'
+				chim3 = direct + 'chimcoord.py'
 				tmpflnam = direct + starfinal
 			#	Creates the script to run Chimera with proper parameters
 				file_opt = open(chim3, 'w')
@@ -1400,10 +1402,11 @@ class Tabs(TabbedPanel):
 		starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
 		df = pd.DataFrame.from_dict(starV["particles"])
 		df = df.dropna(how="all")
-		rowName = row["rlnImageName"].values[0].split("/")
+		original = row["rlnImageName"].values[0]
 		if "saved" in row["rlnImageName"].values[0].split("/"):
 			newRowName = row["rlnImageName"].values[0]
 		else:
+			rowName = row["rlnImageName"].values[0].split("/")
 			rowName.insert(-1, "saved")
 			newRowName = "/".join(rowName)
 		if df[df["rlnImageName"] == newRowName].shape[0] == 0:
@@ -1416,11 +1419,12 @@ class Tabs(TabbedPanel):
 			df = pd.concat([df, row])
 			starV["particles"] = df
 			starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star", overwrite=True)
+
 			folderPath = "/".join(newRowName.split("/")[:-1]) + "/"
 			savedout = subtomodir + folderPath + '/'
 			if os.path.exists(savedout) == False:
 				os.mkdir(savedout)
-			shutil(subtomodir + "/".join(rowName), savedout)
+			shutil.copy(subtomodir + original, savedout)
 
 	def noSaveVisual(self):
 		index = int(self.ids.visind1.text) - 1
@@ -1431,16 +1435,19 @@ class Tabs(TabbedPanel):
 			starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")
 			df = pd.DataFrame.from_dict(starV["particles"])
 			df = df.dropna(how="all")
-		rowName = row["rlnImageName"].values[0].split("/")
+		elif not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star")):
+			return
 		if "saved" in row["rlnImageName"].values[0].split("/"):
 			newRowName = row["rlnImageName"].values[0]
 		else:
+			rowName = row["rlnImageName"].values[0].split("/")
 			rowName.insert(-1, "saved")
 			newRowName = "/".join(rowName)
-			if df[df["rlnImageName"] == newRowName].shape[0] == 1:
-				df = df[df["rlnImageName"] != newRowName]
-				starV["particles"] = df
-				starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star", overwrite=True)
+		if df[df["rlnImageName"] == newRowName].shape[0] == 1:
+			df = df[df["rlnImageName"] != newRowName]
+			starV["particles"] = df
+			starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "visualize.star", overwrite=True)
+			os.remove(subtomodir + newRowName)
 		self.right_visualize()
 
 	def plottedBack(self):
