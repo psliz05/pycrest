@@ -3,7 +3,7 @@
 # import python packages
 import os
 import numpy as np
-import scipy
+from scipy import ndimage
 from scipy.fft import fftn, fftshift, ifftn, ifftshift
 from skimage.morphology import remove_small_objects
 import starfile
@@ -844,33 +844,249 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     return
 
 # plot back function
-# def plotBack(starFile, ref_path, ref_basename, path, minParticleNum):
-    listName = starfile.read(starFile)
+def plotBack(StarFile, ref_Path, ref_basename, Path, Min_Particle_Num=1):
+    # read the star file
+    list1 = starfile.read(StarFile)['particles']
+
+    # create empty Align file
+    interfaces = [[1] for i in range(len(list1))] # ???
+    print(interfaces)
     Align = []
-    run = 1
-    for i in range(len(listName)):
-        Align[run, i].Filename = ''
-        Align[run, i].Tomogram.Filename = ''
-        Align[run, i].Tomogram.Header = ''
-        Align[run, i].Tomogram.Position.X = 0  # Position of particle in Tomogram (values are unbinned)
-        Align[run, i].Tomogram.Position.Y = 0
-        Align[run, i].Tomogram.Position.Z = 0
-        Align[run, i].Tomogram.Regfile = ''
-        Align[run, i].Tomogram.Offset = 0  # Offset from Tomogram
-        Align[run, i].Tomogram.Binning = 0  # Binning of Tomogram
-        Align[run, i].Tomogram.AngleMin = 0
-        Align[run, i].Tomogram.AngleMax = 0
-        Align[run, i].Shift.X = 0  # Shift of particle, will be filled by tom_av3_extract_anglesshifts
-        Align[run, i].Shift.Y = 0
-        Align[run, i].Shift.Z = 0
-        Align[run, i].Angle.Phi = 0  # Rotational angles of particle, will be filled by tom_av3_extract_anglesshifts
-        Align[run, i].Angle.Psi = 0
-        Align[run, i].Angle.Theta = 0
-        Align[run, i].Angle.Rotmatrix = []  # Rotation matrix filled up with function tom_align_sum, not needed otherwise
-        Align[run, i].CCC = 0  # cross correlation coefficient of particle, will be filled by tom_av3_extract_anglesshifts
-        Align[run, i].Class = 0
-        Align[run, i].ProjectionClass = 0
-        Align[run, i].NormFlag = 0  # is particle phase normalized?
-        Align[run, i].Filter = [0, 0]  # is particle filtered with bandpass
-        Align[run, i].InterfaceNumber = interfaces[i, 1]
-        Align[run, i].MicrographName = 0
+    for i in range(len(list1)):
+        Align.append({})
+        Align[i]["Filename"] = ""
+        Align[i]["Tomogram"] = {}
+        Align[i]["Tomogram"]["Filename"] = ""
+        Align[i]["Tomogram"]["Header"] = ""
+        Align[i]["Tomogram"]["Position"] = {"X": 0, "Y": 0, "Z": 0}
+        Align[i]["Tomogram"]["Regfile"] = ""
+        Align[i]["Tomogram"]["Offset"] = 0
+        Align[i]["Tomogram"]["Binning"] = 0
+        Align[i]["Tomogram"]["AngleMin"] = 0
+        Align[i]["Tomogram"]["AngleMax"] = 0
+        Align[i]["Shift"] = {"X": 0, "Y": 0, "Z": 0}
+        Align[i]["Angle"] = {"Phi": 0, "Psi": 0, "Theta": 0}
+        Align[i]["CCC"] = 0
+        Align[i]["Class"] = 0
+        Align[i]["ProjectionClass"] = 0
+        Align[i]["NormFlag"] = 0
+        Align[i]["Filter"] = [0, 0]
+        Align[i]["InterfaceNumber"] = interfaces[i, 0]
+        Align[i]["MicrographName"] = 0
+
+    # Fill in the Align file
+    for i in range(len(list1)):
+        fileNames = list1["rlnImageName"][i]
+        Align[i]["Tomogram"]["Position"]["X"] = list1["rlnCoordinateX"][i]
+        Align[i]["Tomogram"]["Position"]["Y"] = list1["rlnCoordinateY"][i]
+        Align[i]["Tomogram"]["Position"]["Z"] = list1["rlnCoordinateZ"][i]
+        shifts = [-list1["rlnOriginX"][i], -list1["rlnOriginY"][i], -list1["rlnOriginZ"][i]]
+        angles = eulerconvert_xmipp(list1["rlnAngleRot"][i], list1["rlnAngleTilt"][i], list1["rlnAnglePsi"][i])
+        Align[i]["Filename"] = fileNames
+        Align[i]["Angle"]["Phi"] = angles[0]
+        Align[i]["Angle"]["Psi"] = angles[1]
+        Align[i]["Angle"]["Theta"] = angles[2]
+        Align[i]["Shift"]["X"] = shifts[0]
+        Align[i]["Shift"]["Y"] = shifts[1]
+        Align[i]["Shift"]["Z"] = shifts[2]
+        Align[i]["Class"] = list1["rlnClassNumber"][i]
+        Align[i]["MicrographName"] = list1["rlnMicrographName"][i]
+
+    pos = np.zeros((len(list1), 3))
+    name = [None] * len(list1)
+    for i in range(len(list1)):
+        pos[i, :] = list1[i]["Tomogram"]["Position"].values()
+        name[i] = list1[i]["MicrographName"]
+
+    uniqueinter = np.unique(pos, axis=0).T
+    uniquename = np.unique(name)
+    interfaces = np.zeros((len(name), 6))
+
+    for k in range(len(name)):
+        for i in range(len(list1)):
+            for j in range(len(uniqueinter)):
+                check = np.isin(pos[i, :], uniqueinter[:, j])
+                samename = name[i] == name[k]
+                bloop = [k, i, j]
+                if np.sum(check) == 3 and samename:
+                    interfaces[i, :] = [j, pos[i, :], shifts[i, :], angles[i, :], Align[i]["Class"]]
+                else:
+                    continue
+
+    for i in range(len(list1)):
+        Align[i]["InterfaceNumber"] = interfaces[i, 0]
+
+    if not os.path.isdir(Path):
+        os.makedirs(Path)
+
+    NewList = []
+    m = 1
+    for i in range(len(Align)):
+        if i == 0:
+            I = i + 1
+            samename = Align[i]["MicrographName"] == Align[I]["MicrographName"]
+            sameinterface = Align[i]["InterfaceNumber"] == Align[I]["InterfaceNumber"]
+            if samename and sameinterface:
+                NewList[m - 1]["Tomo"][n - 1]["Micrograph"] = Align[i]
+                n += 1
+            elif not samename:
+                NewList.append({"Tomo": [{"Micrograph": [Align[i]]}]})
+                m += 1
+                n = 1
+            else:
+                n = 2
+                NewList[m - 1]["Tomo"].append({"Micrograph": [Align[i]]})
+        else:
+            I = i - 1
+            samename = Align[i]["MicrographName"] == Align[I]["MicrographName"]
+            sameinterface = Align[i]["InterfaceNumber"] == Align[I]["InterfaceNumber"]
+            if samename and sameinterface:
+                NewList[m - 1]["Tomo"][n - 1]["Micrograph"] = Align[i]
+                n += 1
+            elif not samename:
+                NewList.append({"Tomo": [{"Micrograph": [Align[i]]}]})
+                m += 1
+                n = 1
+            else:
+                n = 2
+                NewList[m - 1]["Tomo"].append({"Micrograph": [Align[i]]})
+
+    TomoCounter = 1
+    NewCurList = []
+    for i in range(len(NewList)):
+        MicroCounter = 1
+        for j in range(len(NewList[i]["Tomo"])):
+            if len(NewList[i]["Tomo"][j]["Micrograph"]) > Min_Particle_Num:
+                NewCurList[TomoCounter - 1]["Tomo"][MicroCounter - 1]["Micrograph"] = NewList[i]["Tomo"][j]["Micrograph"]
+                MicroCounter += 1
+        TomoCounter += 1
+
+    for Tomograms in range(len(NewCurList)):
+        BaseOut = os.path.join(Path, "Interface_Plotback")
+        for InterfaceNum in range(len(NewCurList[Tomograms]["Tomo"])):
+            Classes = [NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"]["Class"]]
+            for ActClassNum in range(min(Classes), max(Classes) + 1):
+                org1 = np.zeros((256, 256, 256))
+                for Iter in range(len(Classes)):
+                    if Classes[Iter] == ActClassNum:
+                        File = NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["MicrographName"]
+                        fPath, fName = os.path.split(File)
+                        MidOut = os.path.join(BaseOut, fName, "Interface_" + str(NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["InterfaceNumber"]))
+                        if not os.path.exists(MidOut):
+                            Message = "The Path " + MidOut + " does not exist, creating it"
+                            print(Message)
+                            os.makedirs(MidOut)
+                        else:
+                            print("Already some Interfaces done for this Tomogram")
+
+                        use_ref = os.path.join(ref_Path, "Masks", ref_basename + "_class" + str(ActClassNum).zfill(3) + ".mrc")
+                        ref = mrcfile.read(use_ref)
+                        ref_bin = tom_rescale3d(ref, ref.shape)
+                        print("Done reading ref")
+
+                        tmpShift = [NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Shift"]["X"],
+                                    NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Shift"]["Y"],
+                                    NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Shift"]["Z"]] / 2.62
+
+                        tmpRot = shift(rotate(ref_bin, [NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Angle"]["Phi"],
+                                                               NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Angle"]["Psi"],
+                                                               NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Angle"]["Theta"]]), tmpShift)
+                        topLeft = np.round([128, 128, 128] - np.array(ref_bin.shape) / 2)
+                        org1 = paste2(org1, tmpRot, topLeft, "max")
+                        print("Pasting class: " + ref_basename + "_class" + str(ActClassNum).zfill(3) +
+                              " into particle number: " + str(Iter) +
+                              " of interface: " + str(NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["InterfaceNumber"]) +
+                              " from tomogram: " + fName)
+                        continue
+                    else:
+                        continue
+
+                Final_Out = os.path.join(MidOut, "Plotback_Class" + str(ActClassNum).zfill(3) + ".mrc")
+                mrcfile.new(Final_Out, org1)
+                print("Done writing this class")
+
+def paste2(*args):
+    if len(args) < 3:
+        raise ValueError('Not Enough Input Arguments')
+    else:
+        a = args[0]
+        b = args[1]
+        co = args[2]
+        d1, d2, d3 = b.shape
+        s1, s2, s3 = a.shape
+
+        if len(args) >= 4:
+            opt = args[3]
+        else:
+            opt = 'keine'
+        if len(args) == 5:
+            par = args[4]
+        else:
+            par = 0
+
+        vx = np.arange(max(1, co[0]), min(s1, co[0] + d1))
+        vy = np.arange(max(1, co[1]), min(s2, co[1] + d2))
+        wx = np.arange(max(-co[0] + 2, 1), min(s1 - co[0] + 1, d1))
+        wy = np.arange(max(-co[1] + 2, 1), min(s2 - co[1] + 1, d2))
+
+        if vx.size > 0 and vy.size > 0:
+            if d3 == 1:
+                a[vx[:, None], vy] = mix(a[vx[:, None], vy], b[wx[:, None], wy], opt, par)
+            else:
+                vz = np.arange(max(1, co[2]), min(s3, co[2] + d3))
+                wz = np.arange(max(-co[2] + 2, 1), min(s3 - co[2] + 1, d3))
+                if vz.size > 0:
+                    a[vx[:, None], vy, vz[:, None]] = mix(a[vx[:, None], vy, vz[:, None]], b[wx[:, None], wy, wz[:, None]], opt, par)
+    return a
+
+def mix(a, b, opt, par):
+    if opt.lower() == 'max':
+        c = np.maximum(a, b)
+    elif opt.lower() == 'min':
+        c = np.minimum(a, b)
+    elif opt.lower() == 'mean':
+        c = (a + b) / 2
+    elif opt.lower() == 'power_mean':
+        c = (a + b) / 2
+        mask = a > 0
+        b_overlap = b * mask
+        mask2 = np.abs(mask - 1)
+        d = c * mask + b_overlap * mask2
+        c = d
+    elif opt.lower() == 'trans':
+        mask = (b != par)
+        c = mask * b + (1 - mask) * a
+    elif opt.lower() == 'meantrans':
+        mask = (b != par)
+        mask2 = (mask * (-666) == a)
+        c = mask * (b / 2) + mask2 * (b / 2) + (1 - mask) * a + ((1 - mask2) * mask * (a / 2))
+    else:
+        c = b
+    return c
+
+def tom_rescale3d(in_vol, new_size, method='bicubic', waitbarflag=0):
+    if waitbarflag == 1:
+        nriterations = in_vol.shape[2] + new_size[0]
+        counter = 0
+    
+    out_tmp = np.zeros([new_size[0], new_size[1], in_vol.shape[2]], dtype=in_vol.dtype)
+
+    for iz in range(in_vol.shape[2]):
+        if waitbarflag == 1:
+            print(f"Rescaling ({round((counter / nriterations) * 100)}% done)")
+            counter += 1
+        out_tmp[:, :, iz] = ndimage.zoom(in_vol[:, :, iz], (new_size[0] / in_vol.shape[0], new_size[1] / in_vol.shape[1]), order=1)
+    
+    out = np.zeros(new_size + (in_vol.shape[2],), dtype=in_vol.dtype)
+
+    for ix in range(out_tmp.shape[0]):
+        if waitbarflag == 1:
+            print(f"Rescaling ({round((counter / nriterations) * 100)}% done)")
+            counter += 1
+        out[ix, :, :] = ndimage.zoom(out_tmp[ix, :, :], (new_size[1] / out_tmp.shape[1], new_size[2] / out_tmp.shape[2]), order=1)
+    
+    if waitbarflag == 1:
+        print("Rescaling done")
+    
+    return out
+
