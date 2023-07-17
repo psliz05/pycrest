@@ -572,29 +572,24 @@ class Tabs(TabbedPanel):
 		return
 
 	def create_coords(self):
+		# initialize variables
+		listName = self.ids.mainstar.text
 		direct = self.ids.mainsubtomo.text
 		if self.ids.mainsubtomo.text[-1] != '/':
 				direct = self.ids.mainsubtomo.text + '/'
 		boxsize = float(self.ids.px1.text)
 		boxsize = boxsize / 2
-		listName = self.ids.mainstar.text
-		# if self.ids.chimera_coord.text[0] !=  '/':
-		# 	self.ids.chimera_coord.text = '/' + self.ids.chimera_coord.text
-		# if self.ids.chimera_coord.text[-1] != '/':
-		# 	self.ids.chimera_coord.text = self.ids.chimera_coord.text + '/'
-		# if self.ids.direcheck.active == True:
-		# 	directory = direct + self.ids.chimera_coord.text
-		# else:
-		# 	directory = self.ids.chimera_coord.text
+
+		# set directory path
 		directory = cmmdir = direct + 'cmm_files/'
 
 		if os.path.exists(directory) == False:
-			os.mkdir(directory)
+			print(directory + ' does not exist. Please save coordinates first.')
+			return
+
 		slash, star = os.path.split(listName)
 		if os.path.exists(directory + star) == False:
 			shutil.copy2((listName),directory)
-		if directory[-1] != '/':
-			directory = directory + '/'
 		directoread = os.fsencode(directory)
 		cmmdread = os.fsencode(cmmdir)
 		tomoname = directory + 'TomoName.txt'
@@ -1329,6 +1324,7 @@ class Tabs(TabbedPanel):
 		print(subprocess.getstatusoutput(chimeraDir + '/chimerax ' + vis))
 		os.remove(vis)
 		status = 'complete'
+		self.ids.visualizefeedback.text = 'Accept or Reject the Subtomogram'
 		return status
 
 	def right_visualize(self):
@@ -1406,6 +1402,7 @@ class Tabs(TabbedPanel):
 			df = df[df["rlnImageName"] != rowName]
 			starR["particles"] = df
 			starfile.write(starR, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
+		self.ids.visualizefeedback.text = 'Subtomogram Accepted'
 
 
 	def noSaveVisual(self):
@@ -1450,6 +1447,7 @@ class Tabs(TabbedPanel):
 			starA["particles"] = df
 			starfile.write(starA, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
 			os.remove(subtomodir + newRowName)
+		self.ids.visualizefeedback.text = 'Subtomogram Rejected'
 
 	def plottedBack(self):
 		starf = self.ids.mainstar.text
