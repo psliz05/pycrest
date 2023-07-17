@@ -1368,11 +1368,11 @@ class Tabs(TabbedPanel):
 			starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
 		# isolate current index image name
 		row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
-		starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
-		df = pd.DataFrame.from_dict(starV["particles"])
+		starA = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
+		df = pd.DataFrame.from_dict(starA["particles"])
 		df = df.dropna(how="all")
 		original = row["rlnImageName"].values[0]
-		# add 'saved' folder to star file path
+		# add 'accepted' folder to image name path in accepted.star
 		if "accepted" in row["rlnImageName"].values[0].split("/"):
 			newRowName = row["rlnImageName"].values[0]
 		else:
@@ -1387,26 +1387,56 @@ class Tabs(TabbedPanel):
 				return s
 			row.loc[:, "rlnImageName"] = row.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 			df = pd.concat([df, row])
-			starV["particles"] = df
-			starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
+			starA["particles"] = df
+			starfile.write(starA, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
 			# create accepted folder and copy in the accepted files
 			folderPath = "/".join(newRowName.split("/")[:-1]) + "/"
 			savedout = subtomodir + folderPath + '/'
 			if os.path.exists(savedout) == False:
 				os.mkdir(savedout)
 			shutil.copy(subtomodir + original, savedout)
+		# remove .mrc files from _reject.star
+		starR_path = subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star"
+		if os.path.exists(starR_path):
+			row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
+			starR = starfile.read(starR_path)
+			df = pd.DataFrame.from_dict(starR["particles"])
+			df = df.dropna(how="all")
+			rowName = row["rlnImageName"].values[0]
+			df = df[df["rlnImageName"] != rowName]
+			starR["particles"] = df
+			starfile.write(starR, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
+
 
 	def noSaveVisual(self):
 		index = int(self.ids.visind1.text) - 1
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
-		# check if star file exists
+		# create _rejected.star if it does not exist
+		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star")):
+			star_data = starfile.read(starf)
+			df = pd.DataFrame.from_dict(star_data["particles"])
+			df = df.drop(df.index)
+			star_data["particles"] = df
+			starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star")
+		# isolate current index image name
+		row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
+		starR = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star")
+		df = pd.DataFrame.from_dict(starR["particles"])
+		df = df.dropna(how="all")
+		rowName = row["rlnImageName"].values[0]
+		# add mrc file path to _rejected.star
+		if df[df["rlnImageName"] == rowName].shape[0] == 0: # if file not in _rejected.star
+			df = pd.concat([df, row])
+			starR["particles"] = df
+			starfile.write(starR, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
+		# check if accepted.star exists
 		if os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star"):
 			row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
-			starV = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
-			df = pd.DataFrame.from_dict(starV["particles"])
+			starA = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
+			df = pd.DataFrame.from_dict(starA["particles"])
 			df = df.dropna(how="all")
-		elif not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")):
+		else:
 			return
 		if "accepted" in row["rlnImageName"].values[0].split("/"):
 			newRowName = row["rlnImageName"].values[0]
@@ -1414,11 +1444,11 @@ class Tabs(TabbedPanel):
 			rowName = row["rlnImageName"].values[0].split("/")
 			rowName.insert(-1, "accepted")
 			newRowName = "/".join(rowName)
-		# remove .mrc files if they were previously accepted
+		# remove .mrc files in both accepted.star and accepted folder if they were previously accepted
 		if df[df["rlnImageName"] == newRowName].shape[0] == 1:
 			df = df[df["rlnImageName"] != newRowName]
-			starV["particles"] = df
-			starfile.write(starV, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
+			starA["particles"] = df
+			starfile.write(starA, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
 			os.remove(subtomodir + newRowName)
 
 	def plottedBack(self):
