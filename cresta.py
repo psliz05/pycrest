@@ -361,7 +361,7 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addWiener(x))
 					star_data["particles"] = df
-					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + 'filtered' + ".star", overwrite=True)
+					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
 
 				elif mrcButton:
 					# create folder
@@ -431,7 +431,7 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addGaussian(x))
 					star_data["particles"] = df
-					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + 'filtered' + ".star", overwrite=True)
+					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
 				elif mrcButton:
 					# create folder
 					filterout = direct + 'filtered/'
@@ -1230,7 +1230,7 @@ class Tabs(TabbedPanel):
 					flipped[i] = 1
 			df["Flipped"] = flipped
 			new_star["particles"] = df
-			starfile.write(new_star, _ + "randFlip" + ".star", overwrite=True)
+			starfile.write(new_star, _ + "_randFlip" + ".star", overwrite=True)
 
 		else:
 			raise ValueError("Unsupported file extension.")
