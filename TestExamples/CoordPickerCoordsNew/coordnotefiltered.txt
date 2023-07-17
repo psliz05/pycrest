@@ -1,0 +1,1 @@
+6 Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000005_wiener.mrc: two points

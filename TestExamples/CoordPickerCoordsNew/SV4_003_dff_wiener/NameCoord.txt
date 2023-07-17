@@ -1,5 +1,0 @@
-Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000002_wiener.cmm
-Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000003_wiener.cmm
-Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000005_wiener.cmm
-Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000005_wiener.cmm
-Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000013_wiener.cmm

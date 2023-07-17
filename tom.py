@@ -125,7 +125,7 @@ def cylindermask(vol, radius, sigma, center):
 # 3D Signal Subtraction Functions
 def readList(listName, pxsz, extstar, angles):
     _, ext = os.path.splitext(listName)
-    extstar = "_" + extstar
+    exstar = "_" + extstar
     if ext == '.star':
         star_data = starfile.read(listName)["particles"]
         list_length = len(star_data)
@@ -154,8 +154,8 @@ def readList(listName, pxsz, extstar, angles):
                     df.loc[:, "rlnAnglePsi"] += angles[0]
             
         new_star["particles"] = df
-        starfile.write(new_star, _ + extstar + ".star", overwrite=True)
-        new_star_name = _ + extstar + ".star"
+        starfile.write(new_star, _ + exstar + ".star", overwrite=True)
+        new_star_name = _ + exstar + ".star"
 
         Align = allocAlign(list_length)
         fileNames = []
