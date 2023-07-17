@@ -153,7 +153,6 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
 			file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
 			file_opt.writelines('ChimeraX:' + '\t' + self.ids.chimera_path.text + '\n')
-			file_opt.writelines('ChimeraOutput:' + '\t' + self.ids.chimera_out.text + '\n')
 			file_opt.writelines('Index:' + '\t' + self.ids.index.text + '\n')
 			file_opt.writelines('Indall:' + '\t' + self.ids.index2.text + '\n')
 			file_opt.writelines('SurfaceLvl:' + '\t' + self.ids.surface_level.text + '\n')
@@ -212,8 +211,6 @@ class Tabs(TabbedPanel):
 						self.ids.A1.text = yank
 					if re.search('ChimeraX', line):
 						self.ids.chimera_path.text = yank
-					if re.search('ChimeraOut', line):
-						self.ids.chimera_out.text = yank
 					if re.search('Index', line):
 						self.ids.index.text = yank
 					if re.search('Indall', line):
@@ -461,9 +458,9 @@ class Tabs(TabbedPanel):
 
 	def pick_coord(self):
 		try:
+			# initialize variables
 			ChimeraX_dir = self.ids.chimera_path.text
 			listName = self.ids.mainstar.text
-			cwd = self.ids.maincwd.text
 			direct = self.ids.mainsubtomo.text
 			if self.ids.mainsubtomo.text[-1] != '/':
 				direct = self.ids.mainsubtomo.text + '/'
@@ -471,54 +468,42 @@ class Tabs(TabbedPanel):
 			pxsz = float(self.ids.A1.text)
 			curindex = int(self.ids.index.text)
 			self.ids.pickcoordtext.text = 'Please wait. Opening ChimeraX.'
-		#	Find the filename for the current index
-			pat = '.mrc'
-			img = 'ImageName'
-			fnlength = 0
-			stardom = []
-			statstat = 0
-			fileNames = open(listName, 'r')
-			for line in fileNames:
-				if re.search(img, line):
-					for m in line:
-						if m.isdigit():
-							columnstar = int(m) - 1
-				if re.search(pat, line):
-					fnlength += 1 
-					starline = line.split()
-					stardex = starline[columnstar]
-					stardom.append(stardex)
-			flength = str(fnlength)
-			self.ids.index2.text = flength
-			if self.ids.chimera_out.text[0] != '/':
-				self.ids.chimera_out.text = '/' + self.ids.chimera_out.text
-			if self.ids.chimera_out.text[-1] == '/':
-				self.ids.chimera_out.text = self.ids.chimera_out.text.rstrip(self.ids.chimera_out.text[-1])
-			if self.ids.codcheck.active == True:
-				cmmdir = cwd + self.ids.chimera_out.text
-			else:
-				cmmdir = self.ids.chimera_out.text
+		#	Find the filename and tomogram name for the current index
+			imageNames = starfile.read(listName)["particles"]["rlnImageName"]
+			folderNames = starfile.read(listName)["particles"]["rlnMicrographName"]
+			starfinal = imageNames[curindex - 1]
+			tomoName = folderNames[curindex - 1]
+			tomoName = tomoName.split('/')[1]
+			# set total index value
+			self.ids.index2.text = str(len(imageNames))
+
+			# create cmm_files folder inside subtomogram directory specified on master key
+			cmmdir = direct + 'cmm_files'
 			if os.path.isdir(cmmdir) == False:
 				os.mkdir(cmmdir)
-			starind = curindex - 1
-			starfinal = stardom[starind]
+
+			# create and run python script to open ChimeraX
 			chim3 = direct + 'chimcoord.py'
 			tmpflnam = direct + starfinal
-		#	Creates the script to run Chimera with proper parameters
 			file_opt = open(chim3, 'w')
 			file_opt.writelines(("import subprocess" + "\n" + "from chimerax.core.commands import run" + "\n" + "run(session, \"cd " + cmmdir + "\")" + "\n" + "run(session, \"open " + tmpflnam + "\")" + "\n" + "run(session, \"set bgColor white;volume #1 level " + levels + ";\")" + "\n" + "run(session, \"color radial #1.1 palette #ff0000:#ff7f7f:#ffffff:#7f7fff:#0000ff center 127.5,127.5,127.5;\")" + "\n" + "run(session, \"ui mousemode right \'mark point\'\")" + "\n" + "run(session, \"ui tool show \'Side View\'\")"))
 			file_opt.close()
 			print(subprocess.getstatusoutput(ChimeraX_dir + '/chimerax ' + chim3))
+
+			# create .cmm file inside of respective tomogram directory
 			cmmflip = starfinal.replace('.mrc', '.cmm')
 			endfile = os.path.split(cmmflip)
 			endcmm = endfile[1]
 			self.ids.filenameget.text = starfinal
+			if os.path.exists(cmmdir + '/' + tomoName) == False:
+				os.mkdir(cmmdir + '/' + tomoName)
 			if os.path.exists(cmmdir + '/coord.cmm') == True:
-				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + endcmm))
+				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + tomoName + '/' + endcmm))
 				statstat = 1
 			else:
 				statstat = 0
 
+			# signify whether coordinates have been saved or not
 			if statstat == 1:
 				self.ids.pickcoordtext.text = 'Coords saved.'
 			else:
@@ -535,19 +520,40 @@ class Tabs(TabbedPanel):
 		return
 
 	def right_pick(self):
-		if int(self.ids.index.text) == int(self.ids.index2.text):
-			print('Outside of index bounds')
-			return
-		self.ids.index.text = str((int(self.ids.index.text) + 1))
-		self.pick_coord()
+		try:
+			listName = self.ids.mainstar.text
+			self.ids.pickcoordtext.text = 'Press Pick Coordinates'
+			# increase index by one
+			if int(self.ids.index.text) == int(self.ids.index2.text):
+				print('Outside of index bounds')
+				return
+			self.ids.index.text = str((int(self.ids.index.text) + 1))
+			imageNames = starfile.read(listName)["particles"]["rlnImageName"]
+			starfinal = imageNames[int(self.ids.index.text) - 1]
+			self.ids.filenameget.text = starfinal
+		except FileNotFoundError:
+			print("This directory does not exist")
+			self.ids.index.text = str((int(self.ids.index.text) - 1))
+			self.ids.pickcoordtext.text = 'Click above to begin.'
 		return
 
 	def left_pick(self):
-		if int(self.ids.index.text) == 1:
-			print('Outside of index bounds')
-			return
-		self.ids.index.text = str((int(self.ids.index.text) - 1))
-		self.pick_coord()
+		try:
+			listName = self.ids.mainstar.text
+			self.ids.pickcoordtext.text = 'Press Pick Coordinates'
+			# decrease index by one
+			if int(self.ids.index.text) == 1:
+				print('Outside of index bounds')
+				self.ids.pickcoordtext.text = 'Click above to begin.'
+				return
+			self.ids.index.text = str((int(self.ids.index.text) - 1))
+			imageNames = starfile.read(listName)["particles"]["rlnImageName"]
+			starfinal = imageNames[int(self.ids.index.text) - 1]
+			self.ids.filenameget.text = starfinal
+		except FileNotFoundError:
+			print("This directory does not exist")
+			self.ids.index.text = str((int(self.ids.index.text) + 1))
+			self.ids.pickcoordtext.text = 'Click above to begin.'
 		return
 
 	def note(self):
@@ -566,28 +572,22 @@ class Tabs(TabbedPanel):
 		return
 
 	def create_coords(self):
-		self.cwdempty()
-		direct = self.ids.maincwd.text
+		direct = self.ids.mainsubtomo.text
+		if self.ids.mainsubtomo.text[-1] != '/':
+				direct = self.ids.mainsubtomo.text + '/'
 		boxsize = float(self.ids.px1.text)
 		boxsize = boxsize / 2
-		pxsz = float(self.ids.A1.text)
 		listName = self.ids.mainstar.text
-		if self.ids.chimera_coord.text == '':
-			self.ids.chimera_coord.text = self.ids.chimera_out.text
-		if self.ids.chimera_coord.text[0] !=  '/':
-			self.ids.chimera_coord.text = '/' + self.ids.chimera_coord.text
-		if self.ids.chimera_coord.text[-1] != '/':
-			self.ids.chimera_coord.text = self.ids.chimera_coord.text + '/'
-		if self.ids.direcheck.active == True:
-			directory = direct + self.ids.chimera_coord.text
-		else:
-			directory = self.ids.chimera_coord.text
-		if self.ids.codcheck.active == True:
-			cmmdir = direct + self.ids.chimera_out.text
-		else:
-			cmmdir = self.ids.chimera_out.text
-		if cmmdir[-1] != '/':
-			cmmdir = cmmdir + '/'
+		# if self.ids.chimera_coord.text[0] !=  '/':
+		# 	self.ids.chimera_coord.text = '/' + self.ids.chimera_coord.text
+		# if self.ids.chimera_coord.text[-1] != '/':
+		# 	self.ids.chimera_coord.text = self.ids.chimera_coord.text + '/'
+		# if self.ids.direcheck.active == True:
+		# 	directory = direct + self.ids.chimera_coord.text
+		# else:
+		# 	directory = self.ids.chimera_coord.text
+		directory = cmmdir = direct + 'cmm_files/'
+
 		if os.path.exists(directory) == False:
 			os.mkdir(directory)
 		slash, star = os.path.split(listName)
@@ -801,7 +801,7 @@ class Tabs(TabbedPanel):
 
 
 	def path_1(self):
-		self.ids.cmmf.text = self.ids.chimera_out.text
+		self.ids.cmmf.text = self.ids.chimera_coord.text
 		if self.ids.cmmf.text[0] !=  '/':
 			self.ids.cmmf.text = '/' + self.ids.cmmf.text
 		return

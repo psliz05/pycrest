@@ -92,13 +92,13 @@
 			text: 'Close'
 			on_release: root.dismiss()
 <VisualizeInfo@Popup>
-	size_hint: .75, .45
+	size_hint: .75, .55
 	title: 'Display and Select Subtomograms'
 	BoxLayout:
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Enter Star File, Subtomogram Directory, and ChimeraX\npaths on 'master key'.\nIt is recommended to use filtered subtomograms (see Filtering tab).\n\nPress view to open the first subtomogram.\nAfter viewing, close Chimera, and press either 'accept' or 'reject'.\nSaved files will be copied into an 'accepted' folder,\nand added to an _accepted.star star file.\n\nUse the arrows to move between subtomograms."
+			text: "Enter Star File, Subtomogram Directory, and ChimeraX\npaths on 'master key'.\nIt is recommended to use filtered subtomograms (see Filtering tab).\n\nPress view to open the first subtomogram.\nAfter viewing, close Chimera, and press either 'accept' or 'reject'.\n\nSaved files will be copied into an 'accepted' folder,\nand added to an _accepted.star star file.\n\nRejected files will be added to a _rejected.star star file.\n\nUse the arrows to move between subtomograms."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -781,35 +781,9 @@
 						orientation: 'vertical'
 						Label:
 							size_hint_y: .25
-						Label:
-							text: 'ChimeraX output directory'
-							size_hint_y: .5
 						BoxLayout:
 							orientation: 'horizontal'
-							size_hint: .9, .4
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							BoxLayout:
-								orientation: 'vertical'
-								size_hint: .3, .65
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								CheckBox:
-									state: 'down'
-									id: codcheck
-								Label:
-									text: 'cwd'
-							Label:
-								text: '+'
-								size_hint_x: .1
-								pos_hint: {'center_x': .5, 'center_y': .5}
-							TextInput:
-								text: '/cmm_files'
-								size_hint: 1.5, .8
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								multiline: False
-								id: chimera_out
-						BoxLayout:
-							orientation: 'horizontal'
-							size_hint_x: .9
+							size_hint: .9, .6
 							pos_hint: {'center_x': .5}
 							BoxLayout:
 								orientation: 'vertical'
@@ -892,7 +866,7 @@
 						Label:
 							halign: 'center'
 							color: (0,0,0,1)
-							text: 'Click “Pick Coordinates” to open ChimeraX.\nNavigate to the “Markers” menu, select a mode\nin the Place markers submenu (for example, Surface),\nand then Right Click to place a coordinate.\nSelect “Move” to adjust the location of the coordinate.\nKeep Right Clicking for additional coordinates.\n\nWhen finished, save the coord file using\ncommand "save coord.cmm". Then exit Chimera.\n\nOptionally, enter text and press "Add Note" to save\ninformation after exiting each subtomogram.\n\nPress the right arrow to progress;\nthe next subtomogram will automatically open.\n\nWhen you are done with all of your picks,\npress the "Create .coordsnew" button\nto create new coordinate files.'
+							text: 'Click “Pick Coordinates” to open ChimeraX.\nNavigate to the “Markers” menu, select a mode\nin the Place markers submenu (for example, Surface),\nand then Right Click to place a coordinate.\nSelect “Move” to adjust the location of the coordinate.\nKeep Right Clicking for additional coordinates.\n\nWhen finished, save the coord file using\ncommand "save coord.cmm". Then exit Chimera.\n\nOptionally, enter text and press "Add Note" to save\ninformation after exiting each subtomogram.\n\nPress the right arrow to progress; choose\n"Pick Coordinates" to open that subtomogram.\n\nWhen you are done with all of your picks,\npress the "Create .coordsnew" button\nto create new coordinate files.'
 							pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						text: ' '
