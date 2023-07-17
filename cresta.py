@@ -160,7 +160,6 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('SnrFall:' + '\t' + self.ids.snrval.text + '\n')
 			file_opt.writelines('Sigma:' + '\t' + self.ids.sigma.text + '\n')
 			file_opt.writelines('Filename:' + '\t' + self.ids.filenameget.text + '\n')
-			file_opt.writelines('CmmFile:' + '\t' + self.ids.cmmf.text + '\n')
 			file_opt.writelines('CoordFile:' + '\t' + self.ids.coordf.text + '\n')
 			file_opt.writelines('FirstSuf:' + '\t' + self.ids.suffixt.text + '\n')
 			file_opt.writelines('FirstBin:' + '\t' + self.ids.binnt.text + '\n')
@@ -225,8 +224,6 @@ class Tabs(TabbedPanel):
 						self.ids.sigma.text = yank
 					if re.search('Filename', line):
 						self.ids.filenameget.text = yank
-					if re.search('CmmFile', line):
-						self.ids.cmmf.text = yank
 					if re.search('CoordFile', line):
 						self.ids.coordf.text = yank
 					if re.search('FirstSuf', line):
@@ -583,120 +580,59 @@ class Tabs(TabbedPanel):
 		# set directory path
 		directory = cmmdir = direct + 'cmm_files/'
 
+		# check that /cmm_files/ folder exists
 		if os.path.exists(directory) == False:
 			print(directory + ' does not exist. Please save coordinates first.')
 			return
 
-		slash, star = os.path.split(listName)
-		if os.path.exists(directory + star) == False:
-			shutil.copy2((listName),directory)
-		directoread = os.fsencode(directory)
-		cmmdread = os.fsencode(cmmdir)
-		tomoname = directory + 'TomoName.txt'
-		file_opt = open(tomoname, 'w')
-		file_opt.writelines('')
-		file_opt.close()
-	#	Removes string of numbers at end of file name
-		for file in os.listdir(cmmdread):
-			filename = os.fsdecode(file)
-			if filename.endswith(".cmm"):
-				emanelif = filename[::-1]
-				filenam = re.sub('[0-9][0-9][0-9][0-9][0-9][0-9]','',emanelif)
-				filenam = filenam[::-1]
-				filebase = os.path.splitext(filenam)[0]
-				file_opt = open(tomoname, 'a')
-				file_opt.writelines(filebase + "\n")
-				file_opt.close()
-	#	finding all unique tomograms
-		lines_seen = set()
-		with open(tomoname, 'r+') as tomb:
-			d = tomb.readlines()
-			tomb.seek(0)
-			for i in d:
-				if i not in lines_seen:
-					tomb.write(i)
-					lines_seen.add(i)
-			tomb.truncate()
-		with open(tomoname) as tom:
-			for line in tom:
-			#	Makes directory for each different tomogram
-				bucket = line.strip()
-				if os.path.exists(directory + bucket) == False:
-					os.mkdir(directory + bucket)
-				Tomo = directory + bucket
-				filerun = sorted(os.listdir(cmmdread))
-				for file in filerun:
-					filename = os.fsdecode(file)
-					#	Move each cmm file into the proper tomogram folder
-					if filename.endswith(".cmm"):
-						if filename[0:3] == bucket[0:3]:
-							try:
-								shutil.move((cmmdir + filename), Tomo)
-							except:
-								print("Filename " + filename + " already exists, not copied into " + Tomo)
-								continue
-							with open(Tomo + '/' + filename) as ftomo:
-								for line in ftomo:
-								#	finding selected coordinates and shifting based on box size
-									if re.search('x', line):
-										xmid = re.search(' x="(.*)" y', line)
-										x_coord = xmid.group(1)
-										x_cor = round(boxsize - float(x_coord))
-										ymid = re.search(' y="(.*)" z', line)
-										y_coord = ymid.group(1)
-										y_cor = round(boxsize - float(y_coord))
-										zmid = re.search(' z="(.*)" r=', line)
-										z_coord = zmid.group(1)
-										z_cor = round(boxsize - float(z_coord))
-										corx = '_rlnCoordinateX'
-										cory = '_rlnCoordinateY'
-										corz = '_rlnCoordinateZ'
-										Namepos = '_rlnImageName'
-										filenoend = filename.replace('.cmm', '')
-										fileNames = open(listName, 'r')
-									#	finding correct column indexes
-										for line in fileNames:
-											if re.search(corx, line):
-												for m in line:
-													if m.isdigit():
-														colux = int(m) - 1	
-											if re.search(cory, line):
-												for m in line:
-													if m.isdigit():
-														coluy = int(m) - 1		
-											if re.search(corz, line):
-												for m in line:
-													if m.isdigit():
-														coluz = int(m) - 1
-											if re.search(Namepos, line):
-												for m in line:
-													if m.isdigit():
-														imagefile = int(m) - 1
-											if re.search(bucket, line):
-												if re.search(filenoend, line):
-													starline = line.split()
-													roots = starline[imagefile]
-													imageFileName = roots.split("/")
-													nameroots = roots.replace('.mrc', '.cmm')
-													ogx = float(starline[colux])
-													ogy = float(starline[coluy])
-													ogz = float(starline[coluz])
-													finalx = str(round(ogx) - int(x_cor))
-													finaly = str(round(ogy) - int(y_cor))
-													finalz = str(round(ogz) - int(z_cor))
-													if re.search('_wiener', line):
-														bucket = bucket.replace('_wiener', '')
-												#	creating files
-													file_opt = open(Tomo + '/' + bucket + '.coordsnew', 'a')
-													file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
-													file_opt.close()
-													file_opt = open(Tomo + '/' + 'NameCoord.txt', 'a')
-													file_opt.writelines(nameroots + '\n')
-													file_opt.close()
-													file_opt = open(Tomo + '/' + bucket + '.shift', 'a')
-													file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + nameroots + '\n')
-													file_opt.close()
-		os.remove(tomoname)
+		# iterate through each folder in directory
+		for file in os.listdir(directory):
+			folder = directory + file
+			if os.path.isdir(folder) == True:
+				# iterate through each .cmm file
+				for filename in os.listdir(folder):
+					if filename.endswith('.cmm'):
+						name = filename.replace('.cmm', '')
+						with open(folder + '/' + filename) as ftomo:
+							for line in ftomo:
+								# finding selected .cmm coordinates and shifting based on box size
+								if re.search('x', line):
+									xmid = re.search(' x="(.*)" y', line)
+									x_coord = xmid.group(1)
+									cmmX = round(boxsize - float(x_coord))
+									ymid = re.search(' y="(.*)" z', line)
+									y_coord = ymid.group(1)
+									cmmY = round(boxsize - float(y_coord))
+									zmid = re.search(' z="(.*)" r=', line)
+									z_coord = zmid.group(1)
+									cmmZ = round(boxsize - float(z_coord))
+									# read star file and extract original x, y, z coordinates
+									star_data = starfile.read(listName)
+									df = pd.DataFrame.from_dict(star_data['particles'])
+									row = df[df['rlnImageName'].str.contains(name)]
+									xCor = float(row['rlnCoordinateX'].iloc[0])
+									yCor = float(row['rlnCoordinateY'].iloc[0])
+									zCor = float(row['rlnCoordinateZ'].iloc[0])
+									# calculate final x, y, z coordinates
+									finalx = str(round(xCor) - int(cmmX))
+									finaly = str(round(yCor) - int(cmmY))
+									finalz = str(round(zCor) - int(cmmZ))
+									# create files
+									eman = name[::-1]
+									cutName = re.sub('\d{6}','', eman)
+									cutName = cutName[::-1]
+									file_opt = open(folder + '/' + cutName + '.coordsnew', 'a')
+									file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
+									file_opt.close()
+									file_opt = open(folder + '/' + 'NameCoord.txt', 'a')
+									file_opt.writelines(row['rlnImageName'].iloc[0] + '\n')
+									file_opt.close()
+									file_opt = open(folder + '/' + cutName + '.shift', 'a')
+									file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + row['rlnImageName'].iloc[0] + '\n')
+									file_opt.close()
+			else:
+				return
+
 		return
 
 	def parse(self):
@@ -796,7 +732,7 @@ class Tabs(TabbedPanel):
 
 
 	def path_1(self):
-		self.ids.cmmf.text = self.ids.chimera_coord.text
+		self.ids.cmmf.text = '/cmm_files'
 		if self.ids.cmmf.text[0] !=  '/':
 			self.ids.cmmf.text = '/' + self.ids.cmmf.text
 		return
