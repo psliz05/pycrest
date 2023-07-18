@@ -845,88 +845,48 @@ def ccc_loop(starf, cccvol1in, threshold, boxsize, zoomrange, mswedge):
     return
 
 # plot back function
-def plotBack(StarFile, ref_Path, ref_basename, Path, Min_Particle_Num=1):
+def plotBack(StarFile, ref_Path, ref_basename, Path, boxsize, Min_Particle_Num=1):
+
     # read the star file
-    list1 = starfile.read(StarFile)['particles']
+    starf = starfile.read(StarFile)['particles']
 
-    # create empty Align file
-    interfaces = [[1] for i in range(len(list1))] # ???
-    print(interfaces)
-    Align = []
-    for i in range(len(list1)):
-        Align.append({})
-        Align[i]["Filename"] = ""
-        Align[i]["Tomogram"] = {}
-        Align[i]["Tomogram"]["Filename"] = ""
-        Align[i]["Tomogram"]["Header"] = ""
-        Align[i]["Tomogram"]["Position"] = {"X": 0, "Y": 0, "Z": 0}
-        Align[i]["Tomogram"]["Regfile"] = ""
-        Align[i]["Tomogram"]["Offset"] = 0
-        Align[i]["Tomogram"]["Binning"] = 0
-        Align[i]["Tomogram"]["AngleMin"] = 0
-        Align[i]["Tomogram"]["AngleMax"] = 0
-        Align[i]["Shift"] = {"X": 0, "Y": 0, "Z": 0}
-        Align[i]["Angle"] = {"Phi": 0, "Psi": 0, "Theta": 0}
-        Align[i]["CCC"] = 0
-        Align[i]["Class"] = 0
-        Align[i]["ProjectionClass"] = 0
-        Align[i]["NormFlag"] = 0
-        Align[i]["Filter"] = [0, 0]
-        Align[i]["InterfaceNumber"] = interfaces[i, 0]
-        Align[i]["MicrographName"] = 0
+    # initialize variables from the star file
+    fileNames = starf['rlnImageName']
+    classes = starf['rlnClassNumber']
+    micrographName = starf['rlnMicrographName']
+    pos = np.empty(shape=(3, len(starf)))
+    shifts = np.empty(shape=(3, len(starf)))
+    angles = np.empty(shape=(3, len(starf)))
+    for i in range(len(starf)):
+        pos[:,i] = [starf['rlnCoordinateX'][i], starf['rlnCoordinateY'][i], starf['rlnCoordinateZ'][i]]
+        shifts[:,i] = [-float(starf['rlnOriginXAngst'][i]), -float(starf['rlnOriginYAngst'][i]), -float(starf['rlnOriginZAngst'][i])]
+        angles[:,i] = eulerconvert_xmipp(starf['rlnAngleRot'][i], starf['rlnAngleTilt'][i], starf['rlnAnglePsi'][i])
 
-    # Fill in the Align file
-    for i in range(len(list1)):
-        fileNames = list1["rlnImageName"][i]
-        Align[i]["Tomogram"]["Position"]["X"] = list1["rlnCoordinateX"][i]
-        Align[i]["Tomogram"]["Position"]["Y"] = list1["rlnCoordinateY"][i]
-        Align[i]["Tomogram"]["Position"]["Z"] = list1["rlnCoordinateZ"][i]
-        shifts = [-list1["rlnOriginX"][i], -list1["rlnOriginY"][i], -list1["rlnOriginZ"][i]]
-        angles = eulerconvert_xmipp(list1["rlnAngleRot"][i], list1["rlnAngleTilt"][i], list1["rlnAnglePsi"][i])
-        Align[i]["Filename"] = fileNames
-        Align[i]["Angle"]["Phi"] = angles[0]
-        Align[i]["Angle"]["Psi"] = angles[1]
-        Align[i]["Angle"]["Theta"] = angles[2]
-        Align[i]["Shift"]["X"] = shifts[0]
-        Align[i]["Shift"]["Y"] = shifts[1]
-        Align[i]["Shift"]["Z"] = shifts[2]
-        Align[i]["Class"] = list1["rlnClassNumber"][i]
-        Align[i]["MicrographName"] = list1["rlnMicrographName"][i]
-
-    pos = np.zeros((len(list1), 3))
-    name = [None] * len(list1)
-    for i in range(len(list1)):
-        pos[i, :] = list1[i]["Tomogram"]["Position"].values()
-        name[i] = list1[i]["MicrographName"]
 
     uniqueinter = np.unique(pos, axis=0).T
-    uniquename = np.unique(name)
-    interfaces = np.zeros((len(name), 6))
+    interfaces = np.zeros((len(micrographName), 6))
 
-    for k in range(len(name)):
-        for i in range(len(list1)):
+    for k in range(len(micrographName)):
+        for i in range(len(starf)):
             for j in range(len(uniqueinter)):
                 check = np.isin(pos[i, :], uniqueinter[:, j])
-                samename = name[i] == name[k]
+                samename = micrographName[i] == micrographName[k]
                 bloop = [k, i, j]
                 if np.sum(check) == 3 and samename:
-                    interfaces[i, :] = [j, pos[i, :], shifts[i, :], angles[i, :], Align[i]["Class"]]
+                    interfaces[i, :] = [j, pos[i, :], shifts[i, :], angles[i, :], classes]
                 else:
                     continue
 
-    for i in range(len(list1)):
+    for i in range(len(starf)):
         Align[i]["InterfaceNumber"] = interfaces[i, 0]
-
-    if not os.path.isdir(Path):
-        os.makedirs(Path)
 
     NewList = []
     m = 1
     for i in range(len(Align)):
         if i == 0:
-            I = i + 1
-            samename = Align[i]["MicrographName"] == Align[I]["MicrographName"]
-            sameinterface = Align[i]["InterfaceNumber"] == Align[I]["InterfaceNumber"]
+            j = i + 1
+            samename = micrographName[i] == micrographName[j]
+            sameinterface = Align[i]["InterfaceNumber"] == Align[j]["InterfaceNumber"]
             if samename and sameinterface:
                 NewList[m - 1]["Tomo"][n - 1]["Micrograph"] = Align[i]
                 n += 1
@@ -938,9 +898,9 @@ def plotBack(StarFile, ref_Path, ref_basename, Path, Min_Particle_Num=1):
                 n = 2
                 NewList[m - 1]["Tomo"].append({"Micrograph": [Align[i]]})
         else:
-            I = i - 1
-            samename = Align[i]["MicrographName"] == Align[I]["MicrographName"]
-            sameinterface = Align[i]["InterfaceNumber"] == Align[I]["InterfaceNumber"]
+            j = i - 1
+            samename = micrographName[i] == micrographName[j]
+            sameinterface = Align[i]["InterfaceNumber"] == Align[j]["InterfaceNumber"]
             if samename and sameinterface:
                 NewList[m - 1]["Tomo"][n - 1]["Micrograph"] = Align[i]
                 n += 1
@@ -982,7 +942,7 @@ def plotBack(StarFile, ref_Path, ref_basename, Path, Min_Particle_Num=1):
 
                         use_ref = os.path.join(ref_Path, "Masks", ref_basename + "_class" + str(ActClassNum).zfill(3) + ".mrc")
                         ref = mrcfile.read(use_ref)
-                        ref_bin = tom_rescale3d(ref, ref.shape)
+                        ref_bin = rescale3d(ref, ref.shape)
                         print("Done reading ref")
 
                         tmpShift = [NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Shift"]["X"],
@@ -991,9 +951,9 @@ def plotBack(StarFile, ref_Path, ref_basename, Path, Min_Particle_Num=1):
 
                         tmpRot = shift(rotate(ref_bin, [NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Angle"]["Phi"],
                                                                NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Angle"]["Psi"],
-                                                               NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Angle"]["Theta"]]), tmpShift)
+                                                               NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["Angle"]["Theta"]], boxsize), tmpShift)
                         topLeft = np.round([128, 128, 128] - np.array(ref_bin.shape) / 2)
-                        org1 = paste2(org1, tmpRot, topLeft, "max")
+                        org1 = paste2(org1, tmpRot, topLeft)
                         print("Pasting class: " + ref_basename + "_class" + str(ActClassNum).zfill(3) +
                               " into particle number: " + str(Iter) +
                               " of interface: " + str(NewCurList[Tomograms]["Tomo"][InterfaceNum]["Micrograph"][Iter]["InterfaceNumber"]) +
@@ -1006,88 +966,33 @@ def plotBack(StarFile, ref_Path, ref_basename, Path, Min_Particle_Num=1):
                 mrcfile.new(Final_Out, org1)
                 print("Done writing this class")
 
-def paste2(*args):
-    if len(args) < 3:
-        raise ValueError('Not Enough Input Arguments')
-    else:
-        a = args[0]
-        b = args[1]
-        co = args[2]
-        d1, d2, d3 = b.shape
-        s1, s2, s3 = a.shape
+def paste2(a, b, co):
+    d1, d2, d3 = b.shape
+    s1, s2, s3 = a.shape
 
-        if len(args) >= 4:
-            opt = args[3]
+    vx = np.arange(max(1, co[0]), min(s1, co[0] + d1))
+    vy = np.arange(max(1, co[1]), min(s2, co[1] + d2))
+    wx = np.arange(max(-co[0] + 2, 1), min(s1 - co[0] + 1, d1))
+    wy = np.arange(max(-co[1] + 2, 1), min(s2 - co[1] + 1, d2))
+
+    if vx.size > 0 and vy.size > 0:
+        if d3 == 1:
+            a[vx[:, None], vy] = np.maximum(a[vx[:, None], vy], b[wx[:, None], wy])
         else:
-            opt = 'keine'
-        if len(args) == 5:
-            par = args[4]
-        else:
-            par = 0
-
-        vx = np.arange(max(1, co[0]), min(s1, co[0] + d1))
-        vy = np.arange(max(1, co[1]), min(s2, co[1] + d2))
-        wx = np.arange(max(-co[0] + 2, 1), min(s1 - co[0] + 1, d1))
-        wy = np.arange(max(-co[1] + 2, 1), min(s2 - co[1] + 1, d2))
-
-        if vx.size > 0 and vy.size > 0:
-            if d3 == 1:
-                a[vx[:, None], vy] = mix(a[vx[:, None], vy], b[wx[:, None], wy], opt, par)
-            else:
-                vz = np.arange(max(1, co[2]), min(s3, co[2] + d3))
-                wz = np.arange(max(-co[2] + 2, 1), min(s3 - co[2] + 1, d3))
-                if vz.size > 0:
-                    a[vx[:, None], vy, vz[:, None]] = mix(a[vx[:, None], vy, vz[:, None]], b[wx[:, None], wy, wz[:, None]], opt, par)
+            vz = np.arange(max(1, co[2]), min(s3, co[2] + d3))
+            wz = np.arange(max(-co[2] + 2, 1), min(s3 - co[2] + 1, d3))
+            if vz.size > 0:
+                a[vx[:, None], vy, vz[:, None]] = np.maximum(a[vx[:, None], vy, vz[:, None]], b[wx[:, None], wy, wz[:, None]])
     return a
 
-def mix(a, b, opt, par):
-    if opt.lower() == 'max':
-        c = np.maximum(a, b)
-    elif opt.lower() == 'min':
-        c = np.minimum(a, b)
-    elif opt.lower() == 'mean':
-        c = (a + b) / 2
-    elif opt.lower() == 'power_mean':
-        c = (a + b) / 2
-        mask = a > 0
-        b_overlap = b * mask
-        mask2 = np.abs(mask - 1)
-        d = c * mask + b_overlap * mask2
-        c = d
-    elif opt.lower() == 'trans':
-        mask = (b != par)
-        c = mask * b + (1 - mask) * a
-    elif opt.lower() == 'meantrans':
-        mask = (b != par)
-        mask2 = (mask * (-666) == a)
-        c = mask * (b / 2) + mask2 * (b / 2) + (1 - mask) * a + ((1 - mask2) * mask * (a / 2))
-    else:
-        c = b
-    return c
-
-def tom_rescale3d(in_vol, new_size, method='bicubic', waitbarflag=0):
-    if waitbarflag == 1:
-        nriterations = in_vol.shape[2] + new_size[0]
-        counter = 0
-    
+def rescale3d(in_vol, new_size):
     out_tmp = np.zeros([new_size[0], new_size[1], in_vol.shape[2]], dtype=in_vol.dtype)
-
     for iz in range(in_vol.shape[2]):
-        if waitbarflag == 1:
-            print(f"Rescaling ({round((counter / nriterations) * 100)}% done)")
-            counter += 1
         out_tmp[:, :, iz] = ndimage.zoom(in_vol[:, :, iz], (new_size[0] / in_vol.shape[0], new_size[1] / in_vol.shape[1]), order=1)
     
     out = np.zeros(new_size + (in_vol.shape[2],), dtype=in_vol.dtype)
-
     for ix in range(out_tmp.shape[0]):
-        if waitbarflag == 1:
-            print(f"Rescaling ({round((counter / nriterations) * 100)}% done)")
-            counter += 1
         out[ix, :, :] = ndimage.zoom(out_tmp[ix, :, :], (new_size[1] / out_tmp.shape[1], new_size[2] / out_tmp.shape[2]), order=1)
-    
-    if waitbarflag == 1:
-        print("Rescaling done")
-    
+
     return out
 

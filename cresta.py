@@ -470,7 +470,7 @@ class Tabs(TabbedPanel):
 			folderNames = starfile.read(listName)["particles"]["rlnMicrographName"]
 			starfinal = imageNames[curindex - 1]
 			tomoName = folderNames[curindex - 1]
-			tomoName = tomoName.split('/')[1]
+			tomoName = tomoName.split('/')[0] + '/' + tomoName.split('/')[1]
 			# set total index value
 			self.ids.index2.text = str(len(imageNames))
 
@@ -493,7 +493,7 @@ class Tabs(TabbedPanel):
 			endcmm = endfile[1]
 			self.ids.filenameget.text = starfinal
 			if os.path.exists(cmmdir + '/' + tomoName) == False:
-				os.mkdir(cmmdir + '/' + tomoName)
+				os.makedirs(cmmdir + '/' + tomoName)
 			if os.path.exists(cmmdir + '/coord.cmm') == True:
 				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + tomoName + '/' + endcmm))
 				statstat = 1
@@ -517,26 +517,33 @@ class Tabs(TabbedPanel):
 		return
 
 	def right_pick(self):
+		starf = self.ids.mainstar.text
 		try:
-			listName = self.ids.mainstar.text
-			self.ids.pickcoordtext.text = 'Press Pick Coordinates'
-			# increase index by one
-			if int(self.ids.index.text) == int(self.ids.index2.text):
-				print('Outside of index bounds')
-				return
-			self.ids.index.text = str((int(self.ids.index.text) + 1))
-			imageNames = starfile.read(listName)["particles"]["rlnImageName"]
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			self.ids.index2.text = str(len(imageNames))
+		except FileNotFoundError:
+			print("This star file does not exist")
+			return
+		self.ids.pickcoordtext.text = 'Press Pick Coordinates'
+		# increase index by one
+		if int(self.ids.index.text) == int(self.ids.index2.text):
+			print('Outside of index bounds')
+			return
+		self.ids.index.text = str((int(self.ids.index.text) + 1))
+		try:
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			starfinal = imageNames[int(self.ids.index.text) - 1]
 			self.ids.filenameget.text = starfinal
 		except FileNotFoundError:
-			print("This directory does not exist")
+			print("This star file does not exist")
 			self.ids.index.text = str((int(self.ids.index.text) - 1))
 			self.ids.pickcoordtext.text = 'Click above to begin.'
+			return
 		return
 
 	def left_pick(self):
 		try:
-			listName = self.ids.mainstar.text
+			starf = self.ids.mainstar.text
 			self.ids.pickcoordtext.text = 'Press Pick Coordinates'
 			# decrease index by one
 			if int(self.ids.index.text) == 1:
@@ -544,11 +551,11 @@ class Tabs(TabbedPanel):
 				self.ids.pickcoordtext.text = 'Click above to begin.'
 				return
 			self.ids.index.text = str((int(self.ids.index.text) - 1))
-			imageNames = starfile.read(listName)["particles"]["rlnImageName"]
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			starfinal = imageNames[int(self.ids.index.text) - 1]
 			self.ids.filenameget.text = starfinal
 		except FileNotFoundError:
-			print("This directory does not exist")
+			print("This star file does not exist")
 			self.ids.index.text = str((int(self.ids.index.text) + 1))
 			self.ids.pickcoordtext.text = 'Click above to begin.'
 		return
@@ -578,7 +585,7 @@ class Tabs(TabbedPanel):
 		boxsize = boxsize / 2
 
 		# set directory path
-		directory = cmmdir = direct + 'cmm_files/'
+		directory = direct + 'cmm_files/'
 
 		# check that /cmm_files/ folder exists
 		if os.path.exists(directory) == False:
@@ -586,50 +593,55 @@ class Tabs(TabbedPanel):
 			return
 
 		# iterate through each folder in directory
-		for file in os.listdir(directory):
-			folder = directory + file
-			if os.path.isdir(folder) == True:
-				# iterate through each .cmm file
-				for filename in os.listdir(folder):
-					if filename.endswith('.cmm'):
-						name = filename.replace('.cmm', '')
-						with open(folder + '/' + filename) as ftomo:
-							for line in ftomo:
-								# finding selected .cmm coordinates and shifting based on box size
-								if re.search('x', line):
-									xmid = re.search(' x="(.*)" y', line)
-									x_coord = xmid.group(1)
-									cmmX = round(boxsize - float(x_coord))
-									ymid = re.search(' y="(.*)" z', line)
-									y_coord = ymid.group(1)
-									cmmY = round(boxsize - float(y_coord))
-									zmid = re.search(' z="(.*)" r=', line)
-									z_coord = zmid.group(1)
-									cmmZ = round(boxsize - float(z_coord))
-									# read star file and extract original x, y, z coordinates
-									star_data = starfile.read(listName)
-									df = pd.DataFrame.from_dict(star_data['particles'])
-									row = df[df['rlnImageName'].str.contains(name)]
-									xCor = float(row['rlnCoordinateX'].iloc[0])
-									yCor = float(row['rlnCoordinateY'].iloc[0])
-									zCor = float(row['rlnCoordinateZ'].iloc[0])
-									# calculate final x, y, z coordinates
-									finalx = str(round(xCor) - int(cmmX))
-									finaly = str(round(yCor) - int(cmmY))
-									finalz = str(round(zCor) - int(cmmZ))
-									# create files
-									eman = name[::-1]
-									cutName = re.sub('\d{6}','', eman)
-									cutName = cutName[::-1]
-									file_opt = open(folder + '/' + cutName + '.coordsnew', 'a')
-									file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
-									file_opt.close()
-									file_opt = open(folder + '/' + 'NameCoord.txt', 'a')
-									file_opt.writelines(row['rlnImageName'].iloc[0] + '\n')
-									file_opt.close()
-									file_opt = open(folder + '/' + cutName + '.shift', 'a')
-									file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + row['rlnImageName'].iloc[0] + '\n')
-									file_opt.close()
+		for file1 in os.listdir(directory):
+			folder1 = directory + file1
+			if folder1[-1] != '/':
+				folder1 = folder1 + '/'
+			if os.path.isdir(folder1) == True:
+				for file in os.listdir(folder1):
+					folder = folder1 + file
+					# iterate through each .cmm file
+					if os.path.isdir(folder) == True:
+						for filename in os.listdir(folder):
+							if filename.endswith('.cmm'):
+								name = filename.replace('.cmm', '')
+								with open(folder + '/' + filename) as ftomo:
+									for line in ftomo:
+										# finding selected .cmm coordinates and shifting based on box size
+										if re.search('x', line):
+											xmid = re.search(' x="(.*)" y', line)
+											x_coord = xmid.group(1)
+											cmmX = round(boxsize - float(x_coord))
+											ymid = re.search(' y="(.*)" z', line)
+											y_coord = ymid.group(1)
+											cmmY = round(boxsize - float(y_coord))
+											zmid = re.search(' z="(.*)" r=', line)
+											z_coord = zmid.group(1)
+											cmmZ = round(boxsize - float(z_coord))
+											# read star file and extract original x, y, z coordinates
+											star_data = starfile.read(listName)
+											df = pd.DataFrame.from_dict(star_data['particles'])
+											row = df[df['rlnImageName'].str.contains(name)]
+											xCor = float(row['rlnCoordinateX'].iloc[0])
+											yCor = float(row['rlnCoordinateY'].iloc[0])
+											zCor = float(row['rlnCoordinateZ'].iloc[0])
+											# calculate final x, y, z coordinates
+											finalx = str(round(xCor) - int(cmmX))
+											finaly = str(round(yCor) - int(cmmY))
+											finalz = str(round(zCor) - int(cmmZ))
+											# create files
+											eman = name[::-1]
+											cutName = re.sub('\d{6}','', eman)
+											cutName = cutName[::-1]
+											file_opt = open(folder + '/' + cutName + '.coordsnew', 'a')
+											file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
+											file_opt.close()
+											file_opt = open(folder + '/' + 'NameCoord.txt', 'a')
+											file_opt.writelines(row['rlnImageName'].iloc[0] + '\n')
+											file_opt.close()
+											file_opt = open(folder + '/' + cutName + '.shift', 'a')
+											file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + row['rlnImageName'].iloc[0] + '\n')
+											file_opt.close()
 			else:
 				return
 
@@ -1246,7 +1258,6 @@ class Tabs(TabbedPanel):
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 		except FileNotFoundError:
 			print('Star file not found')
-			status = 'incomplete'
 			return
 		self.ids.visind2.text = str(len(imageNames))
 		name = imageNames[index - 1]
@@ -1259,33 +1270,47 @@ class Tabs(TabbedPanel):
 		file_opt.close()
 		print(subprocess.getstatusoutput(chimeraDir + '/chimerax ' + vis))
 		os.remove(vis)
-		status = 'complete'
 		self.ids.visualizefeedback.text = 'Accept or Reject the Subtomogram'
-		return status
+		self.ids.visualizefeedback.color = (.6,0,0,1)
+		return
 
 	def right_visualize(self):
-		# view next subtomogram
+		starf = self.ids.mainstar.text
+		index = int(self.ids.visind1.text)
+		try:
+			# set index max
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			self.ids.visind2.text = str(len(imageNames))
+		except FileNotFoundError:
+			print('Star file not found')
+			return
+		# check if index limit reached
 		if int(self.ids.visind1.text) == int(self.ids.visind2.text):
 			print('Outside of index bounds')
 			return
+		# increase index by one
 		self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
-		status = self.visualize()
-		if status == 'complete':
-			return
-		else:
-			self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
+		# set current filename
+		name = imageNames[int(self.ids.visind1.text) - 1]
+		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
 		
 	def left_visualize(self):
-		# view previous subtomogram
+		starf = self.ids.mainstar.text
+		# check if index limit reached
 		if int(self.ids.visind1.text) == 1:
 			print('Outside of index bounds')
 			return
+		# decrease index by one
 		self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
-		status = self.visualize()
-		if status == 'complete':
-			return
-		else:
+		try:
+			# set current filename
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			name = imageNames[int(self.ids.visind1.text) - 1]
+			self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		except FileNotFoundError:
+			print('Star file not found')
 			self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
+			return
 
 	def saveVisual(self):
 		index = int(self.ids.visind1.text) - 1
@@ -1339,6 +1364,7 @@ class Tabs(TabbedPanel):
 			starR["particles"] = df
 			starfile.write(starR, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
 		self.ids.visualizefeedback.text = 'Subtomogram Accepted'
+		self.ids.visualizefeedback.color = (0,.3,0,1)
 
 
 	def noSaveVisual(self):
@@ -1384,18 +1410,20 @@ class Tabs(TabbedPanel):
 			starfile.write(starA, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
 			os.remove(subtomodir + newRowName)
 		self.ids.visualizefeedback.text = 'Subtomogram Rejected'
+		self.ids.visualizefeedback.color = (0,.3,0,1)
 
 	def plottedBack(self):
 		starf = self.ids.mainstar.text
 		refPath = self.ids.refPath.text
 		refBasename = self.ids.refBasename.text
 		minParticleNum = float(self.ids.minParticleNum.text)
+		boxsize = float(self.ids.px1.text)
+		boxsize = [boxsize, boxsize, boxsize]
 		folderPath = "/".join(starf.split("/")[:-1]) + "/"
 		plotOut = folderPath + 'plotted'
 		if os.path.exists(plotOut) == False:
 			os.mkdir(plotOut)
-		path = plotOut
-		tom.plotBack(starf, refPath, refBasename, path, minParticleNum)
+		tom.plotBack(starf, refPath, refBasename, plotOut, boxsize, minParticleNum)
 
 	pass
 
