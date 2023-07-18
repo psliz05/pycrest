@@ -1248,6 +1248,9 @@ class Tabs(TabbedPanel):
 		
 		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
 
+	# used to store a subtomogram's accepted/rejected status
+	indexToVal = {}
+
 	def visualize(self):
 		# view current subtomogram
 		starf = self.ids.mainstar.text
@@ -1276,9 +1279,8 @@ class Tabs(TabbedPanel):
 
 	def right_visualize(self):
 		starf = self.ids.mainstar.text
-		index = int(self.ids.visind1.text)
+		# set index max
 		try:
-			# set index max
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			self.ids.visind2.text = str(len(imageNames))
 		except FileNotFoundError:
@@ -1293,6 +1295,18 @@ class Tabs(TabbedPanel):
 		# set current filename
 		name = imageNames[int(self.ids.visind1.text) - 1]
 		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		try:
+			if self.indexToVal[int(self.ids.visind1.text)] == "accepted":
+				self.ids.visualizefeedback.text = "Subtomogram Accepted"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+			elif self.indexToVal[int(self.ids.visind1.text)] == "rejected":
+				self.ids.visualizefeedback.text = "Subtomogram Rejected"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+		except KeyError:
+			self.ids.visualizefeedback.text = "View subtomogram"
+			self.ids.visualizefeedback.color = (250, 250, 31, 1)
+			return
+
 		
 	def left_visualize(self):
 		starf = self.ids.mainstar.text
@@ -1302,8 +1316,8 @@ class Tabs(TabbedPanel):
 			return
 		# decrease index by one
 		self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
+		# set current filename
 		try:
-			# set current filename
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			name = imageNames[int(self.ids.visind1.text) - 1]
 			self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
@@ -1311,9 +1325,21 @@ class Tabs(TabbedPanel):
 			print('Star file not found')
 			self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
 			return
+		try:
+			if self.indexToVal[int(self.ids.visind1.text)] == "accepted":
+				self.ids.visualizefeedback.text = "Subtomogram Accepted"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+			elif self.indexToVal[int(self.ids.visind1.text)] == "rejected":
+				self.ids.visualizefeedback.text = "Subtomogram Rejected"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+		except KeyError:
+			self.ids.visualizefeedback.text = "View subtomogram"
+			self.ids.visualizefeedback.color = (250, 250, 31, 1)
+			return
 
 	def saveVisual(self):
 		index = int(self.ids.visind1.text) - 1
+		self.indexToVal[index + 1] = "accepted"
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
 		# create visualize.star file if does not exist
@@ -1369,6 +1395,7 @@ class Tabs(TabbedPanel):
 
 	def noSaveVisual(self):
 		index = int(self.ids.visind1.text) - 1
+		self.indexToVal[index + 1] = "rejected"
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
 		# create _rejected.star if it does not exist
