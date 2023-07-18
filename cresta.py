@@ -577,8 +577,9 @@ class Tabs(TabbedPanel):
 
 	def create_coords(self):
 		# initialize variables
-		listName = self.ids.mainstar.text
+		starf = self.ids.mainstar.text
 		direct = self.ids.mainsubtomo.text
+		imgToCmmCor = {}
 		if self.ids.mainsubtomo.text[-1] != '/':
 				direct = self.ids.mainsubtomo.text + '/'
 		boxsize = float(self.ids.px1.text)
@@ -618,8 +619,10 @@ class Tabs(TabbedPanel):
 											zmid = re.search(' z="(.*)" r=', line)
 											z_coord = zmid.group(1)
 											cmmZ = round(boxsize - float(z_coord))
+											# add coords to dictionary
+											imgToCmmCor[name] = [x_coord, y_coord, z_coord]
 											# read star file and extract original x, y, z coordinates
-											star_data = starfile.read(listName)
+											star_data = starfile.read(starf)
 											df = pd.DataFrame.from_dict(star_data['particles'])
 											row = df[df['rlnImageName'].str.contains(name)]
 											xCor = float(row['rlnCoordinateX'].iloc[0])
@@ -643,7 +646,31 @@ class Tabs(TabbedPanel):
 											file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + row['rlnImageName'].iloc[0] + '\n')
 											file_opt.close()
 			else:
+				# files not in folder
 				return
+		
+		# add cmm coordinates to star file
+		star_data = starfile.read(starf)
+		df = pd.DataFrame.from_dict(star_data['particles'])
+		df["rlnCmmX"] = np.zeros(df.shape[0])
+		df["rlnCmmY"] = np.zeros(df.shape[0])
+		df["rlnCmmZ"] = np.zeros(df.shape[0])
+		for file1 in os.listdir(directory):
+			folder1 = directory + file1
+			if folder1[-1] != '/':
+				folder1 = folder1 + '/'
+			if os.path.isdir(folder1) == True:
+				for file in os.listdir(folder1):
+					folder = folder1 + file
+					# iterate through each .cmm file
+					if os.path.isdir(folder) == True:
+						for name in os.listdir(folder):
+							if name.endswith('.cmm'):
+								name = name.replace('.cmm', '')
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCmmX"] = imgToCmmCor[name][0]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCmmY"] = imgToCmmCor[name][1]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCmmZ"] = imgToCmmCor[name][2]
+		starfile.write(df, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
 
 		return
 
