@@ -619,8 +619,6 @@ class Tabs(TabbedPanel):
 											zmid = re.search(' z="(.*)" r=', line)
 											z_coord = zmid.group(1)
 											cmmZ = round(boxsize - float(z_coord))
-											# add coords to dictionary
-											imgToCmmCor[name] = [x_coord, y_coord, z_coord]
 											# read star file and extract original x, y, z coordinates
 											star_data = starfile.read(starf)
 											df = pd.DataFrame.from_dict(star_data['particles'])
@@ -632,6 +630,8 @@ class Tabs(TabbedPanel):
 											finalx = str(round(xCor) - int(cmmX))
 											finaly = str(round(yCor) - int(cmmY))
 											finalz = str(round(zCor) - int(cmmZ))
+											# add new coords to dictionary
+											imgToCmmCor[name] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
 											# create files
 											eman = name[::-1]
 											cutName = re.sub('\d{6}','', eman)
@@ -649,12 +649,21 @@ class Tabs(TabbedPanel):
 				# files not in folder
 				return
 		
-		# add cmm coordinates to star file
+		# add new information to star file
 		star_data = starfile.read(starf)
 		df = pd.DataFrame.from_dict(star_data['particles'])
-		df["rlnCmmX"] = np.zeros(df.shape[0])
-		df["rlnCmmY"] = np.zeros(df.shape[0])
-		df["rlnCmmZ"] = np.zeros(df.shape[0])
+		# define new columns
+		df["rlnSubtomogramPosX"] = np.zeros(df.shape[0])
+		df["rlnSubtomogramPosY"] = np.zeros(df.shape[0])
+		df["rlnSubtomogramPosZ"] = np.zeros(df.shape[0])
+		df["rlnBoxsize"] = np.array([(boxsize * 2) for _ in range(df.shape[0])])
+		df["rlnCorrectedCoordsX"] = np.zeros(df.shape[0])
+		df["rlnCorrectedCoordsY"] = np.zeros(df.shape[0])
+		df["rlnCorrectedCoordsZ"] = np.zeros(df.shape[0])
+		df["rlnCoordinateNewX"] = np.zeros(df.shape[0])
+		df["rlnCoordinateNewY"] = np.zeros(df.shape[0])
+		df["rlnCoordinateNewZ"] = np.zeros(df.shape[0])
+		# iterate through each directory
 		for file1 in os.listdir(directory):
 			folder1 = directory + file1
 			if folder1[-1] != '/':
@@ -667,11 +676,17 @@ class Tabs(TabbedPanel):
 						for name in os.listdir(folder):
 							if name.endswith('.cmm'):
 								name = name.replace('.cmm', '')
-								df.loc[df['rlnImageName'].str.contains(name), "rlnCmmX"] = imgToCmmCor[name][0]
-								df.loc[df['rlnImageName'].str.contains(name), "rlnCmmY"] = imgToCmmCor[name][1]
-								df.loc[df['rlnImageName'].str.contains(name), "rlnCmmZ"] = imgToCmmCor[name][2]
+								# paste in new information to each new column
+								df.loc[df['rlnImageName'].str.contains(name), "rlnSubtomogramPosX"] = imgToCmmCor[name][0]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnSubtomogramPosY"] = imgToCmmCor[name][1]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnSubtomogramPosZ"] = imgToCmmCor[name][2]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCorrectedCoordsX"] = imgToCmmCor[name][3]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCorrectedCoordsY"] = imgToCmmCor[name][4]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCorrectedCoordsZ"] = imgToCmmCor[name][5]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewX"] = imgToCmmCor[name][6]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewY"] = imgToCmmCor[name][7]
+								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewZ"] = imgToCmmCor[name][8]
 		starfile.write(df, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
-
 		return
 
 	def parse(self):
@@ -1369,7 +1384,7 @@ class Tabs(TabbedPanel):
 		self.indexToVal[index + 1] = "accepted"
 		starf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
-		# create visualize.star file if does not exist
+		# create _accepted.star file if does not exist
 		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")):
 			star_data = starfile.read(starf)
 			df = pd.DataFrame.from_dict(star_data["particles"])
