@@ -504,7 +504,6 @@ class Tabs(TabbedPanel):
 			# no coordinates saved
 			else:
 				statstat = 0
-
 			# signify whether coordinates have been saved or not, or if they are saved but overwritten
 			if statstat == 1:
 				self.ids.pickcoordtext.text = 'Coords saved.'
@@ -655,6 +654,7 @@ class Tabs(TabbedPanel):
 							if filename.endswith('.cmm'):
 								name = filename.replace('.cmm', '')
 								with open(folder + '/' + filename) as ftomo:
+									count = 1
 									for line in ftomo:
 										# finding selected .cmm coordinates and shifting based on box size
 										if re.search('x', line):
@@ -679,7 +679,11 @@ class Tabs(TabbedPanel):
 											finaly = str(round(yCor) - int(cmmY))
 											finalz = str(round(zCor) - int(cmmZ))
 											# add new coords to dictionary
-											imgToCmmCor[name] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
+											if name in imgToCmmCor.keys(): #checks duplicate filename
+												imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
+												count += 1
+											else:
+												imgToCmmCor[name] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
 											# create files
 											eman = name[::-1]
 											cutName = re.sub('\d{6}','', eman)
@@ -728,6 +732,26 @@ class Tabs(TabbedPanel):
 								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewX"] = imgToCmmCor[name][6]
 								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewY"] = imgToCmmCor[name][7]
 								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewZ"] = imgToCmmCor[name][8]
+		# adding row for each duplicate filename to dictionary
+		df1 = pd.DataFrame()
+		for imgName in imgToCmmCor.keys():
+			if df[df['rlnImageName'].str.contains(imgName)].shape[0] == 0:
+				print(imgName)
+				modifiedName = imgName.replace("!", "")
+				row = df[df['rlnImageName'].str.contains(modifiedName)].to_dict()
+				row["rlnSubtomogramPosX"] = imgToCmmCor[imgName][0]
+				row["rlnSubtomogramPosY"] = imgToCmmCor[imgName][1]
+				row["rlnSubtomogramPosZ"] = imgToCmmCor[imgName][2]
+				row["rlnCorrectedCoordsX"] = imgToCmmCor[imgName][3]
+				row["rlnCorrectedCoordsY"] = imgToCmmCor[imgName][4]
+				row["rlnCorrectedCoordsZ"] = imgToCmmCor[imgName][5]
+				row["rlnCoordinateNewX"] = imgToCmmCor[imgName][6]
+				row["rlnCoordinateNewY"] = imgToCmmCor[imgName][7]
+				row["rlnCoordinateNewZ"] = imgToCmmCor[imgName][8]
+				df1 = pd.concat([df1, pd.DataFrame(row)])
+		df = pd.concat([df, df1])
+		df = df.sort_values(by="rlnImageName")
+
 		starfile.write(df, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
 		return
 
