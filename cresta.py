@@ -540,6 +540,31 @@ class Tabs(TabbedPanel):
 			self.ids.pickcoordtext.text = 'Click above to begin.'
 			return
 		return
+	
+	def fastright_pick(self):
+		starf = self.ids.mainstar.text
+		try:
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			self.ids.index2.text = str(len(imageNames))
+		except FileNotFoundError:
+			print("This star file does not exist")
+			return
+		self.ids.pickcoordtext.text = 'Press Pick Coordinates'
+		# increase index by one
+		if int(self.ids.index.text) >= int(self.ids.index2.text) - 10:
+			self.ids.index.text = self.ids.index2.text
+		else:
+			self.ids.index.text = str((int(self.ids.index.text) + 10))
+		try:
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			starfinal = imageNames[int(self.ids.index.text) - 1]
+			self.ids.filenameget.text = starfinal
+		except FileNotFoundError:
+			print("This star file does not exist")
+			self.ids.index.text = str((int(self.ids.index.text) - 1))
+			self.ids.pickcoordtext.text = 'Click above to begin.'
+			return
+		return
 
 	def left_pick(self):
 		try:
@@ -558,6 +583,22 @@ class Tabs(TabbedPanel):
 			print("This star file does not exist")
 			self.ids.index.text = str((int(self.ids.index.text) + 1))
 			self.ids.pickcoordtext.text = 'Click above to begin.'
+		return
+	
+	def fastleft_pick(self):
+		try:
+			starf = self.ids.mainstar.text
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			self.ids.pickcoordtext.text = 'Press Pick Coordinates'
+			# decrease index by one
+			if int(self.ids.index.text) <= 10:
+				self.ids.index.text = '1'
+			else:
+				self.ids.index.text = str((int(self.ids.index.text) - 10))
+			starfinal = imageNames[int(self.ids.index.text) - 1]
+			self.ids.filenameget.text = starfinal
+		except FileNotFoundError:
+			print("This star file does not exist")
 		return
 
 	def note(self):
@@ -1349,7 +1390,36 @@ class Tabs(TabbedPanel):
 			self.ids.visualizefeedback.color = (250, 250, 31, 1)
 			return
 
-		
+	def fastright_visualize(self):
+		starf = self.ids.mainstar.text
+		# set index max
+		try:
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			self.ids.visind2.text = str(len(imageNames))
+		except FileNotFoundError:
+			print('Star file not found')
+			return
+		# check if index is too high
+		if int(self.ids.visind1.text) >= int(self.ids.visind2.text) - 10:
+			self.ids.visind1.text = self.ids.visind2.text
+		# increase index by ten
+		else:
+			self.ids.visind1.text = str(int(self.ids.visind1.text) + 10)
+		# set current filename
+		name = imageNames[int(self.ids.visind1.text) - 1]
+		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		try:
+			if self.indexToVal[int(self.ids.visind1.text)] == "accepted":
+				self.ids.visualizefeedback.text = "Subtomogram Accepted"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+			elif self.indexToVal[int(self.ids.visind1.text)] == "rejected":
+				self.ids.visualizefeedback.text = "Subtomogram Rejected"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+		except KeyError:
+			self.ids.visualizefeedback.text = "View subtomogram"
+			self.ids.visualizefeedback.color = (250, 250, 31, 1)
+			return
+
 	def left_visualize(self):
 		starf = self.ids.mainstar.text
 		# check if index limit reached
@@ -1358,6 +1428,35 @@ class Tabs(TabbedPanel):
 			return
 		# decrease index by one
 		self.ids.visind1.text = str(int(self.ids.visind1.text) - 1)
+		# set current filename
+		try:
+			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
+			name = imageNames[int(self.ids.visind1.text) - 1]
+			self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		except FileNotFoundError:
+			print('Star file not found')
+			self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
+			return
+		try:
+			if self.indexToVal[int(self.ids.visind1.text)] == "accepted":
+				self.ids.visualizefeedback.text = "Subtomogram Accepted"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+			elif self.indexToVal[int(self.ids.visind1.text)] == "rejected":
+				self.ids.visualizefeedback.text = "Subtomogram Rejected"
+				self.ids.visualizefeedback.color = (0,.3,0,1)
+		except KeyError:
+			self.ids.visualizefeedback.text = "View subtomogram"
+			self.ids.visualizefeedback.color = (250, 250, 31, 1)
+			return
+		
+	def fastleft_visualize(self):
+		starf = self.ids.mainstar.text
+		# check if index is too low
+		if int(self.ids.visind1.text) <= 10:
+			self.ids.visind1.text = '1'
+		# decrease index by ten
+		else:
+			self.ids.visind1.text = str(int(self.ids.visind1.text) - 10)
 		# set current filename
 		try:
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]

@@ -825,26 +825,39 @@
 								id: index2
 						BoxLayout:
 							orientation: 'horizontal'
-							size_hint: .8, .8
+							size_hint: .85, .5
 							pos_hint: {'center_x': .5}
-							spacing: 50
+							spacing: 30
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: '<<='
+								on_release: root.fastleft_pick()
+								size_hint: .18, .35
+								pos_hint: {'center_x': .5, 'center_y': .5}
 							Button:
 								background_color: 0.2, 0.6, 0.2, .55
 								text: '<='
 								on_release: root.left_pick()
-								size_hint: .15, .7
+								size_hint: .15, .35
 								pos_hint: {'center_x': .5, 'center_y': .5}
 							Button:
 								background_color: 0.2, 0.6, 0.2, .55
-								text: 'Pick Coordinates'
+								text: 'Pick\nCoordinates'
+								halign: 'center'
 								on_release: root.pick_coord()
-								size_hint: .7, .7
+								size_hint: .6, .7
 								pos_hint: {'center_x': .5, 'center_y': .5}
 							Button:
 								background_color: 0.2, 0.6, 0.2, .55
 								text: '=>'
 								on_release: root.right_pick()
-								size_hint: .15, .7
+								size_hint: .15, .35
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: '=>>'
+								on_release: root.fastright_pick()
+								size_hint: .18, .35
 								pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							text: 'Click above to begin.'
@@ -2086,9 +2099,15 @@
 								id: visind2
 						BoxLayout:
 							orientation: 'horizontal'
-							size_hint: .4, .8
+							size_hint: .5, .8
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							spacing: 50
+							spacing: 30
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: '<<='
+								on_release: root.fastleft_visualize()
+								size_hint: .2, .7
+								pos_hint: {'center_x': .5, 'center_y': .5}
 							Button:
 								background_color: 0.2, 0.6, 0.2, .55
 								text: '<='
@@ -2099,13 +2118,19 @@
 								background_color: 0.2, 0.6, 0.2, .55
 								text: 'View'
 								on_release: root.visualize()
-								size_hint: .7, .7
+								size_hint: .9, .7
 								pos_hint: {'center_x': .5, 'center_y': .5}
 							Button:
 								background_color: 0.2, 0.6, 0.2, .55
 								text: '=>'
 								on_release: root.right_visualize()
 								size_hint: .15, .7
+								pos_hint: {'center_x': .5, 'center_y': .5}
+							Button:
+								background_color: 0.2, 0.6, 0.2, .55
+								text: '=>>'
+								on_release: root.fastright_visualize()
+								size_hint: .2, .7
 								pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							size_hint_y: .2
