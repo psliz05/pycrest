@@ -495,14 +495,21 @@ class Tabs(TabbedPanel):
 			if os.path.exists(cmmdir + '/' + tomoName) == False:
 				os.makedirs(cmmdir + '/' + tomoName)
 			if os.path.exists(cmmdir + '/coord.cmm') == True:
+				# check if cmm file will be overwritten
+				if os.path.exists(cmmdir + '/' + tomoName + '/' + endcmm) == True:
+					statstat = 2
+				else:
+					statstat = 1
 				shutil.move(cmmdir + '/coord.cmm', (cmmdir + '/' + tomoName + '/' + endcmm))
-				statstat = 1
+			# no coordinates saved
 			else:
 				statstat = 0
 
-			# signify whether coordinates have been saved or not
+			# signify whether coordinates have been saved or not, or if they are saved but overwritten
 			if statstat == 1:
 				self.ids.pickcoordtext.text = 'Coords saved.'
+			elif statstat == 2:
+				self.ids.pickcoordtext.text = 'Coords saved — WARNING: file overwritten'
 			else:
 				self.ids.pickcoordtext.text = 'No coords selected.'
 
