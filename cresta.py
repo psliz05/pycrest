@@ -687,12 +687,6 @@ class Tabs(TabbedPanel):
 											file_opt = open(folder + '/' + cutName + '.coordsnew', 'a')
 											file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
 											file_opt.close()
-											file_opt = open(folder + '/' + 'NameCoord.txt', 'a')
-											file_opt.writelines(row['rlnImageName'].iloc[0] + '\n')
-											file_opt.close()
-											file_opt = open(folder + '/' + cutName + '.shift', 'a')
-											file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\t' + row['rlnImageName'].iloc[0] + '\n')
-											file_opt.close()
 			else:
 				# files not in folder
 				return
@@ -1354,7 +1348,7 @@ class Tabs(TabbedPanel):
 			return
 		self.ids.visind2.text = str(len(imageNames))
 		name = imageNames[index - 1]
-		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		self.ids.visualizestep.text = 'Currently on file ' + "/".join(name.split("/")[-3:])
 		fileName = subtomodir + name
 		# run ChimeraX
 		vis = subtomodir + 'visualize.py'
@@ -1384,7 +1378,7 @@ class Tabs(TabbedPanel):
 		self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
 		# set current filename
 		name = imageNames[int(self.ids.visind1.text) - 1]
-		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		self.ids.visualizestep.text = 'Currently on file ' + "/".join(name.split("/")[-3:])
 		try:
 			if self.indexToVal[int(self.ids.visind1.text)] == "accepted":
 				self.ids.visualizefeedback.text = "Subtomogram Accepted"
@@ -1414,7 +1408,7 @@ class Tabs(TabbedPanel):
 			self.ids.visind1.text = str(int(self.ids.visind1.text) + 10)
 		# set current filename
 		name = imageNames[int(self.ids.visind1.text) - 1]
-		self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+		self.ids.visualizestep.text = 'Currently on file ' + "/".join(name.split("/")[-3:])
 		try:
 			if self.indexToVal[int(self.ids.visind1.text)] == "accepted":
 				self.ids.visualizefeedback.text = "Subtomogram Accepted"
@@ -1439,7 +1433,7 @@ class Tabs(TabbedPanel):
 		try:
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			name = imageNames[int(self.ids.visind1.text) - 1]
-			self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+			self.ids.visualizestep.text = 'Currently on file ' + "/".join(name.split("/")[-3:])
 		except FileNotFoundError:
 			print('Star file not found')
 			self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)
@@ -1468,7 +1462,7 @@ class Tabs(TabbedPanel):
 		try:
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			name = imageNames[int(self.ids.visind1.text) - 1]
-			self.ids.visualizestep.text = 'Currently on file ' + name.split("/")[-1]
+			self.ids.visualizestep.text = 'Currently on file ' + "/".join(name.split("/")[-3:])
 		except FileNotFoundError:
 			print('Star file not found')
 			self.ids.visind1.text = str(int(self.ids.visind1.text) + 1)

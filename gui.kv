@@ -511,18 +511,18 @@
 					pos_hint: {'center_x': .5, 'center_y': .5}
 					CheckBox:
 						group: 'g6'
-						id: mrcfilter
+						id: starfilter
 						state: 'down'
 					Label:
-						text: 'Subtomogram Directory'
+						text: 'Star File'
 						bold: True
 					Label:
 						size_hint_x: .3
 					CheckBox: 
 						group: 'g6'
-						id: starfilter
+						id: mrcfilter
 					Label:
-						text: 'Star File'
+						text: 'Subtomogram Directory'
 						bold: True
 			BoxLayout:
 				canvas:
@@ -879,7 +879,7 @@
 						Label:
 							halign: 'center'
 							color: (0,0,0,1)
-							text: 'Click “Pick Coordinates” to open ChimeraX.\nNavigate to the “Markers” menu, select a mode\nin the Place markers submenu (for example, Surface),\nand then Right Click to place a coordinate.\nSelect “Move” to adjust the location of the coordinate.\nKeep Right Clicking for additional coordinates.\n\nWhen finished, save the coord file using\ncommand "save coord.cmm". Then exit Chimera.\n\nOptionally, enter text and press "Add Note" to save\ninformation after exiting each subtomogram.\n\nPress the right arrow to progress; choose\n"Pick Coordinates" to open that subtomogram.\n\nWhen you are done with all of your picks,\npress the "Create .coordsnew" button\nto create new coordinate files.'
+							text: 'Click “Pick Coordinates” to open ChimeraX.\nNavigate to the “Markers” menu, select a mode\nin the Place markers submenu (for example, Surface),\nand then Right Click to place a coordinate.\nSelect “Move” to adjust the location of the coordinate.\nKeep Right Clicking for additional coordinates.\n\nWhen finished, save the coord file using\ncommand "save coord.cmm". Then exit Chimera.\n\nOptionally, enter text and press "Add Note" to save\ninformation after exiting each subtomogram.\n\nPress the right arrow to progress; choose\n"Pick Coordinates" to open that subtomogram.\n\nWhen you are done with all of your picks,\npress the "RELION Re-extraction" button\nto create new coordinate files.'
 							pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						text: ' '
@@ -923,11 +923,11 @@
 					size_hint_y: .04
 				BoxLayout:
 					orientation: 'horizontal'
-					size_hint: .2, .18
+					size_hint: .23, .18
 					pos_hint: {'center_x': .5, 'center_y': .5}
 					Button:
 						background_color: 0, 0, 1, .7
-						text: 'Create .coordsnew'
+						text: 'RELION Re-extraction'
 						on_release: root.create_coords()
 				Label:
 					text: ' '
