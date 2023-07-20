@@ -1,5 +1,14 @@
 #:kivy 2.1.0
 #:import Factory kivy.factory.Factory
+<StarFile@Popup>
+	id: starfilepath
+	size_hint: .75, .55
+	title: 'Star File Path'
+	BoxLayout:
+		orientation: 'vertical'
+		FileChooserIconView:
+			id: starfilechoose
+			on_selection: starfilepath.selected(starfilechoose.selection)
 <FilterInfo@Popup>
 	size_hint: .75, .55
 	title: 'Filtering'
@@ -229,23 +238,26 @@
 								orientation: 'vertical'
 								size_hint: .2, .5
 								pos_hint: {'center_x': .5, 'center_y': .5}
-								CheckBox:
-									state: 'down'
-									id: starcheck
-									on_press: root.triggerstar()
-								Label:
-									text: 'cwd'
+								# CheckBox:
+								# 	state: 'down'
+								# 	id: starcheck
+								# 	on_press: root.triggerstar()
+								# Label:
+								# 	text: 'cwd'
+								Button:
+									text: 'file'
+									on_press: Factory.StarFile().open()
+							# Label:
+							# 	text: '+'
+							# 	size_hint_x: .1
+							# 	pos_hint: {'center_x': .5, 'center_y': .5}
 							Label:
-								text: '+'
-								size_hint_x: .1
-								pos_hint: {'center_x': .5, 'center_y': .5}
-							TextInput:
 								text: '/Test_Data/test_2018filt.star'
 								size_hint: 1.5, .55
 								font_size: 25
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstar
-								on_text: root.triggerstar()
+								# on_text: root.triggerstar()
 						Label:
 							size_hint_y: .06
 							font_size: 25

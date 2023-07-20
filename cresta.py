@@ -47,6 +47,7 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
 from kivy.uix.tabbedpanel import TabbedPanel
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
 Window.size = (900,800)
@@ -61,6 +62,11 @@ class Cresta(App):
 		self.title = 'CrESTA'
 		return Tabs()
 
+# class StarFile(BoxLayout):
+# 	def starchoose(self, starfilechoose):
+# 		selectedStar = starfilechoose.selection and starfilechoose.selection[0] or None
+# 		if starfilechoose:
+# 			self.ids.mainstar.text = selectedStar
 #giving buttons functionality
 class Tabs(TabbedPanel):
 	
