@@ -1,14 +1,35 @@
 #:kivy 2.1.0
 #:import Factory kivy.factory.Factory
-<StarFile@Popup>
-	id: starfilepath
-	size_hint: .75, .55
-	title: 'Star File Path'
-	BoxLayout:
-		orientation: 'vertical'
-		FileChooserIconView:
-			id: starfilechoose
-			on_selection: starfilepath.selected(starfilechoose.selection)
+<SaveFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+			size_hint_y: .1
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.save(filechooser.path, text_input.text)
+
 <FilterInfo@Popup>
 	size_hint: .75, .55
 	title: 'Filtering'
@@ -246,7 +267,7 @@
 								# 	text: 'cwd'
 								Button:
 									text: 'file'
-									on_press: Factory.StarFile().open()
+									on_press: root.show_save()
 							# Label:
 							# 	text: '+'
 							# 	size_hint_x: .1

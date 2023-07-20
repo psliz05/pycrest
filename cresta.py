@@ -41,13 +41,14 @@ from kivy.properties import ColorProperty, NumericProperty, ObjectProperty, Stri
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
-from kivy.uix.filechooser import FileChooser
+from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
 Window.size = (900,800)
@@ -62,21 +63,35 @@ class Cresta(App):
 		self.title = 'CrESTA'
 		return Tabs()
 
-# class StarFile(BoxLayout):
-# 	def starchoose(self, starfilechoose):
-# 		selectedStar = starfilechoose.selection and starfilechoose.selection[0] or None
-# 		if starfilechoose:
-# 			self.ids.mainstar.text = selectedStar
+class SaveFinder(FloatLayout):
+    save = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+    
 #giving buttons functionality
 class Tabs(TabbedPanel):
 	
 	label = Label(text="Sigma")
 	label2 = Label(text=" ", size_hint_y=.8)
 	sigma = TextInput(text="5", multiline=False, size_hint_x=.12, size_hint_y=1.9, pos_hint={'center_x': .5, 'center_y': .5})
-
+	
 	def cwdempty(self):
 		if self.ids.maincwd.text == '':
 			self.ids.maincwd.text = os.getcwd()
+
+	def dismiss_popup(self):
+		self._popup.dismiss()
+
+	def show_save(self):
+		content = SaveFinder(save=self.save, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Star File", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
+
+	def save(self, path, filename):
+		starfpath = filename
+		self.ids.mainstar.text = starfpath
+		self.dismiss_popup()
 
 	def starsave(self):
 		if self.ids.mainstar.text[0] !=  '/':
