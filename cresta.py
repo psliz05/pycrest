@@ -6,6 +6,7 @@ kivy.require('2.1.0')
 #python packages
 import os, subprocess
 from subprocess import call
+from threading import Thread
 import re
 import shutil
 import time
@@ -1196,7 +1197,8 @@ class Tabs(TabbedPanel):
 			maskh1 = mrcfile.read(maskname)
 			posNew = []
 			aa = time.perf_counter()
-			for i in range(len(fileNames)):
+			# for i in range(len(fileNames)):
+			def processLoop(i):
 				mrcName = fileNames[i].split('/')[-1]
 				mrcDirec = "/".join(fileNames[i].split('/')[:-1])
 				reextractDir = mrcDirec + '/masked/'
@@ -1212,6 +1214,19 @@ class Tabs(TabbedPanel):
 					print(f"Re-extraction complete for {mrcName} in {t1[1]} minutes and {t1[2]} seconds" )
 				else:
 					print(f"Re-extraction complete for {mrcName} in {t1[2]} seconds" )
+			# thread in batches of 5 to optimize runtime
+			threads = []
+			batch_size = 5
+			fileLen = range(len(fileNames))
+			batches = [fileLen[i:i+batch_size] for i in range(0, len(fileNames), batch_size)]
+			for batch in batches:
+				for i in batch:
+					threads.append(Thread(target = processLoop, args = (i,)))
+					threads[i].start()
+				for i in batch:
+					threads[i].join()
+			for thread in threads:
+				thread.join()
 			bb = time.perf_counter()
 			t2 = str(timedelta(seconds = bb-aa)).split(":")
 			print(f'Total re-extraction time: {t2[1]} minutes and {t2[2]} seconds')
