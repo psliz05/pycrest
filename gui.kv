@@ -120,6 +120,36 @@
                 text: "Save"
                 on_release: root.mrcdsave(filechooser.path, text_input.text)
 
+<ParStarFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+			size_hint_y: .05
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.parstardsave(filechooser.path, text_input.text)
+
 <MaskFinder>:
     text_input: text_input
     BoxLayout:
@@ -157,6 +187,19 @@
 		Label:
 			halign: 'center'
 			text: "Filtering either by a subtomogram directory or by a star file.\nPx size (A) must be entered on 'Master Key.'\n\nFor filtering by a subtomogram directory, choose the path of the folder\ncontaining the mrc files on 'master key.' (mrc directory)\n\nFor filtering by a star file, choose the 'unfiltered star file path' and the \nsubtomogram directory path (folder that points to mrc file paths in star file)\nin the master key.\n\nResults are stored in the 'filtered' folder.\nA new star file is created if filtering is done by star file."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
+<PickInfo@Popup>
+	size_hint: .7, .4
+	title: 'Coordinate Picker'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Requires 'Filtered Star File', subtomogram directory,\nChimeraX path, and Px size (A) to be chosen/entered on 'Master Key.'\n\nFollow the provided directions while using ChimeraX to ensure a smooth process."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -357,7 +400,7 @@
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstar
 						Button:
-							background_color: 0.2, 0.6, 0.2, .55
+							background_color: 0, 1.2, 2, .5
 							text: 'Choose Unfiltered Star File'
 							on_release: root.show_star()
 							size_hint: .4, .12
@@ -376,7 +419,7 @@
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstarfilt
 						Button:
-							background_color: 0.2, 0.6, 0.2, .55
+							background_color: 0, 1.2, 2, .5
 							text: 'Choose Filtered Star File'
 							on_release: root.show_starfilt()
 							size_hint: .4, .12
@@ -411,7 +454,7 @@
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainsubtomo
 						Button:
-							background_color: 0.2, 0.6, 0.2, .55
+							background_color: 0, 1.2, 2, .5
 							text: 'Choose Subtomogram Path'
 							on_release: root.show_subtomo()
 							size_hint: .45, .12
@@ -446,7 +489,7 @@
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainmrc
 						Button:
-							background_color: 0.2, 0.6, 0.2, .55
+							background_color: 0, 1.2, 2, .5
 							text: 'Choose Mrc Path'
 							on_release: root.show_mrc()
 							size_hint: .3, .12
@@ -520,7 +563,7 @@
 							on_release: root.savedata()
 							size_hint: .4, .4
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							background_color: 0, 1.2, 2, .5
+							background_color: 0.2, 0.6, 0.2, .55
 						Label:
 							size_hint_y: .1
 					BoxLayout:
@@ -550,7 +593,7 @@
 							on_release: root.pulldata()
 							size_hint: .4, .4
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							background_color: 0, 1.2, 2, .5
+							background_color: 0.2, 0.6, 0.2, .55
 						Label:
 							size_hint_y: .1
 	TabbedPanelItem:
@@ -861,6 +904,12 @@
 						orientation: 'vertical'
 						Label:
 							size_hint_y: .25
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.PickInfo().open()
+							size_hint: .3, .15
+							pos_hint: {'center_x': .5, 'center_y': .5}
 						BoxLayout:
 							orientation: 'horizontal'
 							size_hint: .9, .6
@@ -1034,19 +1083,21 @@
 				spacing: 15
 				Label:
 					size_hint_y: .05
-				TextInput:
+				BoxLayout:
+					orientation: 'vertical'
+					size_hint: .7, .25
+					pos_hint: {'center_x': .5, 'center_y': .5}
 					canvas:
 						Color:
-							rgba: 1, 1, 1, .6
+							rgba: 1, 1, 1, .7
 						Rectangle:
 							pos: self.pos
 							size: self.size
-					multiline: True
-					readonly: True
-					size_hint_y: .2
-					size_hint_x: .9
-					pos_hint: {'center_x': .5, 'center_y': .6}
-					text: 'Select which output data you would like returned using checkbox and column input.\nThe star file entered on this tab is unique from the star file on the Master Key tab.'
+					Label:
+						halign: 'center'
+						color: (0,0,0,1)
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						text: 'Choose a Star File to parse. Select which output data you would like returned\nusing coordinate checkbox and column input.\nThe star file chosen on this tab is unique from the star file on the Master Key tab.\nResults are organized by tomogram and stored within the /newcoord directory,\nin the same folder containing the star file.'
 				Label:
 					text: 'Parsing'
 					color: (0,0,0,1)
@@ -1101,34 +1152,34 @@
 					Label:
 						text: 'Star file path:'
 						size_hint_y: .15
+						color: (0,0,0,1)
+						bold: True
 					BoxLayout:
 						orientation: 'horizontal'
 						size_hint: .7, .2
 						pos_hint: {'center_x': .5, 'center_y': .5}
-						TextInput:
-							text: '/Test_Data/test_2018filt.star'
+						Label:
+							text: 'Choose Star File Path'
 							size_hint: 1.5, .55
+							color: (0,0,.6,1)
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
 							id: restar
-					Label:
-						text: 'Output path:'
-						size_hint_y: .15
+					Button:
+						background_color: 0, 1.2, 2, .5
+						text: 'Choose Star File'
+						on_release: root.show_parstar()
+						size_hint: .2, .12
+						pos_hint: {'center_x': .5, 'center_y': .5}
 					BoxLayout:
 						orientation: 'horizontal'
-						size_hint: .7, .2
+						size_hint: .7, .15
 						pos_hint: {'center_x': .5, 'center_y': .5}
-						TextInput:
-							text: '/newcoord'
-							size_hint: 1.5, .55
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-							id: reout
 					Button:
 						background_color: 0.2, 0.6, 0.2, .55
 						text: 'Parse star file'
 						on_release: root.parse()
-						size_hint: .25, .12
+						size_hint: .25, .2
 						pos_hint: {'center_x': .5}
 					Label:
 						size_hint_y: .1
@@ -1485,7 +1536,7 @@
 							color: (0,0,.6,1)
 							id: maskpath
 						Button:
-							background_color: 0.2, 0.6, 0.2, .55
+							background_color: 0, 1.2, 2, .5
 							text: 'Choose Mask File'
 							on_release: root.show_mask()
 							size_hint: .35, .65
@@ -2181,7 +2232,7 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							size_hint: .4, .8
 							Button:
-								background_color: 0, 1.2, 2, .5
+								background_color: 0, 0, 1, .7
 								text: 'accept'
 								on_release: root.saveVisual()
 								size_hint: .6, .7
@@ -2189,7 +2240,7 @@
 							Label:
 								size_hint_x: .1
 							Button:
-								background_color: 0, 1.2, 2, .5
+								background_color: 0, 0, 1, .7
 								text: "reject"
 								on_release: root.noSaveVisual()
 								size_hint: .6, .7

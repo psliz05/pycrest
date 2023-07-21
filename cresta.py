@@ -83,6 +83,11 @@ class MrcFinder(FloatLayout):
     mrcdsave = ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
+
+class ParStarFinder(FloatLayout):
+	parstardsave = ObjectProperty(None)
+	text_input = ObjectProperty(None)
+	cancel = ObjectProperty(None)
     
 class MaskFinder(FloatLayout):
     maskdsave = ObjectProperty(None)
@@ -114,7 +119,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
 			else:
 				self.ids.mainstar.text = starfpath
-				self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
+				self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1]) + '/'
 		elif len(starfpath) == 0:
 			self.ids.mainstar.text = 'Choose Unfiltered Star File Path'
 		self.dismiss_popup()
@@ -133,7 +138,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstarfilt.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
 			else:
 				self.ids.mainstarfilt.text = starfiltpath
-				self.ids.mainsubtomo.text = "/".join(self.ids.mainstarfilt.text.split("/")[:-1])
+				self.ids.mainsubtomo.text = "/".join(self.ids.mainstarfilt.text.split("/")[:-1]) + '/'
 		elif len(starfiltpath) == 0:
 			self.ids.mainstarfilt.text = 'Choose Filtered Star File Path'
 		self.dismiss_popup()
@@ -166,6 +171,24 @@ class Tabs(TabbedPanel):
 			self.ids.mainmrc.text = mrcpath + '/'
 		elif len(mrcpath) == 0:
 			self.ids.mainmrc.text = 'Choose Mrc Directory'
+		self.dismiss_popup()
+
+# parse star file save
+	def show_parstar(self):
+		content = ParStarFinder(parstardsave=self.parstarsave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Parser Star File", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
+
+	def parstarsave(self, path, filename):
+		parstarpath = filename
+		if len(parstarpath) != 0:
+			if parstarpath.endswith('.star') == False:
+				self.ids.restar.text = 'Not a ".star" file — Choose Star File Path'
+			else:
+				self.ids.restar.text = parstarpath
+		elif len(parstarpath) == 0:
+			self.ids.restar.text = 'Choose Star File Path'
 		self.dismiss_popup()
 
 # mask path save
@@ -806,15 +829,12 @@ class Tabs(TabbedPanel):
 				df1 = pd.concat([df1, pd.DataFrame(row)])
 		df = pd.concat([df, df1])
 		df = df.sort_values(by="rlnImageName")
-
 		starfile.write(df, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
 		return
 
 	def parse(self):
 		starpar = self.ids.restar.text
-		if self.ids.reout.text[-1] != '/':
-			self.ids.reout.text = self.ids.reout.text + '/'
-		outpar = self.ids.reout.text
+		outpar = "/".join(self.ids.restar.text.split("/")[:-1]) + '/newcoord/'
 		if os.path.exists(outpar) == False:
 			os.mkdir(outpar)
 		xstar = '_rlnCoordinateX'
