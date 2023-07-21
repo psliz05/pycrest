@@ -120,6 +120,35 @@
                 text: "Save"
                 on_release: root.mrcdsave(filechooser.path, text_input.text)
 
+<MaskFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+			size_hint_y: .05
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.maskdsave(filechooser.path, text_input.text)
 <FilterInfo@Popup>
 	size_hint: .75, .55
 	title: 'Filtering'
@@ -127,7 +156,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Filtering either by a subtomogram directory or by a star file.\nPx size (A) must be entered on 'Master Key.'\n\nFor filtering by a subtomogram directory, enter the full path of the folder\ncontaining the mrc files on 'master key.' (mrc directory)\n\nFor filtering by a star file, enter the full star file path and the \nsubtomogram directory path (folder that points to mrc file paths in star file)\nin the master key.\n\nResults are stored in the 'filtered' folder.\nA new star file is created if filtering is done by star file."
+			text: "Filtering either by a subtomogram directory or by a star file.\nPx size (A) must be entered on 'Master Key.'\n\nFor filtering by a subtomogram directory, choose the path of the folder\ncontaining the mrc files on 'master key.' (mrc directory)\n\nFor filtering by a star file, choose the 'unfiltered star file path' and the \nsubtomogram directory path (folder that points to mrc file paths in star file)\nin the master key.\n\nResults are stored in the 'filtered' folder.\nA new star file is created if filtering is done by star file."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -140,7 +169,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Subtomogram information is taken from star file and subtomogram\ndirectory paths, both specified in the Master Key.\n\nFull path of a mask.mrc file must be entered below.\n\nResults are stored in the 'masked' folder\nin each subtomogram directory."
+			text: "Subtomogram information is taken from 'unfiltered star file' and subtomogram\ndirectory paths, both specified in the Master Key.\n\nFull path of a mask.mrc file must be chosen below.\n\nResults are stored in the 'masked' folder\nin each subtomogram directory."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -153,7 +182,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Applies a 180 degree flip around the specified axis\nto a random subset of subtomograms in master key star file.\n\nA new star file with an additional column is produced:\n1 if the particular subtomogram has been flipped,\nor 0 if kept in the original orientation.\n\nAs an example, if a contacting vesicle pair is oriented such that\nthe axis between the centers of the vesicles points in the z direction,\na flip around the x or the y axis will change the orientation\nof the vesicle pair by 180 degrees."
+			text: "Applies a 180 degree flip around the specified axis\nto a random subset of subtomograms in master key unfiltered star file.\n\nA new star file with an additional column is produced:\n1 if the particular subtomogram has been flipped,\nor 0 if kept in the original orientation.\n\nAs an example, if a contacting vesicle pair is oriented such that\nthe axis between the centers of the vesicles points in the z direction,\na flip around the x or the y axis will change the orientation\nof the vesicle pair by 180 degrees."
 		Button:
 			size_hint: .5, .22
 			pos_hint: {'center_x': .5}
@@ -166,7 +195,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Calculates the cross-correlation coefficient between the specified volumes,\n and using the specified missing wedge file.\n\nStar file containing Volume 2 must be entered on master key.\n\nThe cross-correlation coefficient is displayed in the log file\nand printed in the terminal."
+			text: "Calculates the cross-correlation coefficient between the specified volumes,\n and using the specified missing wedge file.\n\nUnfiltered Star file containing Volume 2 must be entered on master key.\n\nThe cross-correlation coefficient is displayed in the log file\nand printed in the terminal."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -179,7 +208,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Calculates cross-correlation coefficients between\nthe subtomograms specified in the star file (from Master Key)\nwith the specified volume1 and using the specified missing wedge file.\n\nThe cross-correlation coefficients are displayed in the log file.\n\nIt also produces two new star files containing the subtomograms\nwith cross-correlation coefficients > and <= the threshold, respectively."
+			text: "Calculates cross-correlation coefficients between\nthe subtomograms specified in the unfiltered star file (from Master Key)\nwith the specified volume1 and using the specified missing wedge file.\n\nThe cross-correlation coefficients are displayed in the log file.\n\nIt also produces two new star files containing the subtomograms\nwith cross-correlation coefficients > and <= the threshold, respectively."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -192,7 +221,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Apply rotations and translations (optional) to the subtomograms\nas specified in the star file path from the Master Key.\n\nRotated/translated subtomograms are stored in\nthe “rottrans” folder in each subtomogram directory.\n\nThis method is useful to visually inspect the rotated subtomograms."
+			text: "Apply rotations and translations (optional) to the subtomograms\nas specified in the unfiltered star file path from the Master Key.\n\nRotated/translated subtomograms are stored in\nthe “rottrans” folder in each subtomogram directory.\n\nThis method is useful to visually inspect the rotated subtomograms."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -205,7 +234,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Apply specified rotation to subtomograms in a\nstar file (specified on master key). Subtomogram directory must also\nbe specified on the master key.\n\nTranslation values are taken from the star file, while rotations are not.\n\nResults are stored in 'rottrans' folder in each subtomogram directory."
+			text: "Apply specified rotation to subtomograms in an\nunfiltered star file (specified on master key). Subtomogram directory must also\nbe specified on the master key.\n\nTranslation values are taken from the unfiltered star file, while rotations are not.\n\nResults are stored in 'rottrans' folder in each subtomogram directory."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -218,7 +247,7 @@
 		orientation: 'vertical'
 		Label:
 			halign: 'center'
-			text: "Enter Star File, Subtomogram Directory, and ChimeraX\npaths on 'master key'.\nIt is recommended to use filtered subtomograms (see Filtering tab).\n\nPress view to open the first subtomogram.\nAfter viewing, close Chimera, and press either 'accept' or 'reject'.\n\nSaved files will be copied into an 'accepted' folder,\nand added to an _accepted.star star file.\n\nRejected files will be added to a _rejected.star star file.\n\nUse the arrows to move between subtomograms."
+			text: "Choose Filtered Star File, Subtomogram Directory, and ChimeraX\npaths on 'master key'.\n\nPress view to open the first subtomogram.\nAfter viewing, close Chimera, and press either 'accept' or 'reject'.\n\nSaved files will be copied into an 'accepted' folder,\nand added to an _accepted.star star file.\n\nRejected files will be added to a _rejected.star star file.\n\nUse the arrows to move between subtomograms."
 		Button:
 			size_hint: .5, .25
 			pos_hint: {'center_x': .5}
@@ -255,14 +284,17 @@
 					pos: self.pos
 					size: self.size
 			GridLayout:
-				cols:2
+				cols:3
 				rows:2
-				size_hint: .35, .1
+				size_hint: .5, .1
 				pos_hint: {'center_x': .5, 'center_y': .5}
+				spacing: 20, 0
 				Label:
 					text: 'Box size (px)'
 				Label:
 					text: 'Px size (A)'
+				Label:
+					text: 'Threads/CPU Count'
 				TextInput:
 					id: px1
 					text: '256'
@@ -270,6 +302,10 @@
 				TextInput:
 					id: A1
 					text: '2.62'
+					multiline: False
+				TextInput:
+					id: CPU
+					text: '5'
 					multiline: False
 			BoxLayout:
 				orientation: 'vertical'
@@ -1434,23 +1470,28 @@
 							size_hint: .22, .5
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
+							size_hint_y: .8
+						Label:
 							text: 'Mask path'
-						TextInput:
-							text: '/Users/.../.../mask.mrc'
+							bold: True
+							color: (0,0,0,1)
+							font: 30
+							size_hint_y: .6
+						Label:
+							text: 'Choose Mask Path (mask.mrc)'
 							size_hint_x: .9
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
+							color: (0,0,.6,1)
 							id: maskpath
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Choose Mask File'
+							on_release: root.show_mask()
+							size_hint: .35, .65
+							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
-							text: ''
-							color: (.6,0,.6,1)
-							font_size: 28
-							size_hint_y: .55
-						Label:
-							text: ''
-							color: (.6,0,.6,1)
-							font_size: 28
-							size_hint_y: .55
+							size_hint_y: 1
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
 							text: 'Re-extract'

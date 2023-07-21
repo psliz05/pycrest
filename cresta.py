@@ -84,6 +84,11 @@ class MrcFinder(FloatLayout):
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
     
+class MaskFinder(FloatLayout):
+    maskdsave = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+    
 #giving buttons functionality
 class Tabs(TabbedPanel):
 	
@@ -109,6 +114,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
 			else:
 				self.ids.mainstar.text = starfpath
+				self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
 		elif len(starfpath) == 0:
 			self.ids.mainstar.text = 'Choose Unfiltered Star File Path'
 		self.dismiss_popup()
@@ -127,6 +133,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstarfilt.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
 			else:
 				self.ids.mainstarfilt.text = starfiltpath
+				self.ids.mainsubtomo.text = "/".join(self.ids.mainstarfilt.text.split("/")[:-1])
 		elif len(starfiltpath) == 0:
 			self.ids.mainstarfilt.text = 'Choose Filtered Star File Path'
 		self.dismiss_popup()
@@ -134,7 +141,7 @@ class Tabs(TabbedPanel):
 # subtomogram directory save
 	def show_subtomo(self):
 		content = SubtomoFinder(subtomodsave=self.subtomosave, cancel=self.dismiss_popup)
-		self._popup = Popup(title="Save Star File", content=content,
+		self._popup = Popup(title="Save Subtomogram Directory", content=content,
                             size_hint=(0.9, 0.9))
 		self._popup.open()
 
@@ -149,7 +156,7 @@ class Tabs(TabbedPanel):
 # mrc directory save
 	def show_mrc(self):
 		content = MrcFinder(mrcdsave=self.mrcsave, cancel=self.dismiss_popup)
-		self._popup = Popup(title="Save Star File", content=content,
+		self._popup = Popup(title="Save Mrc Directory", content=content,
                             size_hint=(0.9, 0.9))
 		self._popup.open()
 
@@ -159,6 +166,24 @@ class Tabs(TabbedPanel):
 			self.ids.mainmrc.text = mrcpath + '/'
 		elif len(mrcpath) == 0:
 			self.ids.mainmrc.text = 'Choose Mrc Directory'
+		self.dismiss_popup()
+
+# mask path save
+	def show_mask(self):
+		content = MaskFinder(maskdsave=self.masksave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Mask Path", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
+
+	def masksave(self, path, filename):
+		maskpath = filename
+		if len(maskpath) != 0:
+			if maskpath.endswith('.mrc') == False:
+				self.ids.maskpath.text = 'Not a ".mrc" file — Choose Mask Path'
+			else:
+				self.ids.maskpath.text = maskpath
+		elif len(maskpath) == 0:
+			self.ids.maskpath.text = 'Choose Mask Path'
 		self.dismiss_popup()
 
 	# save project info
@@ -333,10 +358,13 @@ class Tabs(TabbedPanel):
 
 			if wienerbutton == False and gaussianbutton == False:
 				print("At least one option needs to be selected.")
-			imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
 		#	wiener
 			if wienerbutton == True:
 				if starButton:
+					if starf.endswith('.star') == False:
+						print('Must use proper .star file')
+						return
+					imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
 					for fileName in imageFileNames:
 						# create folder
 						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
@@ -412,6 +440,10 @@ class Tabs(TabbedPanel):
 			if gaussianbutton == True:
 				from scipy.ndimage import gaussian_filter
 				if starButton:
+					if starf.endswith('.star') == False:
+						print('Must use proper .star file')
+						return
+					imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
 					for fileName in imageFileNames:
 						# create folder
 						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
@@ -1222,9 +1254,9 @@ class Tabs(TabbedPanel):
 					print(f"Re-extraction complete for {mrcName} in {t1[1]} minutes and {t1[2]} seconds" )
 				else:
 					print(f"Re-extraction complete for {mrcName} in {t1[2]} seconds" )
-			# thread in batches of 5 to optimize runtime
+			# thread in batches to optimize runtime
 			threads = []
-			batch_size = 5
+			batch_size = int(self.ids.CPU.text)
 			fileLen = range(len(fileNames))
 			batches = [fileLen[i:i+batch_size] for i in range(0, len(fileNames), batch_size)]
 			for batch in batches:
