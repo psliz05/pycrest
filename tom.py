@@ -20,6 +20,30 @@ so_file = os.getcwd() + "/rot3d.so"
 rot_function = CDLL(so_file)
 
 # Wiener filter functions
+def wienergraph(angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton):
+    highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
+    highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
+    highpass = 1 - np.cos(highpass)
+
+    snr = np.exp((np.arange(0, -1 - (1/2047), -1 / 2047)) * snrfalloff * 100 / angpix) * 1000 * highpass
+    if phasebutton == True:
+        ctf = np.abs(ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
+    else:
+        ctf = (ctf1d(2048, angpix * 1e-10, voltage, cs, -defocus * 1e-6, envelope, 0, bfactor))
+
+    wiener = []
+    for c, s in zip(ctf, snr):
+        if s == 0:
+            v = 0
+        else:
+            v = c / (c * c + 1 / s)
+        wiener.append(v)
+    plt.close()
+    plt.plot(np.arange(0, 1 + 1 / 2047, 1 / 2047), wiener)
+    plt.grid(True)
+    plt.title('Wiener Function')
+    plt.ylabel('Wiener Filter Function')
+
 def deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton):
     highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
     highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
@@ -38,12 +62,6 @@ def deconv_tomo(vol, angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, 
         else:
             v = c / (c * c + 1 / s)
         wiener.append(v)
-
-    plt.close()
-    plt.plot(np.arange(0, 1 + 1 / 2047, 1 / 2047), wiener)
-    plt.grid(True)
-    plt.title('Wiener Function')
-    plt.ylabel('Wiener Filter Function')
 
     s1 = -np.floor(vol.shape[0] / 2)
     f1 = s1 + vol.shape[0] - 1

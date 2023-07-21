@@ -384,11 +384,9 @@ class Tabs(TabbedPanel):
 		#	wiener
 			if wienerbutton == True:
 				if starButton:
-					if starf.endswith('.star') == False:
-						print('Must use proper .star file')
-						return
 					imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
-					for fileName in imageFileNames:
+					def wienerLoop(i):
+						fileName = imageFileNames[i]
 						# create folder
 						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
 						filterout = subtomodir + folderPath + 'filtered/'
@@ -400,7 +398,6 @@ class Tabs(TabbedPanel):
 
 						# read .mrc file and apply filter
 						mrc = mrcfile.read(fullFilePath)
-						
 						subtomo_filt = tom.deconv_tomo(mrc, angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
 						subtomo_filt = subtomo_filt.astype('float32')
 
@@ -412,6 +409,23 @@ class Tabs(TabbedPanel):
 						with mrcfile.open(newFileName, 'r+') as mrc:
 							header = mrc.header
 						header.cella = (angpix, angpix, angpix)
+					
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(imageFileNames))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(imageFileNames), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = wienerLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
+
+					# make wiener graph
+					tom.wienergraph(angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
 
 					#constructs star file
 					star_data = starfile.read(starf)
@@ -433,6 +447,7 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addWiener(x))
 					star_data["particles"] = df
 					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
+					print('Wiener Filtering by Star File Complete\n')
 
 				elif mrcButton:
 					# create folder
@@ -441,7 +456,8 @@ class Tabs(TabbedPanel):
 						os.mkdir(filterout)
 					# apply filter to all .mrc files in the folder
 					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-					for f in myFiles:
+					def wienerMrcLoop(i):
+						f = myFiles[i]
 						fullFileName = os.path.join(direct, f)
 						print('Now filtering ' + fullFileName)
 
@@ -456,6 +472,23 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+					
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(myFiles))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(myFiles), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = wienerMrcLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
+					# make wiener graph
+					tom.wienergraph(angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
+					print('Wiener Filtering by Subtomogram Directory Complete\n')
 
 				plt.show(block=False)
 
@@ -467,7 +500,8 @@ class Tabs(TabbedPanel):
 						print('Must use proper .star file')
 						return
 					imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
-					for fileName in imageFileNames:
+					def gaussianLoop(i):
+						fileName = imageFileNames[i]
 						# create folder
 						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
 						filterout = subtomodir + folderPath + 'filtered/'
@@ -486,6 +520,20 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(imageFileNames))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(imageFileNames), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = gaussianLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
 
 					#constructs star file
 					star_data = starfile.read(starf)
@@ -507,6 +555,8 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addGaussian(x))
 					star_data["particles"] = df
 					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
+					print('Gaussian Filtering by Star File Complete\n')
+
 				elif mrcButton:
 					# create folder
 					filterout = direct + 'filtered/'
@@ -514,7 +564,8 @@ class Tabs(TabbedPanel):
 						os.mkdir(filterout)
 					# apply filter to all .mrc files in the folder
 					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-					for f in myFiles:
+					def gaussianMrcLoop(i):
+						f = myFiles[i]
 						fullFileName = os.path.join(direct, f)
 						print('Now filtering ' + fullFileName)
 
@@ -527,6 +578,21 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+					
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(myFiles))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(myFiles), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = gaussianMrcLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
+					print('Gaussian Filtering by Subtomogram Directory Complete\n')
 
 		except FileNotFoundError:
 			print("This directory does not exist")
