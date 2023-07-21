@@ -105,7 +105,10 @@ class Tabs(TabbedPanel):
 	def starsave(self, path, filename):
 		starfpath = filename
 		if len(starfpath) != 0:
-			self.ids.mainstar.text = starfpath
+			if starfpath.endswith('.star') == False:
+				self.ids.mainstar.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
+			else:
+				self.ids.mainstar.text = starfpath
 		elif len(starfpath) == 0:
 			self.ids.mainstar.text = 'Choose Unfiltered Star File Path'
 		self.dismiss_popup()
@@ -120,7 +123,10 @@ class Tabs(TabbedPanel):
 	def starfiltsave(self, path, filename):
 		starfiltpath = filename
 		if len(starfiltpath) != 0:
-			self.ids.mainstarfilt.text = starfiltpath
+			if starfiltpath.endswith('.star') == False:
+				self.ids.mainstarfilt.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
+			else:
+				self.ids.mainstarfilt.text = starfiltpath
 		elif len(starfiltpath) == 0:
 			self.ids.mainstarfilt.text = 'Choose Filtered Star File Path'
 		self.dismiss_popup()
