@@ -63,8 +63,24 @@ class Cresta(App):
 		self.title = 'CrESTA'
 		return Tabs()
 
-class SaveFinder(FloatLayout):
-    save = ObjectProperty(None)
+# classes used to save filechooser selections
+class StarFinder(FloatLayout):
+	stardsave = ObjectProperty(None)
+	text_input = ObjectProperty(None)
+	cancel = ObjectProperty(None)
+
+class StarFiltFinder(FloatLayout):
+	stardfiltsave = ObjectProperty(None)
+	text_input = ObjectProperty(None)
+	cancel = ObjectProperty(None)
+    
+class SubtomoFinder(FloatLayout):
+    subtomodsave = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+
+class MrcFinder(FloatLayout):
+    mrcdsave = ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
     
@@ -74,104 +90,85 @@ class Tabs(TabbedPanel):
 	label = Label(text="Sigma")
 	label2 = Label(text=" ", size_hint_y=.8)
 	sigma = TextInput(text="5", multiline=False, size_hint_x=.12, size_hint_y=1.9, pos_hint={'center_x': .5, 'center_y': .5})
-	
-	def cwdempty(self):
-		if self.ids.maincwd.text == '':
-			self.ids.maincwd.text = os.getcwd()
 
+# close filechooser popups
 	def dismiss_popup(self):
 		self._popup.dismiss()
+		
+# star file unfiltered save
+	def show_star(self):
+		content = StarFinder(stardsave=self.starsave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Unfiltered Star File", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
 
-	def show_save(self):
-		content = SaveFinder(save=self.save, cancel=self.dismiss_popup)
+	def starsave(self, path, filename):
+		starfpath = filename
+		if len(starfpath) != 0:
+			self.ids.mainstar.text = starfpath
+		elif len(starfpath) == 0:
+			self.ids.mainstar.text = 'Choose Unfiltered Star File Path'
+		self.dismiss_popup()
+
+# star file filtered save
+	def show_starfilt(self):
+		content = StarFiltFinder(stardfiltsave=self.starfiltsave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Filtered Star File", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
+
+	def starfiltsave(self, path, filename):
+		starfiltpath = filename
+		if len(starfiltpath) != 0:
+			self.ids.mainstarfilt.text = starfiltpath
+		elif len(starfiltpath) == 0:
+			self.ids.mainstarfilt.text = 'Choose Filtered Star File Path'
+		self.dismiss_popup()
+
+# subtomogram directory save
+	def show_subtomo(self):
+		content = SubtomoFinder(subtomodsave=self.subtomosave, cancel=self.dismiss_popup)
 		self._popup = Popup(title="Save Star File", content=content,
                             size_hint=(0.9, 0.9))
 		self._popup.open()
 
-	def save(self, path, filename):
-		starfpath = filename
-		self.ids.mainstar.text = starfpath
+	def subtomosave(self, path, filename):
+		subtomopath = path
+		if len(subtomopath) != 0:
+			self.ids.mainsubtomo.text = subtomopath + '/'
+		elif len(subtomopath) == 0:
+			self.ids.mainsubtomo.text = 'Choose Subtomogram Directory'
 		self.dismiss_popup()
 
-	def starsave(self):
-		if self.ids.mainstar.text[0] !=  '/':
-			self.ids.mainstar.text = '/' + self.ids.mainstar.text
-		if self.ids.starcheck.active == True:
-			if self.ids.maincwd.text in self.ids.mainstar.text:
-				self.ids.mainstar.text = self.ids.mainstar.text
-			else:
-				self.ids.mainstar.text = self.ids.maincwd.text + self.ids.mainstar.text
-		else:
-			if self.ids.maincwd.text in self.ids.mainstar.text:
-				self.ids.mainstar.text = self.ids.mainstar.text.replace(self.ids.maincwd.text, '')
-			else:
-				self.ids.mainstar.text = self.ids.mainstar.text
-		self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
-		self.ids.starstatus.text = 'path saved'
-		self.ids.starstatus.color = (0,.6,0,1)
+# mrc directory save
+	def show_mrc(self):
+		content = MrcFinder(mrcdsave=self.mrcsave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Star File", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
 
-	def triggerstar(self):
-		self.ids.starstatus.text = 'path not saved'
-		self.ids.starstatus.color = (.6,0,0,1)
+	def mrcsave(self, path, filename):
+		mrcpath = path
+		if len(mrcpath) != 0:
+			self.ids.mainmrc.text = mrcpath + '/'
+		elif len(mrcpath) == 0:
+			self.ids.mainmrc.text = 'Choose Mrc Directory'
+		self.dismiss_popup()
 
-	def subtomosave(self):
-		if self.ids.mainsubtomo.text[0] !=  '/':
-			self.ids.mainsubtomo.text = '/' + self.ids.mainsubtomo.text
-		if self.ids.mainsubtomo.text[-1] !=  '/':
-			self.ids.mainsubtomo.text = self.ids.mainsubtomo.text + '/'
-		if self.ids.subtomocheck.active == True:
-			if self.ids.maincwd.text in self.ids.mainsubtomo.text:
-				self.ids.mainsubtomo.text = self.ids.mainsubtomo.text
-			else:
-				self.ids.mainsubtomo.text = self.ids.maincwd.text + self.ids.mainsubtomo.text
-		else:
-			if self.ids.maincwd.text in self.ids.mainsubtomo.text:
-				self.ids.mainsubtomo.text = self.ids.mainsubtomo.text.replace(self.ids.maincwd.text, '')
-			else:
-				self.ids.mainsubtomo.text = self.ids.mainsubtomo.text
-		self.ids.subtomostatus.text = 'path saved'
-		self.ids.subtomostatus.color = (0,.6,0,1)
-
-	def triggersubtomo(self):
-		self.ids.subtomostatus.text = 'path not saved'
-		self.ids.subtomostatus.color = (.6,0,0,1)
-
-	def mrcsave(self):
-		if self.ids.mainmrc.text[0] !=  '/':
-			self.ids.mainmrc.text = '/' + self.ids.mainmrc.text
-		if self.ids.mainmrc.text[-1] !=  '/':
-			self.ids.mainmrc.text = self.ids.mainmrc.text + '/'
-		if self.ids.mrccheck.active == True:
-			if self.ids.maincwd.text in self.ids.mainmrc.text:
-				self.ids.mainmrc.text = self.ids.mainmrc.text
-			else:
-				self.ids.mainmrc.text = self.ids.maincwd.text + self.ids.mainmrc.text
-		else:
-			if self.ids.maincwd.text in self.ids.mainmrc.text:
-				self.ids.mainmrc.text = self.ids.mainmrc.text.replace(self.ids.maincwd.text, '')
-			else:
-				self.ids.mainmrc.text = self.ids.mainmrc.text
-		self.ids.mrcstatus.text = 'path saved'
-		self.ids.mrcstatus.color = (0,.6,0,1)
-
-	def triggermrc(self):
-		self.ids.mrcstatus.text = 'path not saved'
-		self.ids.mrcstatus.color = (.6,0,0,1)
-
+	# save project info
 	def savedata(self):
 		try:
 			self.ids['sigma'] = weakref.ref(Tabs.sigma)
 			if self.ids.save.text[-1] != '/':
 				self.ids.save.text = self.ids.save.text + '/'
-	#	create text file with saved project data and text inputs
+			# create text file with saved project data and text inputs
 			save = self.ids.save.text + self.ids.savename.text + '.txt'
 			file_opt = open(save, 'w')
 			file_opt.writelines('Project ' + self.ids.savename.text + '\n')
-			file_opt.writelines('Cwd:' + '\t' + self.ids.maincwd.text + '\n')
-			file_opt.writelines('StarFile:' + '\t' + self.ids.mainstar.text + '\n')
-			file_opt.writelines('StarCheck:' + '\t' + str(self.ids.starcheck.active) + '\n')
+			file_opt.writelines('StarFileUnfilt:' + '\t' + self.ids.mainstar.text + '\n')
+			file_opt.writelines('StarFileFilt:' + '\t' + self.ids.mainstarfilt.text + '\n')
+			file_opt.writelines('SubtomoPath:' + '\t' + self.ids.mainsubtomo.text + '\n')
 			file_opt.writelines('MrcPath:' + '\t' + self.ids.mainmrc.text + '\n')
-			file_opt.writelines('MrcCheck:' + '\t' + str(self.ids.mrccheck.active) + '\n')
 			file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
 			file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
 			file_opt.writelines('ChimeraX:' + '\t' + self.ids.chimera_path.text + '\n')
@@ -201,11 +198,11 @@ class Tabs(TabbedPanel):
 		except IndexError:
 			print('Enter a project directory and name')
 
+	# load existing project information
 	def pulldata(self):
 		try:
 			self.ids['sigma'] = weakref.ref(Tabs.sigma)
 			load = self.ids.pullpath.text
-		#	load existing project information
 			with open(load) as pull:
 				direct, proj = os.path.split(load)
 				self.ids.save.text = direct
@@ -216,16 +213,14 @@ class Tabs(TabbedPanel):
 						yank = pinfo[1]
 					except IndexError:
 						yank = ''
-					if re.search('Cwd', line):
-						self.ids.maincwd.text = yank
-					if re.search('StarFile', line):
+					if re.search('StarFileUnfilt', line):
 						self.ids.mainstar.text = yank
-					if re.search('StarCheck', line):
-						self.ids.starcheck.active = eval(yank)
+					if re.search('StarFileFilt', line):
+						self.ids.mainstarfilt.text = yank
+					if re.search('SubtomoPath', line):
+						self.ids.mainsubtomo.text = yank
 					if re.search('MrcPath', line):
 						self.ids.mainmrc.text = yank
-					if re.search('MrcCheck', line):
-						self.ids.mrccheck.active = eval(yank)
 					if re.search('BoxSize', line):
 						self.ids.px1.text = yank
 					if re.search('PxSize', line):
@@ -479,7 +474,7 @@ class Tabs(TabbedPanel):
 		try:
 			# initialize variables
 			ChimeraX_dir = self.ids.chimera_path.text
-			listName = self.ids.mainstar.text
+			listName = self.ids.mainstarfilt.text
 			direct = self.ids.mainsubtomo.text
 			if self.ids.mainsubtomo.text[-1] != '/':
 				direct = self.ids.mainsubtomo.text + '/'
@@ -545,7 +540,7 @@ class Tabs(TabbedPanel):
 		return
 
 	def right_pick(self):
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		try:
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			self.ids.index2.text = str(len(imageNames))
@@ -570,7 +565,7 @@ class Tabs(TabbedPanel):
 		return
 	
 	def fastright_pick(self):
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		try:
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			self.ids.index2.text = str(len(imageNames))
@@ -596,7 +591,7 @@ class Tabs(TabbedPanel):
 
 	def left_pick(self):
 		try:
-			starf = self.ids.mainstar.text
+			starf = self.ids.mainstarfilt.text
 			self.ids.pickcoordtext.text = 'Press Pick Coordinates'
 			# decrease index by one
 			if int(self.ids.index.text) == 1:
@@ -615,7 +610,7 @@ class Tabs(TabbedPanel):
 	
 	def fastleft_pick(self):
 		try:
-			starf = self.ids.mainstar.text
+			starf = self.ids.mainstarfilt.text
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
 			self.ids.pickcoordtext.text = 'Press Pick Coordinates'
 			# decrease index by one
@@ -631,7 +626,7 @@ class Tabs(TabbedPanel):
 
 	def note(self):
 		# create note
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		direct = "/".join(starf.split("/")[:-1]) + '/'
 		filename = self.ids.filenameget.text
 		subtom = filename.split('/')[-2]
@@ -646,7 +641,7 @@ class Tabs(TabbedPanel):
 
 	def create_coords(self):
 		# initialize variables
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		direct = self.ids.mainsubtomo.text
 		imgToCmmCor = {}
 		if self.ids.mainsubtomo.text[-1] != '/':
@@ -778,17 +773,10 @@ class Tabs(TabbedPanel):
 		return
 
 	def parse(self):
-		self.cwdempty()
-		if self.ids.parscheck.active == True:
-			starpar = self.ids.maincwd.text + self.ids.restar.text
-		else:
-			starpar = self.ids.restar.text
+		starpar = self.ids.restar.text
 		if self.ids.reout.text[-1] != '/':
 			self.ids.reout.text = self.ids.reout.text + '/'
-		if self.ids.parsoutcheck.active == True:
-			outpar = self.ids.maincwd.text + self.ids.reout.text
-		else:
-			outpar = self.ids.reout.text
+		outpar = self.ids.reout.text
 		if os.path.exists(outpar) == False:
 			os.mkdir(outpar)
 		xstar = '_rlnCoordinateX'
@@ -880,7 +868,8 @@ class Tabs(TabbedPanel):
 		return
 
 	def calculate_ang(self):
-		self.cwdempty()
+		# check need for cwd
+		cwd = os.getcwd()
 		star = self.ids.mainstar.text
 		self.ids.coordf.text = self.ids.coordf.text.strip()
 		if self.ids.coordf.text[-1] != '/':
@@ -893,16 +882,8 @@ class Tabs(TabbedPanel):
 		head, tail = os.path.split(star)
 		if head[-1] != '/':
 			head = head + '/'
-		if self.ids.calcoutcheck.active == True:
-			Out = self.ids.maincwd.text + self.ids.outputp.text
-		else:
-			Out = self.ids.outputp.text
-		cwd = self.ids.maincwd.text
-		if self.ids.dircmmcheck.active == True:
-			CMMDir = self.ids.maincwd.text + self.ids.cmmf.text
-		else:
-			CMMDir = self.ids.cmmf.text
-		Cresta_dir = cwd + '/CRESTA_files'
+		Out = self.ids.outputp.text
+		CMMDir = self.ids.cmmf.text
 		if os.path.exists(Out) == False:
 			os.mkdir(Out)
 		tempo = Out
@@ -1397,7 +1378,7 @@ class Tabs(TabbedPanel):
 
 	def visualize(self):
 		# view current subtomogram
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		subtomodir = self.ids.mainsubtomo.text
 		chimeraDir = self.ids.chimera_path.text
 		index = int(self.ids.visind1.text)
@@ -1422,7 +1403,7 @@ class Tabs(TabbedPanel):
 		return
 
 	def right_visualize(self):
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		# set index max
 		try:
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
@@ -1452,7 +1433,7 @@ class Tabs(TabbedPanel):
 			return
 
 	def fastright_visualize(self):
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		# set index max
 		try:
 			imageNames = starfile.read(starf)["particles"]["rlnImageName"]
@@ -1482,7 +1463,7 @@ class Tabs(TabbedPanel):
 			return
 
 	def left_visualize(self):
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		# check if index limit reached
 		if int(self.ids.visind1.text) == 1:
 			print('Outside of index bounds')
@@ -1511,7 +1492,7 @@ class Tabs(TabbedPanel):
 			return
 		
 	def fastleft_visualize(self):
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		# check if index is too low
 		if int(self.ids.visind1.text) <= 10:
 			self.ids.visind1.text = '1'
@@ -1542,7 +1523,7 @@ class Tabs(TabbedPanel):
 	def saveVisual(self):
 		index = int(self.ids.visind1.text) - 1
 		self.indexToVal[index + 1] = "accepted"
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		subtomodir = self.ids.mainsubtomo.text
 		# create _accepted.star file if does not exist
 		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")):
@@ -1598,7 +1579,7 @@ class Tabs(TabbedPanel):
 	def noSaveVisual(self):
 		index = int(self.ids.visind1.text) - 1
 		self.indexToVal[index + 1] = "rejected"
-		starf = self.ids.mainstar.text
+		starf = self.ids.mainstarfilt.text
 		subtomodir = self.ids.mainsubtomo.text
 		# create _rejected.star if it does not exist
 		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star")):

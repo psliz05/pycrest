@@ -1,6 +1,6 @@
 #:kivy 2.1.0
 #:import Factory kivy.factory.Factory
-<SaveFinder>:
+<StarFinder>:
     text_input: text_input
     BoxLayout:
         size: root.size
@@ -16,7 +16,7 @@
             size_hint_y: None
             height: 30
             multiline: False
-			size_hint_y: .1
+			size_hint_y: .05
 
         BoxLayout:
             size_hint_y: None
@@ -28,7 +28,97 @@
 
             Button:
                 text: "Save"
-                on_release: root.save(filechooser.path, text_input.text)
+                on_release: root.stardsave(filechooser.path, text_input.text)
+
+<StarFiltFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+			size_hint_y: .05
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.stardfiltsave(filechooser.path, text_input.text)
+
+<SubtomoFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 0
+            multiline: False
+			size_hint_y: 0
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.subtomodsave(filechooser.path, text_input.text)
+
+<MrcFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 0
+            multiline: False
+			size_hint_y: 0
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.mrcdsave(filechooser.path, text_input.text)
 
 <FilterInfo@Popup>
 	size_hint: .75, .55
@@ -205,39 +295,7 @@
 					spacing: 10
 					BoxLayout:
 						orientation: 'vertical'
-						spacing: 10
-						size_hint_y: .35
-						canvas:
-							Color:
-								rgba: 1, 1, 1, .6
-							Rectangle:
-								pos: self.pos
-								size: self.size
-						BoxLayout:
-							orientation: 'horizontal'
-							spacing: 20
-							size_hint: .6, .2
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
-								text: 'Current working directory:'
-								color: (0,0,0,1)
-								font_size: 30
-								bold: True
-								size_hint: 1.4, .8
-								pos_hint: {'center_x': .5}
-						BoxLayout:
-							size_hint: .7, .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							TextInput:
-								text: ''
-								size_hint: 1.2, .5
-								font_size: 25
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								multiline: False
-								id: maincwd
-					BoxLayout:
-						orientation: 'vertical'
-						size_hint_y: .6
+						size_hint_y: 1
 						canvas:
 							Color:
 								rgba: 1, 1, 1, .6
@@ -245,7 +303,7 @@
 								pos: self.pos
 								size: self.size
 						Label:
-							text: 'Star file path'
+							text: 'Star File Paths'
 							color: (0,0,0,1)
 							font_size: 30
 							bold: True
@@ -255,42 +313,37 @@
 							orientation: 'horizontal'
 							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							BoxLayout:
-								orientation: 'vertical'
-								size_hint: .2, .5
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								# CheckBox:
-								# 	state: 'down'
-								# 	id: starcheck
-								# 	on_press: root.triggerstar()
-								# Label:
-								# 	text: 'cwd'
-								Button:
-									text: 'file'
-									on_press: root.show_save()
-							# Label:
-							# 	text: '+'
-							# 	size_hint_x: .1
-							# 	pos_hint: {'center_x': .5, 'center_y': .5}
 							Label:
-								text: '/Test_Data/test_2018filt.star'
+								text: 'Choose Unfiltered Star File Path'
 								size_hint: 1.5, .55
 								font_size: 25
+								color: (0,0,.6,1)
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstar
-								# on_text: root.triggerstar()
-						Label:
-							size_hint_y: .06
-							font_size: 25
-							color: (.6,0,0,1)
-							text: 'path not saved'
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							id: starstatus
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Save star path'
-							on_press: root.starsave()
-							size_hint: .3, .12
+							text: 'Choose Unfiltered Star File'
+							on_release: root.show_star()
+							size_hint: .4, .12
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .06
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .9, .25
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							Label:
+								text: 'Choose Filtered Star File Path'
+								size_hint: 1.5, .55
+								font_size: 25
+								color: (0,0,.6,1)
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								id: mainstarfilt
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Choose Filtered Star File'
+							on_release: root.show_starfilt()
+							size_hint: .4, .12
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							size_hint_y: .06
@@ -314,38 +367,17 @@
 							orientation: 'horizontal'
 							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							BoxLayout:
-								orientation: 'vertical'
-								size_hint: .2, .5
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								CheckBox:
-									state: 'down'
-									id: subtomocheck
-									on_press: root.triggersubtomo()
-								Label:
-									text: 'cwd'
 							Label:
-								text: '+'
-								size_hint_x: .1
-								pos_hint: {'center_x': .5, 'center_y': .5}
-							TextInput:
-								text: '/Test_Data/'
+								text: 'Choose Subtomogram Directory'
 								size_hint: 1.5, .55
 								font_size: 25
+								color: (0,0,.6,1)
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainsubtomo
-								on_text: root.triggersubtomo()
-						Label:
-							size_hint_y: .06
-							font_size: 25
-							color: (.6,0,0,1)
-							text: 'path not saved'
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							id: subtomostatus
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Save subtomogram path'
-							on_press: root.subtomosave()
+							text: 'Choose Subtomogram Path'
+							on_release: root.show_subtomo()
 							size_hint: .45, .12
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
@@ -370,38 +402,17 @@
 							orientation: 'horizontal'
 							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							BoxLayout:
-								orientation: 'vertical'
-								size_hint: .2, .5
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								CheckBox:
-									state: 'down'
-									id: mrccheck
-									on_press: root.triggermrc()
-								Label:
-									text: 'cwd'
 							Label:
-								text: '+'
-								size_hint_x: .1
-								pos_hint: {'center_x': .5, 'center_y': .5}
-							TextInput:
-								text: '/Test_Data/'
+								text: 'Choose Mrc Directory'
 								size_hint: 1.5, .55
 								font_size: 25
+								color: (0,0,.6,1)
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainmrc
-								on_text: root.triggermrc()
-						Label:
-							size_hint_y: .06
-							font_size: 25
-							color: (.6,0,0,1)
-							text: 'path not saved'
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							id: mrcstatus
 						Button:
 							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Save mrc path'
-							on_press: root.mrcsave()
+							text: 'Choose Mrc Path'
+							on_release: root.show_mrc()
 							size_hint: .3, .12
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
@@ -1058,19 +1069,6 @@
 						orientation: 'horizontal'
 						size_hint: .7, .2
 						pos_hint: {'center_x': .5, 'center_y': .5}
-						BoxLayout:
-							orientation: 'vertical'
-							size_hint: .3, .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							CheckBox:
-								state: 'down'
-								id: parscheck
-							Label:
-								text: 'cwd'
-						Label:
-							text: '+'
-							size_hint_x: .1
-							pos_hint: {'center_x': .5, 'center_y': .5}
 						TextInput:
 							text: '/Test_Data/test_2018filt.star'
 							size_hint: 1.5, .55
@@ -1084,19 +1082,6 @@
 						orientation: 'horizontal'
 						size_hint: .7, .2
 						pos_hint: {'center_x': .5, 'center_y': .5}
-						BoxLayout:
-							orientation: 'vertical'
-							size_hint: .3, .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							CheckBox:
-								state: 'down'
-								id: parsoutcheck
-							Label:
-								text: 'cwd'
-						Label:
-							text: '+'
-							size_hint_x: .1
-							pos_hint: {'center_x': .5, 'center_y': .5}
 						TextInput:
 							text: '/newcoord'
 							size_hint: 1.5, .55
@@ -1162,15 +1147,6 @@
 						BoxLayout:
 							orientation: 'vertical'
 							size_hint: .3, .5
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							CheckBox:
-								state: 'down'
-								id: dircmmcheck
-							Label:
-								text: 'cwd'
-						Label:
-							text: '+'
-							size_hint_x: .1
 							pos_hint: {'center_x': .5, 'center_y': .5}
 						TextInput:
 							text: '/'
@@ -1301,19 +1277,6 @@
 					orientation: 'horizontal'
 					size_hint: .8, .9
 					pos_hint: {'center_x': .5, 'center_y': .5}
-					BoxLayout:
-						orientation: 'vertical'
-						size_hint: .3, .5
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						CheckBox:
-							state: 'down'
-							id: calcoutcheck
-						Label:
-							text: 'cwd'
-					Label:
-						text: '+'
-						size_hint_x: .1
-						pos_hint: {'center_x': .5, 'center_y': .5}
 					TextInput:
 						text: '/cmm_files/Out'
 						size_hint: 1.5, .55
@@ -2234,8 +2197,8 @@
 						Label:
 							text: 'Ref Basename'
 						TextInput:
-							text: '.mrc'
-							size_hint_x: .9
+							text: ''
+							size_hint_x: .45
 							pos_hint: {'center_x': .5, 'center_y': .5}
 							multiline: False
 							id: refBasename
