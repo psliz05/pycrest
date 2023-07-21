@@ -83,6 +83,11 @@ class MrcFinder(FloatLayout):
     mrcdsave = ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
+
+class ParStarFinder(FloatLayout):
+	parstardsave = ObjectProperty(None)
+	text_input = ObjectProperty(None)
+	cancel = ObjectProperty(None)
     
 class MaskFinder(FloatLayout):
     maskdsave = ObjectProperty(None)
@@ -114,7 +119,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstar.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
 			else:
 				self.ids.mainstar.text = starfpath
-				self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1])
+				self.ids.mainsubtomo.text = "/".join(self.ids.mainstar.text.split("/")[:-1]) + '/'
 		elif len(starfpath) == 0:
 			self.ids.mainstar.text = 'Choose Unfiltered Star File Path'
 		self.dismiss_popup()
@@ -133,7 +138,7 @@ class Tabs(TabbedPanel):
 				self.ids.mainstarfilt.text = 'Not a ".star" file — Choose Unfiltered Star File Path'
 			else:
 				self.ids.mainstarfilt.text = starfiltpath
-				self.ids.mainsubtomo.text = "/".join(self.ids.mainstarfilt.text.split("/")[:-1])
+				self.ids.mainsubtomo.text = "/".join(self.ids.mainstarfilt.text.split("/")[:-1]) + '/'
 		elif len(starfiltpath) == 0:
 			self.ids.mainstarfilt.text = 'Choose Filtered Star File Path'
 		self.dismiss_popup()
@@ -166,6 +171,24 @@ class Tabs(TabbedPanel):
 			self.ids.mainmrc.text = mrcpath + '/'
 		elif len(mrcpath) == 0:
 			self.ids.mainmrc.text = 'Choose Mrc Directory'
+		self.dismiss_popup()
+
+# parse star file save
+	def show_parstar(self):
+		content = ParStarFinder(parstardsave=self.parstarsave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Parser Star File", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
+
+	def parstarsave(self, path, filename):
+		parstarpath = filename
+		if len(parstarpath) != 0:
+			if parstarpath.endswith('.star') == False:
+				self.ids.restar.text = 'Not a ".star" file — Choose Star File Path'
+			else:
+				self.ids.restar.text = parstarpath
+		elif len(parstarpath) == 0:
+			self.ids.restar.text = 'Choose Star File Path'
 		self.dismiss_popup()
 
 # mask path save
@@ -361,11 +384,9 @@ class Tabs(TabbedPanel):
 		#	wiener
 			if wienerbutton == True:
 				if starButton:
-					if starf.endswith('.star') == False:
-						print('Must use proper .star file')
-						return
 					imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
-					for fileName in imageFileNames:
+					def wienerLoop(i):
+						fileName = imageFileNames[i]
 						# create folder
 						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
 						filterout = subtomodir + folderPath + 'filtered/'
@@ -377,7 +398,6 @@ class Tabs(TabbedPanel):
 
 						# read .mrc file and apply filter
 						mrc = mrcfile.read(fullFilePath)
-						
 						subtomo_filt = tom.deconv_tomo(mrc, angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
 						subtomo_filt = subtomo_filt.astype('float32')
 
@@ -389,6 +409,23 @@ class Tabs(TabbedPanel):
 						with mrcfile.open(newFileName, 'r+') as mrc:
 							header = mrc.header
 						header.cella = (angpix, angpix, angpix)
+					
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(imageFileNames))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(imageFileNames), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = wienerLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
+
+					# make wiener graph
+					tom.wienergraph(angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
 
 					#constructs star file
 					star_data = starfile.read(starf)
@@ -410,6 +447,7 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addWiener(x))
 					star_data["particles"] = df
 					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
+					print('Wiener Filtering by Star File Complete\n')
 
 				elif mrcButton:
 					# create folder
@@ -418,7 +456,8 @@ class Tabs(TabbedPanel):
 						os.mkdir(filterout)
 					# apply filter to all .mrc files in the folder
 					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-					for f in myFiles:
+					def wienerMrcLoop(i):
+						f = myFiles[i]
 						fullFileName = os.path.join(direct, f)
 						print('Now filtering ' + fullFileName)
 
@@ -433,6 +472,23 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+					
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(myFiles))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(myFiles), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = wienerMrcLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
+					# make wiener graph
+					tom.wienergraph(angpix, defoc, snrratio, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton)
+					print('Wiener Filtering by Subtomogram Directory Complete\n')
 
 				plt.show(block=False)
 
@@ -444,7 +500,8 @@ class Tabs(TabbedPanel):
 						print('Must use proper .star file')
 						return
 					imageFileNames = starfile.read(starf)["particles"]["rlnImageName"]
-					for fileName in imageFileNames:
+					def gaussianLoop(i):
+						fileName = imageFileNames[i]
 						# create folder
 						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
 						filterout = subtomodir + folderPath + 'filtered/'
@@ -463,6 +520,20 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(imageFileNames))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(imageFileNames), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = gaussianLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
 
 					#constructs star file
 					star_data = starfile.read(starf)
@@ -484,6 +555,8 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addGaussian(x))
 					star_data["particles"] = df
 					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
+					print('Gaussian Filtering by Star File Complete\n')
+
 				elif mrcButton:
 					# create folder
 					filterout = direct + 'filtered/'
@@ -491,7 +564,8 @@ class Tabs(TabbedPanel):
 						os.mkdir(filterout)
 					# apply filter to all .mrc files in the folder
 					myFiles = [f for f in os.listdir(direct) if f.endswith(".mrc")]
-					for f in myFiles:
+					def gaussianMrcLoop(i):
+						f = myFiles[i]
 						fullFileName = os.path.join(direct, f)
 						print('Now filtering ' + fullFileName)
 
@@ -504,6 +578,21 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+					
+					# thread in batches to optimize runtime
+					threads = []
+					batch_size = int(self.ids.CPU.text)
+					fileLen = range(len(myFiles))
+					batches = [fileLen[i:i+batch_size] for i in range(0, len(myFiles), batch_size)]
+					for batch in batches:
+						for i in batch:
+							threads.append(Thread(target = gaussianMrcLoop, args = (i,)))
+							threads[i].start()
+						for i in batch:
+							threads[i].join()
+					for thread in threads:
+						thread.join()
+					print('Gaussian Filtering by Subtomogram Directory Complete\n')
 
 		except FileNotFoundError:
 			print("This directory does not exist")
@@ -806,15 +895,12 @@ class Tabs(TabbedPanel):
 				df1 = pd.concat([df1, pd.DataFrame(row)])
 		df = pd.concat([df, df1])
 		df = df.sort_values(by="rlnImageName")
-
 		starfile.write(df, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
 		return
 
 	def parse(self):
 		starpar = self.ids.restar.text
-		if self.ids.reout.text[-1] != '/':
-			self.ids.reout.text = self.ids.reout.text + '/'
-		outpar = self.ids.reout.text
+		outpar = "/".join(self.ids.restar.text.split("/")[:-1]) + '/newcoord/'
 		if os.path.exists(outpar) == False:
 			os.mkdir(outpar)
 		xstar = '_rlnCoordinateX'
