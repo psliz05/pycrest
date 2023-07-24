@@ -1650,32 +1650,32 @@ class Tabs(TabbedPanel):
 		starf = self.ids.mainstarfilt.text
 		starUnf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
-		# create _acceptedFilt.star file if does not exist
-		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_acceptedFilt.star")):
+		# create _accepted.star (filtered) if does not exist 
+		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")):
 			starAF = starfile.read(starf)
 			df = pd.DataFrame.from_dict(starAF["particles"])
 			df = df.drop(df.index)
 			starAF["particles"] = df
-			starfile.write(starAF, subtomodir + starf.split("/")[-1].split(".")[0] + "_acceptedFilt.star")
-		# create _acceptedUnfilt.star file if does not exist
-		if not(os.path.exists(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_acceptedUnFilt.star")):
+			starfile.write(starAF, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
+		# create _accepted.star (unfiltered) if does not exist 
+		if not(os.path.exists(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_accepted.star")):
 			starAU = starfile.read(starUnf)
 			df = pd.DataFrame.from_dict(starAU["particles"])
 			df = df.drop(df.index)
 			starAU["particles"] = df
-			starfile.write(starAU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_acceptedUnFilt.star")
+			starfile.write(starAU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_accepted.star")
 		# isolate current index image name
 		row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
 		rowUnf = pd.DataFrame.from_dict(starfile.read(starUnf)["particles"]).iloc[[index]]
-		starAF = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_acceptedFilt.star")
-		starAU = starfile.read(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_acceptedUnFilt.star")
+		starAF = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
+		starAU = starfile.read(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_accepted.star")
 		df = pd.DataFrame.from_dict(starAF["particles"])
 		df = df.dropna(how="all")
 		dfUnf = pd.DataFrame.from_dict(starAU["particles"])
 		dfUnf = dfUnf.dropna(how="all")
 		original = row["rlnImageName"].values[0]
 		nameUnf = rowUnf["rlnImageName"].values[0]
-		# add 'accepted' folder to image name path in _acceptedFilt.star
+		# add 'accepted' folder to image name path in _accepted.star (filtered)
 		if "accepted" in row["rlnImageName"].values[0].split("/"):
 			newRowName = row["rlnImageName"].values[0]
 		else:
@@ -1688,28 +1688,25 @@ class Tabs(TabbedPanel):
 				s.insert(-1, 'accepted')
 				s = '/'.join(s)
 				return s
-		# add file to accepted folder and add row to _acceptedFilt.star
+		# add file to accepted folder and add row to _accepted.star (filtered)
 		if df[df["rlnImageName"] == newRowName].shape[0] == 0:
 			row.loc[:, "rlnImageName"] = row.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 			df = pd.concat([df, row])
 			starAF["particles"] = df
-			starfile.write(starAF, subtomodir + starf.split("/")[-1].split(".")[0] + "_acceptedFilt.star", overwrite=True)
+			starfile.write(starAF, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
 			# create accepted folder and copy in the accepted files
 			folderPath = "/".join(newRowName.split("/")[:-1]) + "/"
 			savedout = subtomodir + folderPath + '/'
 			if os.path.exists(savedout) == False:
 				os.mkdir(savedout)
 			shutil.copy(subtomodir + original, savedout)
-		# add row to _acceptedUnFilt.star
+		# add row to _accepted.star (unfiltered)
 		if dfUnf[dfUnf["rlnImageName"] == nameUnf].shape[0] == 0:
-			print("not duplicate filename")
-			print(nameUnf)
-			print(dfUnf["rlnImageName"])
 			dfUnf = pd.concat([dfUnf, rowUnf])
 			starAU["particles"] = dfUnf
-			starfile.write(starAU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_acceptedUnFilt.star", overwrite=True)
-		# remove .mrc files from _rejectedFilt.star
-		starRF_path = subtomodir + starf.split("/")[-1].split(".")[0] + "_rejectedFilt.star"
+			starfile.write(starAU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
+		# remove .mrc files from _rejected.star (filtered)
+		starRF_path = subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star"
 		if os.path.exists(starRF_path):
 			row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
 			starRF = starfile.read(starRF_path)
@@ -1718,9 +1715,9 @@ class Tabs(TabbedPanel):
 			rowName = row["rlnImageName"].values[0]
 			df = df[df["rlnImageName"] != rowName]
 			starRF["particles"] = df
-			starfile.write(starRF, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejectedFilt.star", overwrite=True)
-		# remove .mrc files from _rejectedUnFilt.star
-		starRU_path = subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejectedUnFilt.star"
+			starfile.write(starRF, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
+		# remove .mrc files from _rejected.star (unfiltered)
+		starRU_path = subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejected.star"
 		if os.path.exists(starRU_path):
 			row = pd.DataFrame.from_dict(starfile.read(starUnf)["particles"]).iloc[[index]]
 			starRU = starfile.read(starRU_path)
@@ -1729,7 +1726,7 @@ class Tabs(TabbedPanel):
 			rowName = row["rlnImageName"].values[0]
 			df = df[df["rlnImageName"] != rowName]
 			starRU["particles"] = df
-			starfile.write(starRU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejectedUnFilt.star", overwrite=True)
+			starfile.write(starRU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
 		self.ids.visualizefeedback.text = 'Subtomogram Accepted'
 		self.ids.visualizefeedback.color = (0,.3,0,1)
 
@@ -1740,45 +1737,45 @@ class Tabs(TabbedPanel):
 		starf = self.ids.mainstarfilt.text
 		starUnf = self.ids.mainstar.text
 		subtomodir = self.ids.mainsubtomo.text
-		# create _rejectedFilt.star if it does not exist
-		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_rejectedFilt.star")):
+		# create _rejected.star (filtered) if it does not exist 
+		if not(os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star")):
 			starRF = starfile.read(starf)
 			df = pd.DataFrame.from_dict(starRF["particles"])
 			df = df.drop(df.index)
 			starRF["particles"] = df
-			starfile.write(starRF, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejectedFilt.star")
-		# create _rejectedUnFilt.star if it does not exist
-		if not(os.path.exists(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejectedUnFilt.star")):
+			starfile.write(starRF, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star")
+		# create _rejected.star (unfiltered) if it does not exist 
+		if not(os.path.exists(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejected.star")):
 			starRU = starfile.read(starUnf)
 			df = pd.DataFrame.from_dict(starRU["particles"])
 			df = df.drop(df.index)
 			starRU["particles"] = df
-			starfile.write(starRU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejectedUnFilt.star")
+			starfile.write(starRU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejected.star")
 		# isolate current index image name
 		row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
 		rowUnf = pd.DataFrame.from_dict(starfile.read(starUnf)["particles"]).iloc[[index]]
-		starRF = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_rejectedFilt.star")
-		starRU = starfile.read(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejectedUnFilt.star")
+		starRF = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star")
+		starRU = starfile.read(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejected.star")
 		df = pd.DataFrame.from_dict(starRF["particles"])
 		df = df.dropna(how="all")
 		rowName = row["rlnImageName"].values[0]
 		dfUnf = pd.DataFrame.from_dict(starRU["particles"])
 		dfUnf = dfUnf.dropna(how="all")
 		nameUnf = rowUnf["rlnImageName"].values[0]
-		# add mrc file path to _rejectedFilt.star
-		if df[df["rlnImageName"] == rowName].shape[0] == 0: # if file not in _rejectedFilt.star
+		# add mrc file path to _rejected.star (filtered)
+		if df[df["rlnImageName"] == rowName].shape[0] == 0: # if file not in _rejected.star
 			df = pd.concat([df, row])
 			starRF["particles"] = df
-			starfile.write(starRF, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejectedFilt.star", overwrite=True)
-		# add mrc file path to _rejectedUnFilt.star
-		if dfUnf[dfUnf["rlnImageName"] == nameUnf].shape[0] == 0: # if file not in _rejectedUnFilt.star
+			starfile.write(starRF, subtomodir + starf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
+		# add mrc file path to _rejected.star (unfiltered)
+		if dfUnf[dfUnf["rlnImageName"] == nameUnf].shape[0] == 0: # if file not in _rejected.star
 			dfUnf = pd.concat([dfUnf, rowUnf])
 			starRU["particles"] = dfUnf
-			starfile.write(starRU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejectedUnFilt.star", overwrite=True)
-		# check if _acceptedFilt.star exists
-		if os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_acceptedFilt.star"):
+			starfile.write(starRU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_rejected.star", overwrite=True)
+		# check if _accepted.star (filtered) exists 
+		if os.path.exists(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star"):
 			row = pd.DataFrame.from_dict(starfile.read(starf)["particles"]).iloc[[index]]
-			starAF = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_acceptedFilt.star")
+			starAF = starfile.read(subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star")
 			df = pd.DataFrame.from_dict(starAF["particles"])
 			df = df.dropna(how="all")
 		else:
@@ -1789,19 +1786,19 @@ class Tabs(TabbedPanel):
 			rowName = row["rlnImageName"].values[0].split("/")
 			rowName.insert(-1, "accepted")
 			newRowName = "/".join(rowName)
-		# remove .mrc files in both _acceptedFilt.star and accepted folder if they were previously accepted
+		# remove .mrc files in both _accepted.star (filtered) and accepted folder
 		if df[df["rlnImageName"] == newRowName].shape[0] == 1:
 			df = df[df["rlnImageName"] != newRowName]
 			starAF["particles"] = df
-			starfile.write(starAF, subtomodir + starf.split("/")[-1].split(".")[0] + "_acceptedFilt.star", overwrite=True)
+			starfile.write(starAF, subtomodir + starf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
 			os.remove(subtomodir + newRowName)
-		# remove .mrc files in _acceptedUnFilt.star 
+		# remove .mrc files in _accepted.star (unfiltered)
 		if dfUnf[dfUnf["rlnImageName"] == nameUnf].shape[0] == 1:
-			starAU = starfile.read(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_acceptedUnFilt.star")
+			starAU = starfile.read(subtomodir + starUnf.split("/")[-1].split(".")[0] + "_accepted.star")
 			dfUnf = pd.DataFrame.from_dict(starAU['particles'])
 			dfUnf = dfUnf[dfUnf["rlnImageName"] != nameUnf]
 			starAU["particles"] = dfUnf
-			starfile.write(starAU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_acceptedUnFilt.star", overwrite=True)
+			starfile.write(starAU, subtomodir + starUnf.split("/")[-1].split(".")[0] + "_accepted.star", overwrite=True)
 		self.ids.visualizefeedback.text = 'Subtomogram Rejected'
 		self.ids.visualizefeedback.color = (0,.3,0,1)
 
