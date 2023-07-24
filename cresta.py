@@ -823,7 +823,9 @@ class Tabs(TabbedPanel):
 											finaly = str(round(yCor) - int(cmmY))
 											finalz = str(round(zCor) - int(cmmZ))
 											# re-extract
-											
+											# invol = mrcfile.read('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000013_wiener.mrc')
+											# subby = tom.cut_out(invol, [float(finalx), float(finaly), float(finalz)], [boxsize * 2, boxsize * 2, boxsize * 2])
+											# mrcfile.new('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/newsub.mrc', subby)
 											# add new coords to dictionary
 											if name in imgToCmmCor.keys(): #checks duplicate filename
 												imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
