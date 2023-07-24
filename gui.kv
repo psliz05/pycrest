@@ -392,13 +392,20 @@
 							orientation: 'horizontal'
 							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
+							TextInput:
 								text: 'Choose Unfiltered Star File Path'
 								size_hint: 1.5, .55
 								font_size: 25
-								color: (0,0,.6,1)
+								halign: 'center'
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstar
+								multiline: True
+								readonly: True
+								cursor_blink: False
+								foreground_color: (0,0,.6,1)
+								background_color: (1,1,1,0)
+								cursor_color: (1,1,1,0)
+								selection_color: (1,1,1,0)
 						Button:
 							background_color: 0, 1.2, 2, .5
 							text: 'Choose Unfiltered Star File'
@@ -411,13 +418,20 @@
 							orientation: 'horizontal'
 							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
+							TextInput:
 								text: 'Choose Filtered Star File Path'
 								size_hint: 1.5, .55
 								font_size: 25
-								color: (0,0,.6,1)
+								halign: 'center'
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainstarfilt
+								multiline: True
+								readonly: True
+								cursor_blink: False
+								foreground_color: (0,0,.6,1)
+								background_color: (1,1,1,0)
+								cursor_color: (1,1,1,0)
+								selection_color: (1,1,1,0)
 						Button:
 							background_color: 0, 1.2, 2, .5
 							text: 'Choose Filtered Star File'
@@ -446,13 +460,20 @@
 							orientation: 'horizontal'
 							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
+							TextInput:
 								text: 'Choose Subtomogram Directory'
 								size_hint: 1.5, .55
 								font_size: 25
-								color: (0,0,.6,1)
+								halign: 'center'
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainsubtomo
+								multiline: True
+								readonly: True
+								cursor_blink: False
+								foreground_color: (0,0,.6,1)
+								background_color: (1,1,1,0)
+								cursor_color: (1,1,1,0)
+								selection_color: (1,1,1,0)
 						Button:
 							background_color: 0, 1.2, 2, .5
 							text: 'Choose Subtomogram Path'
@@ -481,13 +502,20 @@
 							orientation: 'horizontal'
 							size_hint: .9, .25
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
+							TextInput:
 								text: 'Choose Mrc Directory'
 								size_hint: 1.5, .55
 								font_size: 25
-								color: (0,0,.6,1)
+								halign: 'center'
 								pos_hint: {'center_x': .5, 'center_y': .5}
 								id: mainmrc
+								multiline: True
+								readonly: True
+								cursor_blink: False
+								foreground_color: (0,0,.6,1)
+								background_color: (1,1,1,0)
+								cursor_color: (1,1,1,0)
+								selection_color: (1,1,1,0)
 						Button:
 							background_color: 0, 1.2, 2, .5
 							text: 'Choose Mrc Path'
@@ -1216,13 +1244,20 @@
 							color: (0,0,0,1)
 							font: 30
 							size_hint_y: .6
-						Label:
+						TextInput:
 							text: 'Choose Mask Path (mask.mrc)'
-							size_hint_x: .9
+							size_hint: .9, .9
+							font_size: 30
+							halign: 'center'
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
-							color: (0,0,.6,1)
 							id: maskpath
+							multiline: True
+							readonly: True
+							cursor_blink: False
+							foreground_color: (0,0,.6,1)
+							background_color: (1,1,1,0)
+							cursor_color: (1,1,1,0)
+							selection_color: (1,1,1,0)
 						Button:
 							background_color: 0, 1.2, 2, .5
 							text: 'Choose Mask File'
@@ -2287,15 +2322,22 @@
 						bold: True
 					BoxLayout:
 						orientation: 'horizontal'
-						size_hint: .7, .2
+						size_hint: .85, .2
 						pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
+						TextInput:
 							text: 'Choose Star File Path'
 							size_hint: 1.5, .55
-							color: (0,0,.6,1)
+							font_size: 28
+							halign: 'center'
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
 							id: restar
+							multiline: True
+							readonly: True
+							cursor_blink: False
+							foreground_color: (0,0,.6,1)
+							background_color: (1,1,1,0)
+							cursor_color: (1,1,1,0)
+							selection_color: (1,1,1,0)
 					Button:
 						background_color: 0, 1.2, 2, .5
 						text: 'Choose Star File'
