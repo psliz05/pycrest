@@ -511,7 +511,7 @@ def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
     if fill_flag != 'fill':
         fill_flag = 'no-fill'
     
-    # Kick out values < 1
+    # kick out values < 1
     if not isinstance(pos, np.ndarray):
         pos = np.floor((np.array(in_data.shape) - np.array(size_c)) / 2) + 1
     

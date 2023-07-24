@@ -390,8 +390,8 @@ class Tabs(TabbedPanel):
 						# create folder
 						folderPath = "/".join(fileName.split("/")[:-1]) + "/"
 						filterout = subtomodir + folderPath + 'filtered/'
-						if os.path.exists(filterout) == False:
-							os.mkdir(filterout)
+						if os.path.isdir(filterout) == False:
+							os.makedirs(filterout, exist_ok=True)
 
 						print('Now filtering ' + fileName)
 						fullFilePath = subtomodir + fileName
@@ -822,6 +822,8 @@ class Tabs(TabbedPanel):
 											finalx = str(round(xCor) - int(cmmX))
 											finaly = str(round(yCor) - int(cmmY))
 											finalz = str(round(zCor) - int(cmmZ))
+											# re-extract
+											
 											# add new coords to dictionary
 											if name in imgToCmmCor.keys(): #checks duplicate filename
 												imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
@@ -1331,8 +1333,8 @@ class Tabs(TabbedPanel):
 				print("Now re-extracting " + mrcName)
 				a = time.perf_counter()
 				outH1, posNew[:i] = tom.processParticle(fileNames[i], angles[:,i].conj().transpose(), shifts[:,i], maskh1, pickPos[:,i].conj().transpose(), offSetCenter, boxsize, filter, grow, normalizeit, sdrange, sdshift,blackdust,whitedust,shiftfil,randfilt,permutebg)
-				if os.path.exists(reextractDir) == False:
-					os.mkdir(reextractDir)
+				if os.path.isdir(reextractDir) == False:
+					os.makedirs(reextractDir, exist_ok=True)
 				mrcfile.write(reextractDir + mrcName, outH1, True)
 				b = time.perf_counter()
 				t1 = str(timedelta(seconds = b-a)).split(":")
@@ -1811,8 +1813,8 @@ class Tabs(TabbedPanel):
 		boxsize = [boxsize, boxsize, boxsize]
 		folderPath = "/".join(starf.split("/")[:-1]) + "/"
 		plotOut = folderPath + 'plotted'
-		if os.path.exists(plotOut) == False:
-			os.mkdir(plotOut)
+		if os.path.isdir(plotOut) == False:
+			os.makedirs(plotOut, exist_ok=True)
 		tom.plotBack(starf, refPath, refBasename, plotOut, boxsize, minParticleNum)
 
 	pass
