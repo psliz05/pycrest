@@ -984,9 +984,7 @@ class Tabs(TabbedPanel):
 							file_opt.close()
 		os.remove(micronames)
 		return
-
-
-
+	
 	def path_1(self):
 		self.ids.cmmf.text = '/cmm_files'
 		if self.ids.cmmf.text[0] !=  '/':
@@ -1264,7 +1262,6 @@ class Tabs(TabbedPanel):
 
 	def mask(self):
 		try:
-			import mrcfile
 			direct = self.ids.mainmrc.text
 			box = int(self.ids.px1.text)
 			rad = float(self.ids.radius.text)

@@ -19,7 +19,7 @@ from ctypes import *
 so_file = os.getcwd() + "/rot3d.so"
 rot_function = CDLL(so_file)
 
-# Wiener filter functions
+# wiener filter functions
 def wienergraph(angpix, defocus, snrfalloff, highpassnyquist, voltage, cs, envelope, bfactor, phasebutton):
     highpass = np.arange(0, 1 + 1 / 2047, 1 / 2047)
     highpass = np.minimum(1, highpass / highpassnyquist) * np.pi
@@ -104,7 +104,7 @@ def ctf1d(length, pixelsize, voltage, cs, defocus, amplitude_contrast, phase_shi
     return ctf
 
 
-# Create mask functions
+# create mask functions
 def spheremask(vol, radius, boxsize, sigma=0, center=None):
     vol = vol.reshape((int(boxsize[0]), int(boxsize[1]), int(boxsize[2])))
     if center == None:
@@ -157,13 +157,13 @@ def readList(listName, pxsz, extstar, angles):
         df = pd.DataFrame.from_dict(new_star["particles"])
         df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 
-        #modifies starfile according to rotation type
+        # modifies starfile according to rotation type
         if angles != []:
-            if len(angles) == 0: #star
+            if len(angles) == 0: # star
                 zeros = np.zeros(df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ].shape)
                 df.loc[:, "rlnAngleRot":"rlnOriginZAngst" ] = zeros
             
-            if len(angles) == 3: #manual
+            if len(angles) == 3: # manual
                 if angles[0] == 0 and angles[1] == 0: # X-axis  corresponds to  phi=0   psi=0   theta=alpha
                     df.loc[:, "rlnAngleRot"] += angles[2]
                 if angles[0] == 270 and angles[1] == 90: # Y-axis  corresponds to  phi=270   psi=90  theta=alpha
@@ -553,7 +553,7 @@ def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
     pos = np.round(pos).astype(int)
     bound = np.round(bound).astype(int)
     
-    # Cut it
+    # cut it
     if num_of_dim > 1:
         out = in_data[pos[0]-1:bound[0], pos[1]-1:bound[1], pos[2]-1:bound[2]]
     else:
@@ -723,7 +723,7 @@ def tom_filter(im, radius, boxsize, center=None, flag='circ'):
     
     return im
 
-# Rotate subtomogram functions
+# rotate subtomogram functions
 def processParticler(filename, tmpAng, boxsize, shifts, shifton):
     volTmp = mrcfile.read(filename)
     storey = tmpAng[1]
