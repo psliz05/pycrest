@@ -348,7 +348,7 @@
 					multiline: False
 				TextInput:
 					id: CPU
-					text: '5'
+					text: '10'
 					multiline: False
 			BoxLayout:
 				orientation: 'vertical'
@@ -1566,180 +1566,6 @@
 							size_hint_y: .04
 					Label:
 						size_hint_y: .1
-	
-	TabbedPanelItem:
-		text: 'Modify'
-		BoxLayout:
-			spacing: 10
-			orientation: 'vertical'
-			canvas:
-				Color:
-					rgba: 1, 1, 1, .2
-				Rectangle:
-					pos: self.pos
-					size: self.size
-			GridLayout:
-				rows: 2
-				spacing: 20
-				canvas:
-					Color:
-						rgba: 1, 1, 1, .6
-					Rectangle:
-						pos: self.pos
-						size: self.size
-				BoxLayout:
-					orientation: 'vertical'
-					Label:
-						size_hint_y: .1
-					BoxLayout:
-						orientation: 'vertical'
-						size_hint_x: .8
-						pos_hint: {'center_x': .5, 'center_y': .5}
-						canvas:
-							Color:
-								rgba: .5, .5, .5, 0.4
-							Rectangle:
-								pos: self.pos
-								size: self.size
-						Label:
-							text: 'Rotate Subtomograms using Star File'
-							color: (0,0,0,1)
-							font_size: 35
-							pos_hint: {'center_x': .25}
-							bold: True
-							size_hint_y: .8
-						Button:
-							text: 'information'
-							background_color: 0, 1.2, 2, .5
-							on_release: Factory.RotateStarInfo().open()
-							size_hint: .22, .4
-							pos_hint: {'center_x': .5, 'center_y': .5}	
-						BoxLayout:
-							orientation: 'horizontal'
-							size_hint: .3, .8
-							pos_hint: {'center_x': .45}
-							CheckBox:
-								state: 'down'
-								id: applyTranslations
-							Label:
-								text: 'Apply translations'
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Rotate'
-							on_release: root.rotate()
-							size_hint: .3, .8
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label: 
-							text: ' '
-							size_hint_y: .1
-				BoxLayout:
-					orientation: 'vertical'
-					size_hint_y: 1.4
-					BoxLayout:
-						orientation: 'vertical'
-						size_hint_x: .8
-						pos_hint: {'center_x': .5}
-						canvas:
-							Color:
-								rgba: .5, .5, .5, 0.4
-							Rectangle:
-								pos: self.pos
-								size: self.size
-						Label:
-							text: 'Rotate Subtomograms Manually'
-							color: (0,0,0,1)
-							font_size: 35
-							pos_hint: {'center_x': .22}
-							bold: True
-							size_hint_y: .8
-						Button:
-							text: 'information'
-							background_color: 0, 1.2, 2, .5
-							on_release: Factory.RotateManualInfo().open()
-							size_hint: .22, .4
-							pos_hint: {'center_x': .5, 'center_y': .5}
-						Label:
-							size_hint_y: .1
-						BoxLayout:
-							orientation: 'vertical'
-							pos_hint: {'center_x': .5}
-							canvas:
-								Color:
-									rgba: .5, .5, .5, 0.7
-								Rectangle:
-									pos: self.pos
-									size: self.size
-							Label:
-								text: 'Axis of Rotation'
-								size_hint_y: .8
-							BoxLayout:
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								size_hint: .6, .7
-								orientation: 'horizontal'
-								BoxLayout:
-									size_hint_x: .5
-									pos_hint: {'center_x': .5}
-									orientation: 'horizontal'
-									CheckBox:
-										group: 'g4'
-										id: xaxis
-									Label: 
-										text: 'X-Axis'
-								BoxLayout:
-									size_hint_x: .5
-									pos_hint: {'center_x': .5}
-									orientation: 'horizontal'
-									CheckBox:
-										group: 'g4'
-										id: yaxis
-									Label: 
-										text: 'Y-Axis'
-								BoxLayout:
-									size_hint_x: .5
-									pos_hint: {'center_x': .5}
-									orientation: 'horizontal'
-									CheckBox:
-										group: 'g4'
-										id: zaxis
-									Label: 
-										text: 'Z-Axis'
-						Label:
-							size_hint_y: .2
-						BoxLayout:
-							size_hint_x: .55
-							orientation: 'vertical'
-							pos_hint: {'center_x': .5, 'center_y': .5}
-							Label:
-								size_hint_y: .1
-							Label: 
-								text: 'Manual Rotation Angle'
-								size_hint_y: .3
-							Label:
-								size_hint_y: .1
-							TextInput:
-								text: '90'
-								size_hint: .15, .5
-								pos_hint: {'center_x': .5, 'center_y': .5}
-								multiline: False
-								id: anglerotation
-							Label:
-								size_hint_y: .2
-						Button:
-							background_color: 0.2, 0.6, 0.2, .55
-							text: 'Manually Rotate'
-							on_release: root.manualrotate()
-							size_hint: .3, .6
-							pos_hint: {'center_x': .5, 'center_y': .5}
-
-						Label: 
-							size_hint_y: .2
-							text: ''
-							font_size: 25
-							pos_hint: {'center_y': .5}
-							color: (.6,0,0,1)
-							id: noaxis
-					Label:
-						size_hint_y: .1
 
 	TabbedPanelItem:
 		text: 'Validation'
@@ -2003,6 +1829,180 @@
 						size_hint_y: .2
 				Label:
 					size_hint_y: .07
+
+	TabbedPanelItem:
+		text: 'Modify'
+		BoxLayout:
+			spacing: 10
+			orientation: 'vertical'
+			canvas:
+				Color:
+					rgba: 1, 1, 1, .2
+				Rectangle:
+					pos: self.pos
+					size: self.size
+			GridLayout:
+				rows: 2
+				spacing: 20
+				canvas:
+					Color:
+						rgba: 1, 1, 1, .6
+					Rectangle:
+						pos: self.pos
+						size: self.size
+				BoxLayout:
+					orientation: 'vertical'
+					Label:
+						size_hint_y: .1
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint_x: .8
+						pos_hint: {'center_x': .5, 'center_y': .5}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Rotate Subtomograms using Star File'
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .25}
+							bold: True
+							size_hint_y: .8
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.RotateStarInfo().open()
+							size_hint: .22, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}	
+						BoxLayout:
+							orientation: 'horizontal'
+							size_hint: .3, .8
+							pos_hint: {'center_x': .45}
+							CheckBox:
+								state: 'down'
+								id: applyTranslations
+							Label:
+								text: 'Apply translations'
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Rotate'
+							on_release: root.rotate()
+							size_hint: .3, .8
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label: 
+							text: ' '
+							size_hint_y: .1
+				BoxLayout:
+					orientation: 'vertical'
+					size_hint_y: 1.4
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint_x: .8
+						pos_hint: {'center_x': .5}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						Label:
+							text: 'Rotate Subtomograms Manually'
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .22}
+							bold: True
+							size_hint_y: .8
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.RotateManualInfo().open()
+							size_hint: .22, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							size_hint_y: .1
+						BoxLayout:
+							orientation: 'vertical'
+							pos_hint: {'center_x': .5}
+							canvas:
+								Color:
+									rgba: .5, .5, .5, 0.7
+								Rectangle:
+									pos: self.pos
+									size: self.size
+							Label:
+								text: 'Axis of Rotation'
+								size_hint_y: .8
+							BoxLayout:
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								size_hint: .6, .7
+								orientation: 'horizontal'
+								BoxLayout:
+									size_hint_x: .5
+									pos_hint: {'center_x': .5}
+									orientation: 'horizontal'
+									CheckBox:
+										group: 'g4'
+										id: xaxis
+									Label: 
+										text: 'X-Axis'
+								BoxLayout:
+									size_hint_x: .5
+									pos_hint: {'center_x': .5}
+									orientation: 'horizontal'
+									CheckBox:
+										group: 'g4'
+										id: yaxis
+									Label: 
+										text: 'Y-Axis'
+								BoxLayout:
+									size_hint_x: .5
+									pos_hint: {'center_x': .5}
+									orientation: 'horizontal'
+									CheckBox:
+										group: 'g4'
+										id: zaxis
+									Label: 
+										text: 'Z-Axis'
+						Label:
+							size_hint_y: .2
+						BoxLayout:
+							size_hint_x: .55
+							orientation: 'vertical'
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							Label:
+								size_hint_y: .1
+							Label: 
+								text: 'Manual Rotation Angle'
+								size_hint_y: .3
+							Label:
+								size_hint_y: .1
+							TextInput:
+								text: '90'
+								size_hint: .15, .5
+								pos_hint: {'center_x': .5, 'center_y': .5}
+								multiline: False
+								id: anglerotation
+							Label:
+								size_hint_y: .2
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Manually Rotate'
+							on_release: root.manualrotate()
+							size_hint: .3, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
+
+						Label: 
+							size_hint_y: .2
+							text: ''
+							font_size: 25
+							pos_hint: {'center_y': .5}
+							color: (.6,0,0,1)
+							id: noaxis
+					Label:
+						size_hint_y: .1
 
 	TabbedPanelItem:
 		text: 'Calc. Angles'
