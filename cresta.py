@@ -986,6 +986,10 @@ class Tabs(TabbedPanel):
 		return
 	
 	def path_1(self):
+		# boxsize = float(self.ids.px1.text)
+		# invol = mrcfile.read('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/ForPatrick/T03_rec.mrc')
+		# subby = tom.cut_out(invol, [450,450,450], [boxsize, boxsize, boxsize])
+		# mrcfile.new('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/newsub.mrc', subby)
 		self.ids.cmmf.text = '/cmm_files'
 		if self.ids.cmmf.text[0] !=  '/':
 			self.ids.cmmf.text = '/' + self.ids.cmmf.text
@@ -1431,18 +1435,34 @@ class Tabs(TabbedPanel):
 		boxsize = [boxsize, boxsize, boxsize]
 		fileNames, angles, shifts, list_length, pickPos, new_star_name = tom.readList(listName, pxsz, 'rottrans', ownAngs)
 		fileNames = [dir + name for name in fileNames]
-		for i in range(len(fileNames)):
+		# for i in range(len(fileNames)):
+		def rotateLoop(i):
 			mrcName = fileNames[i].split('/')[-1]
 			mrcDirec = "/".join(fileNames[i].split('/')[:-1])
 			rotDir = mrcDirec + '/rottrans/'
+			print('Now rotating ' + mrcName)
 			if len(ownAngs) != 3:
 				outH1 = tom.processParticler(fileNames[i], angles[:,i].conj().transpose() * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
 			else:
 				outH1 = tom.processParticler(fileNames[i], ownAngs * -1, boxsize, shifts[:,i].conj().transpose() * -1, shifton)
 			outH1 = outH1.astype(np.float32)
-			if os.path.exists(rotDir) == False:
-				os.mkdir(rotDir)
+			if os.path.isdir(rotDir) == False:
+				os.makedirs(rotDir, exist_ok=True)
 			mrcfile.write(rotDir + mrcName, outH1, True)
+			print('Rotation complete for ' + mrcName)
+		# thread in batches to optimize runtime
+		threads = []
+		batch_size = int(self.ids.CPU.text)
+		fileLen = range(len(fileNames))
+		batches = [fileLen[i:i+batch_size] for i in range(0, len(fileNames), batch_size)]
+		for batch in batches:
+			for i in batch:
+				threads.append(Thread(target = rotateLoop, args = (i,)))
+				threads[i].start()
+			for i in batch:
+				threads[i].join()
+		for thread in threads:
+			thread.join()
 		return
 	
 	def rotate(self):
@@ -1457,6 +1477,7 @@ class Tabs(TabbedPanel):
 		ownAngs = []
 
 		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
+		print('Rotation by Star File Complete\n')
 		return
 	
 	def manualrotate(self):
@@ -1495,6 +1516,7 @@ class Tabs(TabbedPanel):
 			return
 		
 		self.rotate_subtomos(starf, dir, pxsz, boxsize, shifton, ownAngs)
+		print('Manual Rotation Complete\n')
 
 	# used to store a subtomogram's accepted/rejected status
 	indexToVal = {}
