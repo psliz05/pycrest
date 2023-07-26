@@ -516,7 +516,6 @@ def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
         pos = np.floor((np.array(in_data.shape) - np.array(size_c)) / 2) + 1
     
     pos = np.where(pos > 0, pos, 1)
-    
     num_of_dim = in_data.ndim
     if in_data.shape[0] == 1:
         in_size = in_data.shape[1]
@@ -555,9 +554,9 @@ def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
     
     # cut it
     if num_of_dim > 1:
-        out = in_data[pos[0]-1:bound[0], pos[1]-1:bound[1], pos[2]-1:bound[2]]
+        out = in_data[pos[0]:(bound[0]+1), pos[1]:(bound[1]+1), pos[2]:(bound[2]+1)]
     else:
-        out = in_data[pos[0]:bound[0]]
+        out = in_data[pos[0]:bound[0]+1]
     
     return out
     

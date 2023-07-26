@@ -406,9 +406,8 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
-						with mrcfile.open(newFileName, 'r+') as mrc:
-							header = mrc.header
-						header.cella = (angpix, angpix, angpix)
+						# with mrcfile.open(newFileName, 'r+') as mrc:
+						# 	mrc.header.cella = angpix
 					
 					# thread in batches to optimize runtime
 					threads = []
@@ -472,6 +471,8 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						with mrcfile.open(newFileName, 'r+') as mrc:
+							mrc.header.cella = (angpix, angpix, angpix)
 					
 					# thread in batches to optimize runtime
 					threads = []
@@ -520,6 +521,8 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						with mrcfile.open(newFileName, 'r+') as mrc:
+							mrc.header.cella = (angpix, angpix, angpix)
 
 					# thread in batches to optimize runtime
 					threads = []
@@ -578,6 +581,8 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						with mrcfile.open(newFileName, 'r+') as mrc:
+							mrc.header.cella = (angpix, angpix, angpix)
 					
 					# thread in batches to optimize runtime
 					threads = []
@@ -766,15 +771,14 @@ class Tabs(TabbedPanel):
 		print('Saved to ' + direct + file_path)
 		return
 
-	def create_coords(self):
+	# re-extraction (coordinate re-picker)
+	def reextraction(self):
 		# initialize variables
 		starf = self.ids.mainstarfilt.text
 		direct = self.ids.mainsubtomo.text
 		imgToCmmCor = {}
 		if self.ids.mainsubtomo.text[-1] != '/':
 				direct = self.ids.mainsubtomo.text + '/'
-		boxsize = float(self.ids.px1.text)
-		boxsize = boxsize / 2
 
 		# set directory path
 		directory = direct + 'cmm_files/'
@@ -802,15 +806,6 @@ class Tabs(TabbedPanel):
 									for line in ftomo:
 										# finding selected .cmm coordinates and shifting based on box size
 										if re.search('x', line):
-											xmid = re.search(' x="(.*)" y', line)
-											x_coord = xmid.group(1)
-											cmmX = round(boxsize - float(x_coord))
-											ymid = re.search(' y="(.*)" z', line)
-											y_coord = ymid.group(1)
-											cmmY = round(boxsize - float(y_coord))
-											zmid = re.search(' z="(.*)" r=', line)
-											z_coord = zmid.group(1)
-											cmmZ = round(boxsize - float(z_coord))
 											# read star file and extract original x, y, z coordinates
 											star_data = starfile.read(starf)
 											df = pd.DataFrame.from_dict(star_data['particles'])
@@ -818,20 +813,53 @@ class Tabs(TabbedPanel):
 											xCor = float(row['rlnCoordinateX'].iloc[0])
 											yCor = float(row['rlnCoordinateY'].iloc[0])
 											zCor = float(row['rlnCoordinateZ'].iloc[0])
+											# get boxsize from subtomogram
+											boxsize = []
+											with mrcfile.open(direct + row['rlnImageName'].iloc[0], 'r+') as mrc:
+												boxsize.append(float(mrc.header.nx))
+												boxsize.append(float(mrc.header.ny))
+												boxsize.append(float(mrc.header.nz))
+											# find selected x, y, z coordinates from .cmm file
+											xmid = re.search(' x="(.*)" y', line)
+											x_coord = xmid.group(1)
+											cmmX = round(boxsize[0]/2 - float(x_coord))
+											ymid = re.search(' y="(.*)" z', line)
+											y_coord = ymid.group(1)
+											cmmY = round(boxsize[1]/2 - float(y_coord))
+											zmid = re.search(' z="(.*)" r=', line)
+											z_coord = zmid.group(1)
+											cmmZ = round(boxsize[2]/2 - float(z_coord))
 											# calculate final x, y, z coordinates
 											finalx = str(round(xCor) - int(cmmX))
 											finaly = str(round(yCor) - int(cmmY))
 											finalz = str(round(zCor) - int(cmmZ))
-											# re-extract
-											# invol = mrcfile.read('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/Extract/extract_tomo/201810XX_MPI/SV4_003_dff/filtered/SV4_003_dff000013_wiener.mrc')
-											# subby = tom.cut_out(invol, [float(finalx), float(finaly), float(finalz)], [boxsize * 2, boxsize * 2, boxsize * 2])
-											# mrcfile.new('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/newsub.mrc', subby)
+											# create a folder for each subtomogram
+											subtomoName = row['rlnImageName'].iloc[0]
+											subtomoIn = subtomoName.replace('_wiener', '')
+											subtomoIn = subtomoIn.replace('_gauss', '')
+											subtomoIn = subtomoIn.replace('filtered/', '')
+											invol = mrcfile.read(direct + subtomoIn)
+											subtomo = subtomoName.replace('_wiener', '')
+											subtomo = subtomo.replace('_gauss', '')
+											subtomo = subtomo.replace('filtered', subtomo.split("/")[-1].split('.')[0])
+											subtomoFolder = '/'.join((direct + subtomo).split('/')[:-1])
+											if os.path.isdir(subtomoFolder) == False:
+												os.makedirs(subtomoFolder)
+											# x and z flipped to center subtomogram
+											subby = tom.cut_out(invol, np.array([float(z_coord) - boxsize[2]/4, float(y_coord) - boxsize[1]/4, float(x_coord) - boxsize[0]/4]), [boxsize[2]/2, boxsize[1]/2, boxsize[0]/2])
 											# add new coords to dictionary
 											if name in imgToCmmCor.keys(): #checks duplicate filename
-												imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
+												imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
 												count += 1
 											else:
-												imgToCmmCor[name] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz]
+												imgToCmmCor[name] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
+											# create subtomograms
+											if count > 1: #account for duplicates
+												num = str(count - 1)
+												subtomo = subtomo.replace('.mrc', '')
+												mrcfile.new(direct + subtomo + '_' + num + '.mrc', subby, overwrite=True)
+											else:
+												mrcfile.new(direct + subtomo, subby, overwrite=True)
 											# create files
 											eman = name[::-1]
 											cutName = re.sub('\d{6}','', eman)
@@ -843,14 +871,13 @@ class Tabs(TabbedPanel):
 				# files not in folder
 				return
 		
-		# add new information to star file
+		# add new information to cmm star file
 		star_data = starfile.read(starf)
 		df = pd.DataFrame.from_dict(star_data['particles'])
 		# define new columns
 		df["rlnSubtomogramPosX"] = np.zeros(df.shape[0])
 		df["rlnSubtomogramPosY"] = np.zeros(df.shape[0])
 		df["rlnSubtomogramPosZ"] = np.zeros(df.shape[0])
-		df["rlnBoxsize"] = np.array([(boxsize * 2) for _ in range(df.shape[0])])
 		df["rlnCorrectedCoordsX"] = np.zeros(df.shape[0])
 		df["rlnCorrectedCoordsY"] = np.zeros(df.shape[0])
 		df["rlnCorrectedCoordsZ"] = np.zeros(df.shape[0])
@@ -884,7 +911,6 @@ class Tabs(TabbedPanel):
 		df1 = pd.DataFrame()
 		for imgName in imgToCmmCor.keys():
 			if df[df['rlnImageName'].str.contains(imgName)].shape[0] == 0:
-				print(imgName)
 				modifiedName = imgName.replace("!", "")
 				row = df[df['rlnImageName'].str.contains(modifiedName)].to_dict()
 				row["rlnSubtomogramPosX"] = imgToCmmCor[imgName][0]
@@ -899,7 +925,47 @@ class Tabs(TabbedPanel):
 				df1 = pd.concat([df1, pd.DataFrame(row)])
 		df = pd.concat([df, df1])
 		df = df.sort_values(by="rlnImageName")
-		starfile.write(df, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
+		star_data['particles'] = df
+		starfile.write(star_data, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
+
+		# create new star file
+		cmmStar = directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star'
+		star_data = starfile.read(cmmStar)
+		df = pd.DataFrame.from_dict(star_data['particles'])
+		df1 = pd.DataFrame.from_dict(star_data['particles'])
+		df1 = df1.drop(df1.index)
+		df1 = df1.dropna(how="all")
+
+		for imageName in imgToCmmCor.keys():
+			if '!' in imageName:
+				duplicateNum = str(imageName.count("!"))
+				duplicateName = imgToCmmCor[imageName][9].replace('.mrc', '') + "_" + duplicateNum + ".mrc"
+				modifiedName = imageName.replace("!", "")
+				row = df[df['rlnImageName'].str.contains(modifiedName) & (df["rlnCoordinateNewX"] == float(imgToCmmCor[imageName][6]))].copy(deep=True)
+				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnCoordinateX"] = imgToCmmCor[imageName][6]
+				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnCoordinateY"] = imgToCmmCor[imageName][7]
+				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnCoordinateZ"] = imgToCmmCor[imageName][8]
+				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnOriginXAngst"] = 0
+				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnOriginYAngst"] = 0
+				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnOriginZAngst"] = 0
+				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnImageName"] = duplicateName				
+			else:
+				row = df[df['rlnImageName'].str.contains(imageName) & (df["rlnCoordinateNewX"] == float(imgToCmmCor[imageName][6]))].copy(deep=True)
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnCoordinateX"] = imgToCmmCor[imageName][6]
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnCoordinateY"] = imgToCmmCor[imageName][7]
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnCoordinateZ"] = imgToCmmCor[imageName][8]
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnOriginXAngst"] = 0
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnOriginYAngst"] = 0
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnOriginZAngst"] = 0
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnImageName"] = imgToCmmCor[imageName][9]
+			
+			df1 = pd.concat([df1, row])
+		columnsDrop = df1.columns[df1.columns.get_loc("rlnSubtomogramPosX"):df1.columns.get_loc("rlnCoordinateNewZ")+1]
+		df1 = df1.drop(columns = columnsDrop)
+		
+		star_data['particles'] = df1
+		starfileName = starf.split("/")[-1].split(".")[0].replace('_filtered', '')
+		starfile.write(star_data, direct + '/' + starfileName + '_reextract.star', overwrite=True)
 		return
 
 	def parse(self):
@@ -1300,7 +1366,8 @@ class Tabs(TabbedPanel):
 
 		return
 
-	def reextract(self):
+	# 3d signal subtraction
+	def subtraction(self):
 		mask = self.ids.maskpath.text
 		starf = self.ids.mainstar.text
 		if self.ids.mainsubtomo.text[-1] != '/':
