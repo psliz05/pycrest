@@ -445,7 +445,8 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addWiener(x))
 					star_data["particles"] = df
-					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
+					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered.star', overwrite=True)
+					self.ids.mainstarfilt.text = subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered.star'
 					print('Wiener Filtering by Star File Complete\n')
 
 				elif mrcButton:
@@ -557,7 +558,8 @@ class Tabs(TabbedPanel):
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: replaceName(x))
 					df.loc[:, "rlnImageName"] = df.loc[:, "rlnImageName"].apply(lambda x: addGaussian(x))
 					star_data["particles"] = df
-					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered' + ".star", overwrite=True)
+					starfile.write(star_data, subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered.star', overwrite=True)
+					self.ids.mainstarfilt.text = subtomodir + starf.split("/")[-1].split(".")[0] + '_filtered.star'
 					print('Gaussian Filtering by Star File Complete\n')
 
 				elif mrcButton:
@@ -856,9 +858,10 @@ class Tabs(TabbedPanel):
 											# create subtomograms
 											if count > 1: #account for duplicates
 												num = str(count - 1)
-												subtomo = subtomo.replace('.mrc', '')
-												mrcfile.new(direct + subtomo + '_' + num + '.mrc', subby, overwrite=True)
+												subtomo = subtomo.replace('.mrc', '_' + num + '.mrc')
+												mrcfile.new(direct + subtomo, subby, overwrite=True)
 											else:
+												subtomo = subtomo.replace('.mrc', '_0.mrc')
 												mrcfile.new(direct + subtomo, subby, overwrite=True)
 											# create files
 											eman = name[::-1]
@@ -867,9 +870,7 @@ class Tabs(TabbedPanel):
 											file_opt = open(folder + '/' + cutName + '.coordsnew', 'a')
 											file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
 											file_opt.close()
-			else:
-				# files not in folder
-				return
+											shutil.copy(folder + '/' + filename, '/' + subtomoFolder + '/' + filename)
 		
 		# add new information to cmm star file
 		star_data = starfile.read(starf)
@@ -907,6 +908,7 @@ class Tabs(TabbedPanel):
 								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewX"] = imgToCmmCor[name][6]
 								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewY"] = imgToCmmCor[name][7]
 								df.loc[df['rlnImageName'].str.contains(name), "rlnCoordinateNewZ"] = imgToCmmCor[name][8]
+								# os.remove(folder + '/' + name + '.cmm')
 		# adding row for each duplicate filename to dictionary
 		df1 = pd.DataFrame()
 		for imgName in imgToCmmCor.keys():
@@ -926,7 +928,7 @@ class Tabs(TabbedPanel):
 		df = pd.concat([df, df1])
 		df = df.sort_values(by="rlnImageName")
 		star_data['particles'] = df
-		starfile.write(star_data, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star')
+		starfile.write(star_data, directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star', overwrite=True)
 
 		# create new star file
 		cmmStar = directory + '/' + starf.split("/")[-1].split(".")[0] + '_cmm.star'
@@ -939,7 +941,7 @@ class Tabs(TabbedPanel):
 		for imageName in imgToCmmCor.keys():
 			if '!' in imageName:
 				duplicateNum = str(imageName.count("!"))
-				duplicateName = imgToCmmCor[imageName][9].replace('.mrc', '') + "_" + duplicateNum + ".mrc"
+				duplicateName = imgToCmmCor[imageName][9].replace('.mrc', "_" + duplicateNum + ".mrc")
 				modifiedName = imageName.replace("!", "")
 				row = df[df['rlnImageName'].str.contains(modifiedName) & (df["rlnCoordinateNewX"] == float(imgToCmmCor[imageName][6]))].copy(deep=True)
 				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnCoordinateX"] = imgToCmmCor[imageName][6]
@@ -950,6 +952,7 @@ class Tabs(TabbedPanel):
 				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnOriginZAngst"] = 0
 				row.loc[row['rlnImageName'].str.contains(modifiedName), "rlnImageName"] = duplicateName				
 			else:
+				firstName = imgToCmmCor[imageName][9].replace('.mrc', '_0.mrc')
 				row = df[df['rlnImageName'].str.contains(imageName) & (df["rlnCoordinateNewX"] == float(imgToCmmCor[imageName][6]))].copy(deep=True)
 				row.loc[row['rlnImageName'].str.contains(imageName), "rlnCoordinateX"] = imgToCmmCor[imageName][6]
 				row.loc[row['rlnImageName'].str.contains(imageName), "rlnCoordinateY"] = imgToCmmCor[imageName][7]
@@ -957,7 +960,7 @@ class Tabs(TabbedPanel):
 				row.loc[row['rlnImageName'].str.contains(imageName), "rlnOriginXAngst"] = 0
 				row.loc[row['rlnImageName'].str.contains(imageName), "rlnOriginYAngst"] = 0
 				row.loc[row['rlnImageName'].str.contains(imageName), "rlnOriginZAngst"] = 0
-				row.loc[row['rlnImageName'].str.contains(imageName), "rlnImageName"] = imgToCmmCor[imageName][9]
+				row.loc[row['rlnImageName'].str.contains(imageName), "rlnImageName"] = firstName
 			
 			df1 = pd.concat([df1, row])
 		columnsDrop = df1.columns[df1.columns.get_loc("rlnSubtomogramPosX"):df1.columns.get_loc("rlnCoordinateNewZ")+1]
