@@ -624,6 +624,92 @@
 							background_color: 0.2, 0.6, 0.2, .55
 						Label:
 							size_hint_y: .1
+
+	TabbedPanelItem:
+		text: 'Extraction'
+		BoxLayout:
+			spacing: 10
+			orientation: 'vertical'
+			canvas:
+				Color:
+					rgba: 1, 1, 1, .2
+				Rectangle:
+					pos: self.pos
+					size: self.size
+			GridLayout:
+				rows: 1
+				spacing: 20
+				canvas:
+					Color:
+						rgba: 1, 1, 1, .6
+					Rectangle:
+						pos: self.pos
+						size: self.size
+				BoxLayout:
+					orientation: 'vertical'
+					size_hint_y: 1.5
+					Label:
+						size_hint_y: .3
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint_x: .75
+						pos_hint: {'center_x': .5}
+						canvas:
+							Color:
+								rgba: .5, .5, .5, 0.4
+							Rectangle:
+								pos: self.pos
+								size: self.size
+						spacing: 15
+						Label:
+							text: 'Extraction'
+							color: (0,0,0,1)
+							font_size: 35
+							pos_hint: {'center_x': .15}
+							bold: True
+						Button:
+							text: 'information'
+							background_color: 0, 1.2, 2, .5
+							on_release: Factory.PlotBackInfo().open()
+							size_hint: .2, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}	
+						Label:
+							size_hint_y: .4
+						Label: 
+							text: 'Tomogram File Path'
+							size_hint_y: .15
+						TextInput:
+							text: '.mrc'
+							size_hint: .9, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: tomo
+						Label:
+							size_hint_y: .4
+						Label:
+							text: 'Coordinates File Path'
+							size_hint_y: .15
+						TextInput:
+							text: '.coords'
+							size_hint: .7, .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+							multiline: False
+							id: tomocoords
+						Label:
+							text: ' '
+							size_hint_y: .3
+						Button:
+							background_color: 0.2, 0.6, 0.2, .55
+							text: 'Extract Subtomograms'
+							on_release: root.extract()
+							size_hint_x: .4
+							pos_hint: {'center_x': .5, 'center_y': .5}
+						Label:
+							text: ' '
+							size_hint_y: .3
+					Label:
+						size_hint_y: .3
+
 	TabbedPanelItem:
 		text: 'Filtering'
 		BoxLayout:

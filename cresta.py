@@ -51,7 +51,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
-Window.size = (900,800)
+Window.size = (1000,800)
 
 #importing kivy file
 Builder.load_file(os.getcwd() + '/gui.kv')
@@ -352,6 +352,44 @@ class Tabs(TabbedPanel):
 			text = Label(text="Please select a filter")
 			self.ids.gaussian_row.add_widget(text)
 	
+	def extract(self):
+		tomogram = self.ids.tomo.text
+		coordfile = self.ids.tomocoords.text
+		direct = '/'.join(tomogram.split('/')[:-1]) + '/'
+		tomName = tomogram.split('/')[-1].replace('.mrc', '')
+		tomogram = mrcfile.mmap(tomogram)
+		boxsize = float(self.ids.px1.text)
+		if os.path.isdir(direct + 'subtomograms') == False:
+			os.makedirs(direct + 'subtomograms/')
+		direct = direct + 'subtomograms/'
+		with open(coordfile, 'r') as coord:
+			count = 0
+			for line in coord:
+				# access coordinates from coords file
+				pos = line.split(' ')[1:]
+				# convert coordinates to integers
+				x = int(pos[0]) - boxsize/2
+				y = int(pos[1]) - boxsize/2
+				z = int(pos[2].strip()) - boxsize/2
+				# calculate bounds
+				bound = np.zeros(3)
+				bound[0] = z + boxsize - 1
+				bound[1] = y + boxsize - 1
+				bound[2] = x + boxsize - 1
+
+				bound = np.round(bound).astype(int)
+				z = np.round(z).astype(int)
+				y = np.round(y).astype(int)
+				x = np.round(x).astype(int)
+				# cut the tomogram
+				out = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
+				print('Extracted')
+				name = direct + tomName + str(count) + '.mrc'
+				mrcfile.new(name, out, overwrite=True)
+				# change pixel size
+				with mrcfile.open(name, 'r+') as mrc:
+					mrc.voxel_size = 2.62
+				count += 1
 
 	plt.ion()
 
