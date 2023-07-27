@@ -359,12 +359,15 @@ class Tabs(TabbedPanel):
 		tomName = tomogram.split('/')[-1].replace('.mrc', '')
 		tomogram = mrcfile.mmap(tomogram)
 		boxsize = float(self.ids.px1.text)
+		angpix = float(self.ids.A1.text)
 		if os.path.isdir(direct + 'subtomograms') == False:
 			os.makedirs(direct + 'subtomograms/')
 		direct = direct + 'subtomograms/'
 		with open(coordfile, 'r') as coord:
-			count = 0
-			for line in coord:
+			coord = coord.readlines()
+			# for line in coord:
+			def extractLoop(i):
+				line = coord[i]
 				# access coordinates from coords file
 				pos = line.split(' ')[1:]
 				# convert coordinates to integers
@@ -383,13 +386,27 @@ class Tabs(TabbedPanel):
 				x = np.round(x).astype(int)
 				# cut the tomogram
 				out = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
-				print('Extracted')
-				name = direct + tomName + str(count) + '.mrc'
+				name = direct + tomName + str(i) + '.mrc'
 				mrcfile.new(name, out, overwrite=True)
+				print('Extracted ' + name)
 				# change pixel size
 				with mrcfile.open(name, 'r+') as mrc:
-					mrc.voxel_size = 2.62
-				count += 1
+					mrc.voxel_size = angpix
+			# thread in batches to optimize runtime
+			threads = []
+			batch_size = int(self.ids.CPU.text)
+			lenCoord = len(coord)
+			fileLen = range(lenCoord)
+			batches = [fileLen[i:i+batch_size] for i in range(0, lenCoord, batch_size)]
+			for batch in batches:
+				for i in batch:
+					threads.append(Thread(target = extractLoop, args = (i,)))
+					threads[i].start()
+				for i in batch:
+					threads[i].join()
+			for thread in threads:
+				thread.join()
+			print('Extraction Complete\n')
 
 	plt.ion()
 
@@ -444,8 +461,9 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
-						# with mrcfile.open(newFileName, 'r+') as mrc:
-						# 	mrc.header.cella = angpix
+						# correct the pixel size (angstroms)
+						with mrcfile.open(newFileName, 'r+') as mrc:
+							mrc.voxel_size = angpix
 					
 					# thread in batches to optimize runtime
 					threads = []
@@ -510,8 +528,9 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_wiener.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						# correct the pixel size (angstroms)
 						with mrcfile.open(newFileName, 'r+') as mrc:
-							mrc.header.cella = (angpix, angpix, angpix)
+							mrc.voxel_size = angpix
 					
 					# thread in batches to optimize runtime
 					threads = []
@@ -560,8 +579,9 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						# correct the pixel size (angstroms)
 						with mrcfile.open(newFileName, 'r+') as mrc:
-							mrc.header.cella = (angpix, angpix, angpix)
+							mrc.voxel_size = angpix
 
 					# thread in batches to optimize runtime
 					threads = []
@@ -621,8 +641,9 @@ class Tabs(TabbedPanel):
 						newFileName = os.path.join(filterout, baseFileName + '_gauss.mrc')
 						print('Now writing ' + newFileName)
 						mrcfile.new(newFileName, subtomo_filt, overwrite = True)
+						# correct the pixel size (angstroms)
 						with mrcfile.open(newFileName, 'r+') as mrc:
-							mrc.header.cella = (angpix, angpix, angpix)
+							mrc.voxel_size = angpix
 					
 					# thread in batches to optimize runtime
 					threads = []
@@ -816,6 +837,7 @@ class Tabs(TabbedPanel):
 		# initialize variables
 		starf = self.ids.mainstarfilt.text
 		direct = self.ids.mainsubtomo.text
+		angpix = float(self.ids.A1.text)
 		imgToCmmCor = {}
 		if self.ids.mainsubtomo.text[-1] != '/':
 				direct = self.ids.mainsubtomo.text + '/'
@@ -861,14 +883,14 @@ class Tabs(TabbedPanel):
 												boxsize.append(float(mrc.header.nz))
 											# find selected x, y, z coordinates from .cmm file
 											xmid = re.search(' x="(.*)" y', line)
-											x_coord = xmid.group(1)
-											cmmX = round(boxsize[0]/2 - float(x_coord))
+											x_coord = float(xmid.group(1)) / angpix
+											cmmX = round(boxsize[0]/2 - x_coord)
 											ymid = re.search(' y="(.*)" z', line)
-											y_coord = ymid.group(1)
-											cmmY = round(boxsize[1]/2 - float(y_coord))
+											y_coord = float(ymid.group(1)) / angpix
+											cmmY = round(boxsize[1]/2 - y_coord)
 											zmid = re.search(' z="(.*)" r=', line)
-											z_coord = zmid.group(1)
-											cmmZ = round(boxsize[2]/2 - float(z_coord))
+											z_coord = float(zmid.group(1)) / angpix
+											cmmZ = round(boxsize[2]/2 - z_coord)
 											# calculate final x, y, z coordinates
 											finalx = str(round(xCor) - int(cmmX))
 											finaly = str(round(yCor) - int(cmmY))
@@ -898,9 +920,13 @@ class Tabs(TabbedPanel):
 												num = str(count - 1)
 												subtomo = subtomo.replace('.mrc', '_' + num + '.mrc')
 												mrcfile.new(direct + subtomo, subby, overwrite=True)
+												with mrcfile.open(direct + subtomo, 'r+') as mrc:
+													mrc.voxel_size = angpix
 											else:
 												subtomo = subtomo.replace('.mrc', '_0.mrc')
 												mrcfile.new(direct + subtomo, subby, overwrite=True)
+												with mrcfile.open(direct + subtomo, 'r+') as mrc:
+													mrc.voxel_size = angpix
 											# create files
 											eman = name[::-1]
 											cutName = re.sub('\d{6}','', eman)
@@ -1095,10 +1121,6 @@ class Tabs(TabbedPanel):
 		return
 	
 	def path_1(self):
-		# boxsize = float(self.ids.px1.text)
-		# invol = mrcfile.read('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/ForPatrick/T03_rec.mrc')
-		# subby = tom.cut_out(invol, [450,450,450], [boxsize, boxsize, boxsize])
-		# mrcfile.new('/Users/patricksliz/Documents/GitHub/pycrest/Test_Data/newsub.mrc', subby)
 		self.ids.cmmf.text = '/cmm_files'
 		if self.ids.cmmf.text[0] !=  '/':
 			self.ids.cmmf.text = '/' + self.ids.cmmf.text
@@ -1377,6 +1399,7 @@ class Tabs(TabbedPanel):
 		try:
 			direct = self.ids.mainmrc.text
 			box = int(self.ids.px1.text)
+			angpix = float(self.ids.A1.text)
 			rad = float(self.ids.radius.text)
 			height = float(self.ids.height.text)
 			vertshift = float(self.ids.vertical.text)
@@ -1389,6 +1412,8 @@ class Tabs(TabbedPanel):
 				newMask = os.path.join(direct, maskmrc)
 				print('Now writing ' + newMask)
 				mrcfile.new(newMask, sphere)
+				with mrcfile.open(newMask, 'r+') as mrc:
+					mrc.voxel_size = angpix
 
 			if masktype == 'Cylinder':
 				curve = 9649
@@ -1401,6 +1426,8 @@ class Tabs(TabbedPanel):
 				newMask = os.path.join(direct, maskmrc)
 				print('Now writing ' + newMask)
 				mrcfile.new(newMask, mask_final)
+				with mrcfile.open(newMask, 'r+') as mrc:
+					mrc.voxel_size = angpix
 			self.ids.maskwarning.text = ''
 		except ValueError:
 			self.ids.maskwarning.text = 'Filename already exists'
@@ -1447,6 +1474,8 @@ class Tabs(TabbedPanel):
 				if os.path.isdir(reextractDir) == False:
 					os.makedirs(reextractDir, exist_ok=True)
 				mrcfile.write(reextractDir + mrcName, outH1, True)
+				with mrcfile.open(reextractDir + mrcName, 'r+') as mrc:
+					mrc.voxel_size = pxsz
 				b = time.perf_counter()
 				t1 = str(timedelta(seconds = b-a)).split(":")
 				if int(t1[1]) > 0:
@@ -1559,6 +1588,8 @@ class Tabs(TabbedPanel):
 			if os.path.isdir(rotDir) == False:
 				os.makedirs(rotDir, exist_ok=True)
 			mrcfile.write(rotDir + mrcName, outH1, True)
+			with mrcfile.open(rotDir + mrcName, 'r+') as mrc:
+				mrc.voxel_size = pxsz
 			print('Rotation complete for ' + mrcName)
 		# thread in batches to optimize runtime
 		threads = []

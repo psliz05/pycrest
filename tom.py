@@ -511,10 +511,7 @@ def cut_out(in_data, pos, size_c, fill_flag='no-fill'):
     if fill_flag != 'fill':
         fill_flag = 'no-fill'
     
-    # kick out values < 1
-    if not isinstance(pos, np.ndarray):
-        pos = np.floor((np.array(in_data.shape) - np.array(size_c)) / 2) + 1
-    
+    # kick out values < 1    
     pos = np.where(pos > 0, pos, 1)
     num_of_dim = in_data.ndim
     if in_data.shape[0] == 1:
