@@ -1,3 +1,14 @@
 
-__pycache__/tom.cpython-311.pyc
-rot3d.so
+### Python ###
+__pycache__/
+*.py[cod]
+*$py.class
+
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# C extensions
+*.so
