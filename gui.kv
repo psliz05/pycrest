@@ -239,6 +239,20 @@
             Button:
                 text: "Save"
                 on_release: root.maskdsave(filechooser.path, text_input.text)
+
+<ExtractionInfo@Popup>
+	size_hint: .75, .45
+	title: 'Extract Subtomograms'
+	BoxLayout:
+		orientation: 'vertical'
+		Label:
+			halign: 'center'
+			text: "Choose a tomogram file path and a '.coords' file path.\n\nProduces subtomograms specified by the .coords file\nand the Master Key boxsize/pixel size.\n\nResults stored in 'subtomogram' folder.\nA star file is generated."
+		Button:
+			size_hint: .5, .25
+			pos_hint: {'center_x': .5}
+			text: 'Close'
+			on_release: root.dismiss()
 <FilterInfo@Popup>
 	size_hint: .75, .55
 	title: 'Filtering'
@@ -730,8 +744,8 @@
 						Button:
 							text: 'information'
 							background_color: 0, 1.2, 2, .5
-							on_release: Factory.PlotBackInfo().open()
-							size_hint: .2, .4
+							on_release: Factory.ExtractionInfo().open()
+							size_hint: .15, .45
 							pos_hint: {'center_x': .5, 'center_y': .5}	
 						Label:
 							size_hint_y: .4

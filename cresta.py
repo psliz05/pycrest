@@ -887,6 +887,8 @@ class Tabs(TabbedPanel):
 		# initialize variables
 		starf = self.ids.mainstarfilt.text
 		direct = self.ids.mainsubtomo.text
+		tomogram = self.ids.tomo.text
+		tomogram = mrcfile.mmap(tomogram)
 		angpix = float(self.ids.A1.text)
 		imgToCmmCor = {}
 		if self.ids.mainsubtomo.text[-1] != '/':
@@ -957,8 +959,23 @@ class Tabs(TabbedPanel):
 											subtomoFolder = '/'.join((direct + subtomo).split('/')[:-1])
 											if os.path.isdir(subtomoFolder) == False:
 												os.makedirs(subtomoFolder)
-											# x and z flipped to center subtomogram
-											subby = tom.cut_out(invol, np.array([float(z_coord) - boxsize[2]/4, float(y_coord) - boxsize[1]/4, float(x_coord) - boxsize[0]/4]), [boxsize[2]/2, boxsize[1]/2, boxsize[0]/2])
+											# convert coordinates to integers
+											x = int(finalx) - boxsize[0]/2
+											y = int(finaly) - boxsize[1]/2
+											z = int(finalz) - boxsize[2]/2
+											# calculate bounds
+											bound = np.zeros(3)
+											bound[0] = z + boxsize[2] - 1
+											bound[1] = y + boxsize[1] - 1
+											bound[2] = x + boxsize[0] - 1
+											# rounding
+											bound = np.round(bound).astype(int)
+											z = np.round(z).astype(int)
+											y = np.round(y).astype(int)
+											x = np.round(x).astype(int)
+											# cut the tomogram
+											subby = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
+											subby = subby * -1
 											# add new coords to dictionary
 											if name in imgToCmmCor.keys(): #checks duplicate filename
 												imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
@@ -977,13 +994,13 @@ class Tabs(TabbedPanel):
 												mrcfile.new(direct + subtomo, subby, overwrite=True)
 												with mrcfile.open(direct + subtomo, 'r+') as mrc:
 													mrc.voxel_size = angpix
-											# create files
-											eman = name[::-1]
-											cutName = re.sub('\d{6}','', eman)
-											cutName = cutName[::-1]
-											file_opt = open(folder + '/' + cutName + '.coordsnew', 'a')
-											file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
-											file_opt.close()
+											# # create files
+											# eman = name[::-1]
+											# cutName = re.sub('\d{6}','', eman)
+											# cutName = cutName[::-1]
+											# file_opt = open(folder + '/' + cutName + '.coords', 'a')
+											# file_opt.writelines(finalx + ' ' + finaly + ' ' + finalz + '\n')
+											# file_opt.close()
 											shutil.copy(folder + '/' + filename, '/' + subtomoFolder + '/' + filename)
 		
 		# add new information to cmm star file
