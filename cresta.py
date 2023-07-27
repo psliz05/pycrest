@@ -83,6 +83,16 @@ class MrcFinder(FloatLayout):
     mrcdsave = ObjectProperty(None)
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
+    
+class TomoFinder(FloatLayout):
+    tomodsave = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+    
+class TomoCoordsFinder(FloatLayout):
+    tomocoordsdsave = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+    cancel = ObjectProperty(None)
 
 class ParStarFinder(FloatLayout):
 	parstardsave = ObjectProperty(None)
@@ -173,6 +183,39 @@ class Tabs(TabbedPanel):
 			self.ids.mainmrc.text = 'Choose Mrc Directory'
 		self.dismiss_popup()
 
+# tomogram path save
+	def show_tomo(self):
+		content = TomoFinder(tomodsave=self.tomosave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Tomogram Path", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
+
+	def tomosave(self, path, filename):
+		tomopath = filename
+		if len(tomopath) != 0:
+			if tomopath.endswith('.mrc') == False:
+				self.ids.tomo.text = 'Not a ".mrc" file — Choose Tomogram Path'
+			else:
+				self.ids.tomo.text = tomopath
+		elif len(tomopath) == 0:
+			self.ids.tomo.text = 'Choose Tomogram Path'
+		self.dismiss_popup()
+
+# tomogram coords path save
+	def show_tomocoords(self):
+		content = TomoCoordsFinder(tomocoordsdsave=self.tomocoordssave, cancel=self.dismiss_popup)
+		self._popup = Popup(title="Save Tomogram Coords Path", content=content,
+                            size_hint=(0.9, 0.9))
+		self._popup.open()
+
+	def tomocoordssave(self, path, filename):
+		tomocoordspath = filename
+		if len(tomocoordspath) != 0:
+			self.ids.tomocoords.text = tomocoordspath
+		elif len(tomocoordspath) == 0:
+			self.ids.tomocoords.text = 'Choose Coords Path'
+		self.dismiss_popup()
+
 # parse star file save
 	def show_parstar(self):
 		content = ParStarFinder(parstardsave=self.parstarsave, cancel=self.dismiss_popup)
@@ -226,6 +269,8 @@ class Tabs(TabbedPanel):
 			file_opt.writelines('BoxSize:' + '\t' + self.ids.px1.text + '\n')
 			file_opt.writelines('PxSize:' + '\t' + self.ids.A1.text + '\n')
 			file_opt.writelines('ChimeraX:' + '\t' + self.ids.chimera_path.text + '\n')
+			file_opt.writelines('Tomogram:' + '\t' + self.ids.tomo.text + '\n')
+			file_opt.writelines('TomoCoord:' + '\t' + self.ids.tomocoords.text + '\n')
 			file_opt.writelines('Index:' + '\t' + self.ids.index.text + '\n')
 			file_opt.writelines('Indall:' + '\t' + self.ids.index2.text + '\n')
 			file_opt.writelines('SurfaceLvl:' + '\t' + self.ids.surface_level.text + '\n')
@@ -281,6 +326,10 @@ class Tabs(TabbedPanel):
 						self.ids.A1.text = yank
 					if re.search('ChimeraX', line):
 						self.ids.chimera_path.text = yank
+					if re.search('Tomogram', line):
+						self.ids.tomo.text = yank
+					if re.search('TomoCoord', line):
+						self.ids.tomocoords.text = yank
 					if re.search('Index', line):
 						self.ids.index.text = yank
 					if re.search('Indall', line):
@@ -386,6 +435,7 @@ class Tabs(TabbedPanel):
 				x = np.round(x).astype(int)
 				# cut the tomogram
 				out = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
+				out = out * -1
 				name = direct + tomName + str(i) + '.mrc'
 				mrcfile.new(name, out, overwrite=True)
 				print('Extracted ' + name)

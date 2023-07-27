@@ -120,6 +120,66 @@
                 text: "Save"
                 on_release: root.mrcdsave(filechooser.path, text_input.text)
 
+<TomoFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+			size_hint_y: .05
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.tomodsave(filechooser.path, text_input.text)
+
+<TomoCoordsFinder>:
+    text_input: text_input
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+        orientation: "vertical"
+        FileChooserListView:
+            id: filechooser 
+            on_selection: text_input.text = self.selection and self.selection[0] or self.path
+			size_hint_y: .9
+
+        TextInput:
+            id: text_input
+            size_hint_y: None
+            height: 30
+            multiline: False
+			size_hint_y: .05
+
+        BoxLayout:
+            size_hint_y: None
+            height: 30
+			size_hint_y: .1
+            Button:
+                text: "Cancel"
+                on_release: root.cancel()
+
+            Button:
+                text: "Save"
+                on_release: root.tomocoordsdsave(filechooser.path, text_input.text)
+
 <ParStarFinder>:
     text_input: text_input
     BoxLayout:
@@ -649,7 +709,7 @@
 					orientation: 'vertical'
 					size_hint_y: 1.5
 					Label:
-						size_hint_y: .3
+						size_hint_y: .2
 					BoxLayout:
 						orientation: 'vertical'
 						size_hint_x: .75
@@ -675,26 +735,60 @@
 							pos_hint: {'center_x': .5, 'center_y': .5}	
 						Label:
 							size_hint_y: .4
-						Label: 
+						Label:
 							text: 'Tomogram File Path'
-							size_hint_y: .15
+							bold: True
+							color: (0,0,0,1)
+							font: 30
+							size_hint_y: .6
 						TextInput:
-							text: '.mrc'
+							text: 'Choose Tomogram Path'
 							size_hint: .9, .4
+							font_size: 30
+							halign: 'center'
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
 							id: tomo
+							multiline: True
+							readonly: True
+							cursor_blink: False
+							foreground_color: (0,0,.6,1)
+							background_color: (1,1,1,0)
+							cursor_color: (1,1,1,0)
+							selection_color: (1,1,1,0)
+						Button:
+							background_color: 0, 1.2, 2, .5
+							text: 'Choose Tomogram'
+							on_release: root.show_tomo()
+							size_hint: .3, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							size_hint_y: .4
 						Label:
 							text: 'Coordinates File Path'
-							size_hint_y: .15
+							bold: True
+							color: (0,0,0,1)
+							font: 30
+							size_hint_y: .6
 						TextInput:
-							text: '.coords'
-							size_hint: .7, .4
+							text: 'Choose Coords Path'
+							size_hint: .9, .4
+							font_size: 30
+							halign: 'center'
 							pos_hint: {'center_x': .5, 'center_y': .5}
-							multiline: False
 							id: tomocoords
+							multiline: True
+							readonly: True
+							cursor_blink: False
+							foreground_color: (0,0,.6,1)
+							background_color: (1,1,1,0)
+							cursor_color: (1,1,1,0)
+							selection_color: (1,1,1,0)
+						Button:
+							background_color: 0, 1.2, 2, .5
+							text: 'Choose Coords'
+							on_release: root.show_tomocoords()
+							size_hint: .3, .6
+							pos_hint: {'center_x': .5, 'center_y': .5}
 						Label:
 							text: ' '
 							size_hint_y: .3
@@ -708,7 +802,7 @@
 							text: ' '
 							size_hint_y: .3
 					Label:
-						size_hint_y: .3
+						size_hint_y: .2
 
 	TabbedPanelItem:
 		text: 'Filtering'
