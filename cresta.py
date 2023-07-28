@@ -51,7 +51,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
-Window.size = (1000,800)
+Window.size = (900,800)
 
 #importing kivy file
 Builder.load_file(os.getcwd() + '/gui.kv')
@@ -94,10 +94,10 @@ class TomoCoordsFinder(FloatLayout):
     text_input = ObjectProperty(None)
     cancel = ObjectProperty(None)
 
-class ParStarFinder(FloatLayout):
-	parstardsave = ObjectProperty(None)
-	text_input = ObjectProperty(None)
-	cancel = ObjectProperty(None)
+# class ParStarFinder(FloatLayout):
+# 	parstardsave = ObjectProperty(None)
+# 	text_input = ObjectProperty(None)
+# 	cancel = ObjectProperty(None)
     
 class MaskFinder(FloatLayout):
     maskdsave = ObjectProperty(None)
@@ -217,22 +217,22 @@ class Tabs(TabbedPanel):
 		self.dismiss_popup()
 
 # parse star file save
-	def show_parstar(self):
-		content = ParStarFinder(parstardsave=self.parstarsave, cancel=self.dismiss_popup)
-		self._popup = Popup(title="Save Parser Star File", content=content,
-                            size_hint=(0.9, 0.9))
-		self._popup.open()
+	# def show_parstar(self):
+	# 	content = ParStarFinder(parstardsave=self.parstarsave, cancel=self.dismiss_popup)
+	# 	self._popup = Popup(title="Save Parser Star File", content=content,
+    #                         size_hint=(0.9, 0.9))
+	# 	self._popup.open()
 
-	def parstarsave(self, path, filename):
-		parstarpath = filename
-		if len(parstarpath) != 0:
-			if parstarpath.endswith('.star') == False:
-				self.ids.restar.text = 'Not a ".star" file — Choose Star File Path'
-			else:
-				self.ids.restar.text = parstarpath
-		elif len(parstarpath) == 0:
-			self.ids.restar.text = 'Choose Star File Path'
-		self.dismiss_popup()
+	# def parstarsave(self, path, filename):
+	# 	parstarpath = filename
+	# 	if len(parstarpath) != 0:
+	# 		if parstarpath.endswith('.star') == False:
+	# 			self.ids.restar.text = 'Not a ".star" file — Choose Star File Path'
+	# 		else:
+	# 			self.ids.restar.text = parstarpath
+	# 	elif len(parstarpath) == 0:
+	# 		self.ids.restar.text = 'Choose Star File Path'
+	# 	self.dismiss_popup()
 
 # mask path save
 	def show_mask(self):
@@ -404,44 +404,67 @@ class Tabs(TabbedPanel):
 	def extract(self):
 		tomogram = self.ids.tomo.text
 		coordfile = self.ids.tomocoords.text
+		# tomogram path
 		direct = '/'.join(tomogram.split('/')[:-1]) + '/'
+		# tomogram name
 		tomName = tomogram.split('/')[-1].replace('.mrc', '')
+		# use for star file imageName
+		subdirect = 'Extract/' + tomName + '/'
+		# use for full path containing subtomograms
+		directory = direct + subdirect
+		# memory map the tomogram
 		tomogram = mrcfile.mmap(tomogram)
 		boxsize = float(self.ids.px1.text)
 		angpix = float(self.ids.A1.text)
-		if os.path.isdir(direct + 'subtomograms') == False:
-			os.makedirs(direct + 'subtomograms/')
-		direct = direct + 'subtomograms/'
+		if os.path.isdir(directory) == False:
+			os.makedirs(directory)
 		with open(coordfile, 'r') as coord:
 			coord = coord.readlines()
-			# for line in coord:
+			# create an empty data list for the rows
+			data = []
 			def extractLoop(i):
-				line = coord[i]
+				# create subtomogram file name
+				number = '000000' + str(i)
+				number = number[-6:]
+				name = directory + tomName + number + '.mrc'
+				# create imageName for star file
+				starName = subdirect + tomName + number + '.mrc'
 				# access coordinates from coords file
+				line = coord[i]
 				pos = line.split(' ')[1:]
 				# convert coordinates to integers
-				x = int(pos[0]) - boxsize/2
-				y = int(pos[1]) - boxsize/2
-				z = int(pos[2].strip()) - boxsize/2
+				x = int(pos[0])
+				y = int(pos[1])
+				z = int(pos[2].strip())
+				# create and append star file rows for subtomogram
+				row = [self.ids.tomo.text.split('/')[-1], x, y, z, starName, 'wedgefx2.mrc', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+				data.append(row)
+				# shift coordinates to top left corner of the boxsize for extraction
+				x = x - boxsize/2
+				y = y - boxsize/2
+				z = z - boxsize/2
 				# calculate bounds
 				bound = np.zeros(3)
 				bound[0] = z + boxsize - 1
 				bound[1] = y + boxsize - 1
 				bound[2] = x + boxsize - 1
-
+				# rounding
 				bound = np.round(bound).astype(int)
 				z = np.round(z).astype(int)
 				y = np.round(y).astype(int)
 				x = np.round(x).astype(int)
 				# cut the tomogram
 				out = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
-				out = out * -1
-				name = direct + tomName + str(i) + '.mrc'
+				# invert subtomograms if selected
+				if self.ids.extractInvert.active == True:
+					out = out * -1
+				# create subtomogram
 				mrcfile.new(name, out, overwrite=True)
 				print('Extracted ' + name)
 				# change pixel size
 				with mrcfile.open(name, 'r+') as mrc:
 					mrc.voxel_size = angpix
+
 			# thread in batches to optimize runtime
 			threads = []
 			batch_size = int(self.ids.CPU.text)
@@ -456,6 +479,13 @@ class Tabs(TabbedPanel):
 					threads[i].join()
 			for thread in threads:
 				thread.join()
+			# move tomogram to the new subtomogram directory
+			# shutil.move(self.ids.tomo.text, directory)
+			# create data frame for star file
+			columns=['rlnMicrographName', 'rlnCoordinateX', 'rlnCoordinateY', 'rlnCoordinateZ', 'rlnImageName', 'rlnCtfImage', 'rlnGroupNumber', 'rlnOpticsGroup', 'rlnAngleRot', 'rlnAngleTilt', 'rlnAnglePsi', 'rlnAngleTiltPrior', 'rlnAnglePsiPrior', 'rlnOriginXAngst', 'rlnOriginYAngst', 'rlnOriginZAngst', 'rlnClassNumber', 'rlnNormCorrection']
+			df = pd.DataFrame(data, columns=columns)
+			extractStar = {"particles": df}
+			starfile.write(extractStar, direct + tomName + '.star', overwrite=True)
 			print('Extraction Complete\n')
 
 	plt.ion()
@@ -1102,90 +1132,90 @@ class Tabs(TabbedPanel):
 		starfile.write(star_data, direct + '/' + starfileName + '_reextract.star', overwrite=True)
 		return
 
-	def parse(self):
-		starpar = self.ids.restar.text
-		outpar = "/".join(self.ids.restar.text.split("/")[:-1]) + '/newcoord/'
-		if os.path.exists(outpar) == False:
-			os.mkdir(outpar)
-		xstar = '_rlnCoordinateX'
-		ystar = '_rlnCoordinateY'
-		zstar = '_rlnCoordinateZ'
-		microstar = '_rlnMicrographName'
-		micronames = outpar + 'microname.txt'
-		file_opt = open(micronames, 'w')
-		file_opt.write('')
-		file_opt.close()
-	#	finding correct column indexes
-		with open(starpar) as par:
-			for line in par:
-				if re.search(xstar, line):
-					xcol = re.findall(r'\d+', line)
-					xcol = int(xcol[0]) - 1
-				if re.search(ystar, line):
-					ycol = re.findall(r'\d+', line)
-					ycol = int(ycol[0]) - 1	
-				if re.search(zstar, line):
-					zcol = re.findall(r'\d+', line)
-					zcol = int(zcol[0]) - 1
-				if re.search(microstar, line):
-					microcol = re.findall(r'\d+', line)
-					microcol = int(microcol[0]) - 1
-				if re.search('.mrc', line):
-					fold = line.split()
-					unique = fold[microcol]
-					file_opt = open(micronames, 'a')
-					file_opt.write(unique + '\n')
-					file_opt.close()
-	#	searching for unique tomograms
-		lines_seen = set()
-		with open(micronames, 'r+') as tomb:
-			d = tomb.readlines()
-			tomb.seek(0)
-			for i in d:
-				if i not in lines_seen:
-					tomb.write(i)
-					lines_seen.add(i)
-			tomb.truncate()
-		with open(micronames) as stap:
-			for line in stap:
-				tine = line.strip()
-				fine = tine.replace('\n', '')
-				ending = fine.rsplit('/', 1)[-1]
-				vine = ending.replace('.mrc', '')
-				if re.search('_filt', vine):
-					vine = vine.replace('_filt', '')
-				edge = outpar + vine + '_subcoord.coord'
-				file_opt = open(edge, 'w')
-				file_opt.writelines('')
-				file_opt.close()
-				with open(starpar) as rats:
-					for line in rats:
-						if re.search(fine, line):
-							sline = line.split()
-						#	extracting the correct values
-							xst = str(int(float(sline[xcol])))
-							yst = str(int(float(sline[ycol])))
-							zst = str(int(float(sline[zcol])))
-							allcooc = xst + '\t' + yst + '\t' + zst + '\t'
-							if int(xst) < 800 and int(yst) < 800 and int(zst) < 800:
-								print('WARNING: Double check that files in ' + vine + ' are binned!')
-						#	create the coord file
-							file_opt = open(edge, 'a')
-							if self.ids.cooc.active == True:
-								file_opt.writelines(allcooc)
-							if self.ids.othercols.text != '':
-								other = self.ids.othercols.text
-								parts = other.split(',')
-								for item in parts:
-									if len(item) > 0:
-										spot = int(item)
-										spod = spot - 1
-										info = sline[spod]
-										file_opt.writelines(info + '\t')
-							file_opt.writelines('\n')
-							file_opt.close()
-		os.remove(micronames)
-		return
+	# def parse(self):
+	# 	starpar = self.ids.restar.text
+	# 	outpar = "/".join(self.ids.restar.text.split("/")[:-1]) + '/newcoord/'
+	# 	if os.path.exists(outpar) == False:
+	# 		os.mkdir(outpar)
+	# 	xstar = '_rlnCoordinateX'
+	# 	ystar = '_rlnCoordinateY'
+	# 	zstar = '_rlnCoordinateZ'
+	# 	microstar = '_rlnMicrographName'
+	# 	micronames = outpar + 'microname.txt'
+	# 	file_opt = open(micronames, 'w')
+	# 	file_opt.write('')
+	# 	file_opt.close()
+	# #	finding correct column indexes
+	# 	with open(starpar) as par:
+	# 		for line in par:
+	# 			if re.search(xstar, line):
+	# 				xcol = re.findall(r'\d+', line)
+	# 				xcol = int(xcol[0]) - 1
+	# 			if re.search(ystar, line):
+	# 				ycol = re.findall(r'\d+', line)
+	# 				ycol = int(ycol[0]) - 1	
+	# 			if re.search(zstar, line):
+	# 				zcol = re.findall(r'\d+', line)
+	# 				zcol = int(zcol[0]) - 1
+	# 			if re.search(microstar, line):
+	# 				microcol = re.findall(r'\d+', line)
+	# 				microcol = int(microcol[0]) - 1
+	# 			if re.search('.mrc', line):
+	# 				fold = line.split()
+	# 				unique = fold[microcol]
+	# 				file_opt = open(micronames, 'a')
+	# 				file_opt.write(unique + '\n')
+	# 				file_opt.close()
+	# #	searching for unique tomograms
+	# 	lines_seen = set()
+	# 	with open(micronames, 'r+') as tomb:
+	# 		d = tomb.readlines()
+	# 		tomb.seek(0)
+	# 		for i in d:
+	# 			if i not in lines_seen:
+	# 				tomb.write(i)
+	# 				lines_seen.add(i)
+	# 		tomb.truncate()
+	# 	with open(micronames) as stap:
+	# 		for line in stap:
+	# 			tine = line.strip()
+	# 			fine = tine.replace('\n', '')
+	# 			ending = fine.rsplit('/', 1)[-1]
+	# 			vine = ending.replace('.mrc', '')
+	# 			if re.search('_filt', vine):
+	# 				vine = vine.replace('_filt', '')
+	# 			edge = outpar + vine + '_subcoord.coord'
+	# 			file_opt = open(edge, 'w')
+	# 			file_opt.writelines('')
+	# 			file_opt.close()
+	# 			with open(starpar) as rats:
+	# 				for line in rats:
+	# 					if re.search(fine, line):
+	# 						sline = line.split()
+	# 					#	extracting the correct values
+	# 						xst = str(int(float(sline[xcol])))
+	# 						yst = str(int(float(sline[ycol])))
+	# 						zst = str(int(float(sline[zcol])))
+	# 						allcooc = xst + '\t' + yst + '\t' + zst + '\t'
+	# 						if int(xst) < 800 and int(yst) < 800 and int(zst) < 800:
+	# 							print('WARNING: Double check that files in ' + vine + ' are binned!')
+	# 					#	create the coord file
+	# 						file_opt = open(edge, 'a')
+	# 						if self.ids.cooc.active == True:
+	# 							file_opt.writelines(allcooc)
+	# 						if self.ids.othercols.text != '':
+	# 							other = self.ids.othercols.text
+	# 							parts = other.split(',')
+	# 							for item in parts:
+	# 								if len(item) > 0:
+	# 									spot = int(item)
+	# 									spod = spot - 1
+	# 									info = sline[spod]
+	# 									file_opt.writelines(info + '\t')
+	# 						file_opt.writelines('\n')
+	# 						file_opt.close()
+	# 	os.remove(micronames)
+	# 	return
 	
 	def path_1(self):
 		self.ids.cmmf.text = '/cmm_files'
