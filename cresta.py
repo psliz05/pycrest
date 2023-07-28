@@ -1568,7 +1568,7 @@ class Tabs(TabbedPanel):
 				mrcName = fileNames[i].split('/')[-1]
 				mrcDirec = "/".join(fileNames[i].split('/')[:-1])
 				reextractDir = mrcDirec + '/masked/'
-				print("Now re-extracting " + mrcName)
+				print("Now masking " + mrcName)
 				a = time.perf_counter()
 				outH1, posNew[:i] = tom.processParticle(fileNames[i], angles[:,i].conj().transpose(), shifts[:,i], maskh1, pickPos[:,i].conj().transpose(), offSetCenter, boxsize, filter, grow, normalizeit, sdrange, sdshift,blackdust,whitedust,shiftfil,randfilt,permutebg)
 				if os.path.isdir(reextractDir) == False:
@@ -1579,9 +1579,9 @@ class Tabs(TabbedPanel):
 				b = time.perf_counter()
 				t1 = str(timedelta(seconds = b-a)).split(":")
 				if int(t1[1]) > 0:
-					print(f"Re-extraction complete for {mrcName} in {t1[1]} minutes and {t1[2]} seconds" )
+					print(f"Masking complete for {mrcName} in {t1[1]} minutes and {t1[2]} seconds" )
 				else:
-					print(f"Re-extraction complete for {mrcName} in {t1[2]} seconds" )
+					print(f"Masking complete for {mrcName} in {t1[2]} seconds" )
 			# thread in batches to optimize runtime
 			threads = []
 			batch_size = int(self.ids.CPU.text)
@@ -1597,7 +1597,7 @@ class Tabs(TabbedPanel):
 				thread.join()
 			bb = time.perf_counter()
 			t2 = str(timedelta(seconds = bb-aa)).split(":")
-			print(f'Total re-extraction time: {t2[1]} minutes and {t2[2]} seconds')
+			print(f'Total masking time: {t2[1]} minutes and {t2[2]} seconds')
 			print('New starfile created: ' + new_star_name + '\n')
 
 		cut_part_and_movefunc(mask, starf, direc, boxsize, pxsz, filter, grow, normalizeit, sdrange, sdshift, blackdust, whitedust, shiftfil, randfilt, permutebg)
