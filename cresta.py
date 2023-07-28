@@ -408,8 +408,9 @@ class Tabs(TabbedPanel):
 		direct = '/'.join(tomogram.split('/')[:-1]) + '/'
 		# tomogram name
 		tomName = tomogram.split('/')[-1].replace('.mrc', '')
-		# use for star file imageName
-		subdirect = 'Extract/' + tomName + '/'
+		# use for star file micrographName and imageName
+		micrograph = 'Tomograms/' + tomName + '/' + tomogram.split('/')[-1]
+		subdirect = 'Tomograms/' + tomName + '/Extract/'
 		# use for full path containing subtomograms
 		directory = direct + subdirect
 		# memory map the tomogram
@@ -437,7 +438,7 @@ class Tabs(TabbedPanel):
 				y = int(pos[1])
 				z = int(pos[2].strip())
 				# create and append star file rows for subtomogram
-				row = [self.ids.tomo.text.split('/')[-1], x, y, z, starName, 'wedgefx2.mrc', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+				row = [micrograph, x, y, z, starName, 'wedgefx2.mrc', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 				data.append(row)
 				# shift coordinates to top left corner of the boxsize for extraction
 				x = x - boxsize/2
@@ -479,12 +480,13 @@ class Tabs(TabbedPanel):
 					threads[i].join()
 			for thread in threads:
 				thread.join()
-			# move tomogram to the new subtomogram directory
-			# shutil.move(self.ids.tomo.text, directory)
+			# move tomogram and coords to the new subtomogram directory
+			shutil.move(self.ids.tomo.text, direct + 'Tomograms/' + tomName + '/')
+			shutil.move(coordfile, direct + 'Tomograms/' + tomName + '/')
 			# create data frame for star file
 			columns=['rlnMicrographName', 'rlnCoordinateX', 'rlnCoordinateY', 'rlnCoordinateZ', 'rlnImageName', 'rlnCtfImage', 'rlnGroupNumber', 'rlnOpticsGroup', 'rlnAngleRot', 'rlnAngleTilt', 'rlnAnglePsi', 'rlnAngleTiltPrior', 'rlnAnglePsiPrior', 'rlnOriginXAngst', 'rlnOriginYAngst', 'rlnOriginZAngst', 'rlnClassNumber', 'rlnNormCorrection']
 			df = pd.DataFrame(data, columns=columns)
-			extractStar = {"particles": df}
+			extractStar = {"optics": pd.DataFrame(), "particles": df}
 			starfile.write(extractStar, direct + tomName + '.star', overwrite=True)
 			print('Extraction Complete\n')
 
@@ -917,8 +919,6 @@ class Tabs(TabbedPanel):
 		# initialize variables
 		starf = self.ids.mainstarfilt.text
 		direct = self.ids.mainsubtomo.text
-		tomogram = self.ids.tomo.text
-		tomogram = mrcfile.mmap(tomogram)
 		angpix = float(self.ids.A1.text)
 		imgToCmmCor = {}
 		if self.ids.mainsubtomo.text[-1] != '/':
@@ -957,6 +957,9 @@ class Tabs(TabbedPanel):
 											xCor = float(row['rlnCoordinateX'].iloc[0])
 											yCor = float(row['rlnCoordinateY'].iloc[0])
 											zCor = float(row['rlnCoordinateZ'].iloc[0])
+											# get the tomogram name from star file and memory map it
+											tomogram = direct + row['rlnMicrographName'].iloc[0]
+											tomogram = mrcfile.mmap(tomogram)
 											# get boxsize from subtomogram
 											boxsize = []
 											with mrcfile.open(direct + row['rlnImageName'].iloc[0], 'r+') as mrc:
@@ -979,10 +982,6 @@ class Tabs(TabbedPanel):
 											finalz = str(round(zCor) - int(cmmZ))
 											# create a folder for each subtomogram
 											subtomoName = row['rlnImageName'].iloc[0]
-											subtomoIn = subtomoName.replace('_wiener', '')
-											subtomoIn = subtomoIn.replace('_gauss', '')
-											subtomoIn = subtomoIn.replace('filtered/', '')
-											invol = mrcfile.read(direct + subtomoIn)
 											subtomo = subtomoName.replace('_wiener', '')
 											subtomo = subtomo.replace('_gauss', '')
 											subtomo = subtomo.replace('filtered', subtomo.split("/")[-1].split('.')[0])
@@ -1005,7 +1004,9 @@ class Tabs(TabbedPanel):
 											x = np.round(x).astype(int)
 											# cut the tomogram
 											subby = tomogram.data[z:(bound[0]+1), y:(bound[1]+1), x:(bound[2]+1)]
-											subby = subby * -1
+											# invert contrast if selected
+											if self.ids.reextractInvert.active == True:
+												subby = subby * -1
 											# add new coords to dictionary
 											if name in imgToCmmCor.keys(): #checks duplicate filename
 												imgToCmmCor[name + count*"!"] = [x_coord, y_coord, z_coord, cmmX, cmmY, cmmZ, finalx, finaly, finalz, subtomo]
@@ -1033,7 +1034,7 @@ class Tabs(TabbedPanel):
 											# file_opt.close()
 											shutil.copy(folder + '/' + filename, '/' + subtomoFolder + '/' + filename)
 		
-		# add new information to cmm star file
+		# add new information to intermediate star file
 		star_data = starfile.read(starf)
 		df = pd.DataFrame.from_dict(star_data['particles'])
 		# define new columns
@@ -1130,6 +1131,8 @@ class Tabs(TabbedPanel):
 		star_data['particles'] = df1
 		starfileName = starf.split("/")[-1].split(".")[0].replace('_filtered', '')
 		starfile.write(star_data, direct + '/' + starfileName + '_reextract.star', overwrite=True)
+		# remove intermediate star file
+		os.remove(cmmStar)
 		return
 
 	# def parse(self):

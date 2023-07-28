@@ -806,7 +806,7 @@
 						BoxLayout:
 							orientation: 'horizontal'
 							size_hint: .2, .6
-							pos_hint: {'center_x': .5, 'center_y': .5}
+							pos_hint: {'center_x': .475, 'center_y': .5}
 							CheckBox:
 								state: 'down'
 								id: extractInvert
@@ -1245,7 +1245,7 @@
 						size_hint_x: .03
 				BoxLayout:
 					orientation: 'horizontal'
-					size_hint: .9, .1
+					size_hint: .9, .05
 					pos_hint: {'center_x': .5, 'center_y': .5}
 					Label:
 						size_hint_y: .2
@@ -1277,9 +1277,17 @@
 						multiline: True
 						size_hint: .65, .8
 						id: notecoord
-				Label:
-					text: ' '
-					size_hint_y: .04
+				BoxLayout:
+					orientation: 'horizontal'
+					size_hint: .2, .15
+					pos_hint: {'center_x': .475, 'center_y': .5}
+					CheckBox:
+						state: 'down'
+						id: reextractInvert
+					Label:
+						text: 'Invert Contrast'
+						bold: True
+						color: (0,0,0,1)
 				BoxLayout:
 					orientation: 'horizontal'
 					size_hint: .23, .18
